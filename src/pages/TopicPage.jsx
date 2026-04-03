@@ -1,4 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
+import quizData from "../lib/quizData";
+import QuizSection from "../components/QuizSection";
 import courseData from "../lib/courseData";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
@@ -119,6 +121,13 @@ export default function TopicPage() {
             {topic.content}
           </ReactMarkdown>
         </motion.div>
+
+        {/* Quiz */}
+        {quizData[topicId] && (
+          <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm mt-6">
+            <QuizSection quiz={quizData[topicId]} />
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="flex items-center justify-between mt-8 gap-4">
