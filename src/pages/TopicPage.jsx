@@ -1,5 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import quizData from "../lib/quizData";
+import terminalData from "../lib/terminalData";
+import TerminalSimulator from "../components/TerminalSimulator";
 import QuizSection from "../components/QuizSection";
 import courseData from "../lib/courseData";
 import ReactMarkdown from "react-markdown";
@@ -121,6 +123,13 @@ export default function TopicPage() {
             {topic.content}
           </ReactMarkdown>
         </motion.div>
+
+        {/* Terminal Simulator */}
+        {terminalData[topicId] && (
+          <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm mt-6">
+            <TerminalSimulator terminalConfig={terminalData[topicId]} />
+          </div>
+        )}
 
         {/* Quiz */}
         {quizData[topicId] && (
