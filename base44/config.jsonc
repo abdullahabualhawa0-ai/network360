@@ -1,0 +1,9 @@
+{
+  "name": "\u0634\u0628\u0643\u062a\u064a (Shabakati)",
+  "site": {
+    "installCommand": "npm install",
+    "buildCommand": "npm run build",
+    "serveCommand": "npm run dev",
+    "outputDirectory": "./dist"
+  }
+}
