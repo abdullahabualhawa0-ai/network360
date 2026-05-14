@@ -3,6 +3,8 @@ import quizData from "../lib/quizData";
 import terminalData from "../lib/terminalData";
 import TerminalSimulator from "../components/TerminalSimulator";
 import QuizSection from "../components/QuizSection";
+import TextToSpeech from "../components/TextToSpeech";
+import ReadingGate from "../components/ReadingGate";
 import courseData from "../lib/courseData";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
@@ -84,6 +86,10 @@ export default function TopicPage() {
           transition={{ duration: 0.3, delay: 0.1 }}
           className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm"
         >
+          {/* TTS button */}
+          <div className="flex justify-end mb-4">
+            <TextToSpeech text={topic.content} label="قراءة الشرح" />
+          </div>
           <ReactMarkdown
             className="prose prose-sm sm:prose-base prose-slate max-w-none
               prose-headings:font-bold prose-headings:text-foreground
@@ -131,10 +137,20 @@ export default function TopicPage() {
           </div>
         )}
 
-        {/* Quiz */}
+        {/* Quiz — gated by reading time */}
         {quizData[topicId] && (
-          <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm mt-6">
-            <QuizSection quiz={quizData[topicId]} />
+          <div className="mt-6">
+            <ReadingGate content={topic.content}>
+              <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
+                <div className="flex justify-end mb-2">
+                  <TextToSpeech
+                    text={quizData[topicId].questions.map((q, i) => `سؤال ${i+1}: ${q.question}. الخيارات: ${q.options.join(". ")}`).join(". ")}
+                    label="قراءة الأسئلة"
+                  />
+                </div>
+                <QuizSection quiz={quizData[topicId]} />
+              </div>
+            </ReadingGate>
           </div>
         )}
 

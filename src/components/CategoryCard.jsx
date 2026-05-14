@@ -18,7 +18,7 @@ export default function CategoryCard({ section, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.4 }}
     >
-      <div className="group bg-card rounded-2xl border border-border p-5 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1">
+      <div className="group bg-card rounded-2xl border border-border p-5 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1.5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center shadow-lg`}>

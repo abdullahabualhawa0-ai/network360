@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './components/Layout';
+import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import TopicPage from './pages/TopicPage';
 import NetworkSimulator from './pages/NetworkSimulator';
@@ -36,7 +37,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route element={<><ScrollToTop /><Layout /></>}>
         <Route path="/" element={<Home />} />
         <Route path="/topic/:sectionId/:topicId" element={<TopicPage />} />
         <Route path="/network-simulator" element={<NetworkSimulator />} />
