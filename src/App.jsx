@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import TopicPage from './pages/TopicPage';
+import NetworkSimulator from './pages/NetworkSimulator';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -38,6 +39,7 @@ const AuthenticatedApp = () => {
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/topic/:sectionId/:topicId" element={<TopicPage />} />
+        <Route path="/network-simulator" element={<NetworkSimulator />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

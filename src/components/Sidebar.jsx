@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag,
-  ChevronDown, BookOpen, Home
+  ChevronDown, BookOpen, Home, MonitorPlay
 } from "lucide-react";
 import courseData from "../lib/courseData";
 import { useState } from "react";
@@ -46,6 +46,23 @@ export default function Sidebar({ onClose }) {
         >
           <Home size={16} />
           <span className="font-medium">الصفحة الرئيسية</span>
+        </Link>
+      </div>
+
+      {/* Network Simulator link */}
+      <div className="px-3 pt-1">
+        <Link
+          to="/network-simulator"
+          onClick={onClose}
+          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+            location.pathname === '/network-simulator'
+              ? 'bg-gradient-to-l from-emerald-500 to-teal-600 text-white shadow-md'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          }`}
+        >
+          <MonitorPlay size={16} />
+          <span className="font-medium">محاكاة بناء شبكة</span>
+          <span className="mr-auto text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">جديد</span>
         </Link>
       </div>
 
