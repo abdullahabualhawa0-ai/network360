@@ -72,14 +72,14 @@ export default function Home() {
                 الشبكات
               </span>
             </h1>
-            <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10"> دليلك الشامل لفهم أساسيات الشبكات من العناوين والتوجيه إلى الأمان وإنترنت الأشياء   عبد الله أبو  الهوى            امير دراويش
-
-            </p>
+            <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+ دليلك الشامل لفهم أساسيات الشبكات من العناوين والتوجيه إلى الأمان وإنترنت الأشياء   عبد الله أبو  الهوى          
+  امير دراويش
+مدرسة شعفاط الشاملة ا</p>
 
             {/* Stats */}
             <div className="flex items-center justify-center gap-6 sm:gap-10">
-              {[
-              { icon: Layers, val: courseData.length, label: "قسم", color: "text-cyan-400", bg: "bg-cyan-400/10 border-cyan-400/20" },
+              {[{ icon: Layers, val: courseData.length, label: "قسم", color: "text-cyan-400", bg: "bg-cyan-400/10 border-cyan-400/20" },
               { icon: BookOpen, val: totalTopics, label: "درس", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
               { icon: GraduationCap, val: "100%", label: "مجاني", color: "text-purple-400", bg: "bg-purple-400/10 border-purple-400/20" }].
               map(({ icon: Icon, val, label, color, bg }, i) =>
