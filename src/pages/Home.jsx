@@ -125,7 +125,7 @@ export default function Home() {
                       <h3 className="text-white font-black text-lg">محاكاة بناء شبكة</h3>
                       <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">جديد</span>
                     </div>
-                    <p className="text-white/75 text-sm">اسحب الأجهزة وابنِ شبكتك بصرياً — Drag & Drop تفاعلي</p>
+                    <p className="text-white/75 text-sm">اسحب الأجهزة وابنِ شبكتك بصرياً —  تفاعلي</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-white/80 group-hover:text-white group-hover:gap-3 transition-all">
