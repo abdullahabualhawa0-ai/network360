@@ -1,25 +1,35 @@
 import { useState, useEffect, useRef } from "react";
 import { Volume2, Square, Play, Pause } from "lucide-react";
 
-// Detect if text is predominantly Arabic
-function detectLang(text) {
-  const arabicChars = (text.match(/[\u0600-\u06FF]/g) || []).length;
-  const totalChars = text.replace(/\s/g, "").length || 1;
-  return arabicChars / totalChars > 0.3 ? "ar" : "en";
-}
-
-// Split text into segments by language
+// Split mixed text into segments, each tagged with its language.
+// Strategy: tokenize word-by-word, group consecutive same-language tokens.
 function splitByLanguage(text) {
-  // Regex: arabic block vs latin/code block
+  // Tokenize into words and non-word separators
+  const tokens = text.split(/(\s+)/);
   const segments = [];
-  const regex = /([\u0600-\u06FF\s،؟!.،]+)|([\x00-\x7F\n\r\t ]+)/g;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    const value = match[0].trim();
-    if (!value) continue;
-    const isArabic = /[\u0600-\u06FF]/.test(value);
-    segments.push({ text: value, lang: isArabic ? "ar" : "en" });
+  let current = null;
+
+  for (const token of tokens) {
+    if (!token) continue;
+    const hasArabic = /[\u0600-\u06FF]/.test(token);
+    const hasLatin = /[a-zA-Z0-9]/.test(token);
+    
+    // Pure whitespace/punctuation → keep with current segment
+    if (!hasArabic && !hasLatin) {
+      if (current) current.text += token;
+      continue;
+    }
+
+    const lang = hasArabic ? "ar" : "en";
+
+    if (current && current.lang === lang) {
+      current.text += token;
+    } else {
+      if (current && current.text.trim()) segments.push(current);
+      current = { text: token, lang };
+    }
   }
+  if (current && current.text.trim()) segments.push(current);
   return segments;
 }
 
