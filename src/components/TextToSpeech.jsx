@@ -1,21 +1,53 @@
 import { useState, useEffect, useRef } from "react";
-import { Volume2, VolumeX, Square, Play, Pause } from "lucide-react";
+import { Volume2, Square, Play, Pause } from "lucide-react";
+
+// Detect if text is predominantly Arabic
+function detectLang(text) {
+  const arabicChars = (text.match(/[\u0600-\u06FF]/g) || []).length;
+  const totalChars = text.replace(/\s/g, "").length || 1;
+  return arabicChars / totalChars > 0.3 ? "ar" : "en";
+}
+
+// Split text into segments by language
+function splitByLanguage(text) {
+  // Regex: arabic block vs latin/code block
+  const segments = [];
+  const regex = /([\u0600-\u06FF\s،؟!.،]+)|([\x00-\x7F\n\r\t ]+)/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const value = match[0].trim();
+    if (!value) continue;
+    const isArabic = /[\u0600-\u06FF]/.test(value);
+    segments.push({ text: value, lang: isArabic ? "ar" : "en" });
+  }
+  return segments;
+}
+
+function getBestVoice(lang, voices) {
+  if (lang === "ar") {
+    return voices.find(v => v.lang.startsWith("ar")) || null;
+  } else {
+    return (
+      voices.find(v => v.lang === "en-US" && v.name.toLowerCase().includes("google")) ||
+      voices.find(v => v.lang.startsWith("en-US")) ||
+      voices.find(v => v.lang.startsWith("en")) ||
+      null
+    );
+  }
+}
 
 export default function TextToSpeech({ text, label = "قراءة النص" }) {
   const [speaking, setSpeaking] = useState(false);
   const [paused, setPaused] = useState(false);
   const [supported, setSupported] = useState(false);
-  const utteranceRef = useRef(null);
+  const stoppedRef = useRef(false);
 
   useEffect(() => {
     setSupported("speechSynthesis" in window);
-    return () => {
-      window.speechSynthesis?.cancel();
-    };
+    return () => { window.speechSynthesis?.cancel(); };
   }, []);
 
   useEffect(() => {
-    // Cancel if text changes
     window.speechSynthesis?.cancel();
     setSpeaking(false);
     setPaused(false);
@@ -23,10 +55,21 @@ export default function TextToSpeech({ text, label = "قراءة النص" }) {
 
   if (!supported) return null;
 
-  const getVoice = () => {
-    const voices = window.speechSynthesis.getVoices();
-    // Prefer Arabic voice, fallback to any
-    return voices.find(v => v.lang.startsWith("ar")) || voices[0] || null;
+  const speakSegments = (segments, index, voices) => {
+    if (stoppedRef.current || index >= segments.length) {
+      setSpeaking(false);
+      setPaused(false);
+      return;
+    }
+    const seg = segments[index];
+    const utter = new SpeechSynthesisUtterance(seg.text);
+    utter.lang = seg.lang === "ar" ? "ar-SA" : "en-US";
+    utter.rate = seg.lang === "ar" ? 0.9 : 1.0;
+    const voice = getBestVoice(seg.lang, voices);
+    if (voice) utter.voice = voice;
+    utter.onend = () => speakSegments(segments, index + 1, voices);
+    utter.onerror = () => { setSpeaking(false); setPaused(false); };
+    window.speechSynthesis.speak(utter);
   };
 
   const handlePlay = () => {
@@ -36,19 +79,23 @@ export default function TextToSpeech({ text, label = "قراءة النص" }) {
       return;
     }
     window.speechSynthesis.cancel();
+    stoppedRef.current = false;
+
     const clean = text.replace(/[#*`>~\[\]]/g, "").replace(/\n+/g, ". ");
-    const utter = new SpeechSynthesisUtterance(clean);
-    utter.lang = "ar-SA";
-    utter.rate = 0.9;
-    utter.pitch = 1;
-    const voice = getVoice();
-    if (voice) utter.voice = voice;
-    utter.onstart = () => setSpeaking(true);
-    utter.onend = () => { setSpeaking(false); setPaused(false); };
-    utter.onerror = () => { setSpeaking(false); setPaused(false); };
-    utteranceRef.current = utter;
-    window.speechSynthesis.speak(utter);
-    setSpeaking(true);
+    const segments = splitByLanguage(clean).filter(s => s.text.length > 1);
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length === 0) {
+      // Wait for voices to load then speak
+      window.speechSynthesis.onvoiceschanged = () => {
+        const v = window.speechSynthesis.getVoices();
+        setSpeaking(true);
+        speakSegments(segments, 0, v);
+      };
+    } else {
+      setSpeaking(true);
+      speakSegments(segments, 0, voices);
+    }
   };
 
   const handlePause = () => {
@@ -57,6 +104,7 @@ export default function TextToSpeech({ text, label = "قراءة النص" }) {
   };
 
   const handleStop = () => {
+    stoppedRef.current = true;
     window.speechSynthesis.cancel();
     setSpeaking(false);
     setPaused(false);
@@ -75,22 +123,18 @@ export default function TextToSpeech({ text, label = "قراءة النص" }) {
       ) : (
         <div className="flex items-center gap-1.5 bg-primary/5 border border-primary/20 rounded-xl px-3 py-1.5">
           <div className="flex items-center gap-0.5 mr-1">
-            {[1,2,3].map(i => (
+            {[1, 2, 3].map(i => (
               <div key={i} className="w-1 bg-primary rounded-full animate-pulse"
                 style={{ height: `${8 + i * 4}px`, animationDelay: `${i * 0.15}s` }} />
             ))}
           </div>
           <span className="text-xs text-primary font-medium">{paused ? "متوقف" : "يقرأ..."}</span>
-          <button
-            onClick={paused ? handlePlay : handlePause}
-            className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-primary"
-          >
+          <button onClick={paused ? handlePlay : handlePause}
+            className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-primary">
             {paused ? <Play size={13} /> : <Pause size={13} />}
           </button>
-          <button
-            onClick={handleStop}
-            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-red-500"
-          >
+          <button onClick={handleStop}
+            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-red-500">
             <Square size={13} />
           </button>
         </div>
