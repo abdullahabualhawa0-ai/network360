@@ -73,9 +73,9 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
- دليلك الشامل لفهم أساسيات الشبكات من العناوين والتوجيه إلى الأمان وإنترنت الأشياء   عبد الله أبو  الهوى          
-  امير دراويش
-مدرسة شعفاط الشاملة للبنين</p>
+ دليلك الشامل لفهم أساسيات الشبكات من العناوين والتوجيه إلى الأمان وإنترنت الأشياء   عبد الله أبو  الهوى            امير دراويش
+مدرسة شعفاط الشاملة للبنين
+            </p>
 
             {/* Stats */}
             <div className="flex items-center justify-center gap-6 sm:gap-10">
