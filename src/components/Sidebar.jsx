@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag,
-  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Bot
+  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Bot, Users
 } from "lucide-react";
 import courseData from "../lib/courseData";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 
 const iconMap = {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag
@@ -13,6 +14,11 @@ const iconMap = {
 export default function Sidebar({ onClose }) {
   const location = useLocation();
   const [expandedSections, setExpandedSections] = useState({});
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setIsAdmin(u?.role === "admin")).catch(() => {});
+  }, []);
 
   const toggleSection = (id) => {
     setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
@@ -97,6 +103,25 @@ export default function Sidebar({ onClose }) {
           <span className="font-medium">المساعدون الذكيون</span>
         </Link>
       </div>
+
+      {/* Admin: Students Report */}
+      {isAdmin && (
+        <div className="px-3 pt-1">
+          <Link
+            to="/admin/students"
+            onClick={onClose}
+            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+              location.pathname === '/admin/students'
+                ? 'bg-gradient-to-l from-rose-500 to-pink-600 text-white shadow-md'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`}
+          >
+            <Users size={16} />
+            <span className="font-medium">تقارير الطلاب</span>
+            <span className="mr-auto text-[9px] font-bold bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full">Admin</span>
+          </Link>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">

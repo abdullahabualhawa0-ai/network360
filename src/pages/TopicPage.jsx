@@ -1,5 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { syncProgressToServer } from "@/lib/progressSync";
 import quizData from "../lib/quizData";
 import terminalData from "../lib/terminalData";
 import TerminalSimulator from "../components/TerminalSimulator";
@@ -34,8 +36,20 @@ export default function TopicPage() {
   const section = courseData.find(s => s.id === sectionId);
   const topic = section?.topics.find(t => t.id === topicId);
 
-  // Mark as visited
-  useEffect(() => { markTopicVisited(topicId); }, [topicId]);
+  // Mark as visited + Event Tracking + sync
+  useEffect(() => {
+    markTopicVisited(topicId);
+    base44.analytics.track({
+      eventName: "topic_visited",
+      properties: {
+        topic_id: topicId,
+        topic_title: topic?.title || "",
+        section_id: sectionId,
+        section_title: section?.title || "",
+      }
+    });
+    syncProgressToServer();
+  }, [topicId]);
 
   if (!section || !topic) {
     return (

@@ -12,6 +12,7 @@ import TopicPage from './pages/TopicPage';
 import NetworkSimulator from './pages/NetworkSimulator';
 import Dashboard from './pages/Dashboard';
 import AgentsPage from './pages/AgentsPage';
+import AdminStudentsReport from './pages/AdminStudentsReport';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -45,6 +46,7 @@ const AuthenticatedApp = () => {
         <Route path="/network-simulator" element={<NetworkSimulator />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/agents" element={<AgentsPage />} />
+        <Route path="/admin/students" element={<AdminStudentsReport />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

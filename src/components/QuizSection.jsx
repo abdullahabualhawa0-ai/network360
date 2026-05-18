@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { base44 } from "@/api/base44Client";
+import { syncProgressToServer } from "@/lib/progressSync";
 import { CheckCircle2, XCircle, RotateCcw, Trophy, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function QuizSection({ quiz }) {
@@ -22,16 +24,33 @@ export default function QuizSection({ quiz }) {
 
   const handleSubmit = () => {
     if (Object.keys(answers).length < totalQuestions) return;
+    const finalScore = Math.round((quiz.questions.filter((q, i) => answers[i] === q.correct).length / totalQuestions) * 100);
     setSubmitted(true);
-    // Save quiz result for dashboard
+
+    // Save quiz result to localStorage for dashboard
     try {
       const quizId = quiz.id;
       if (quizId) {
         const existing = JSON.parse(localStorage.getItem("quiz-results") || "{}");
-        existing[quizId] = { score: Math.round((quiz.questions.filter((q, i) => answers[i] === q.correct).length / totalQuestions) * 100), completedAt: new Date().toISOString() };
+        existing[quizId] = { score: finalScore, completedAt: new Date().toISOString() };
         localStorage.setItem("quiz-results", JSON.stringify(existing));
       }
     } catch {}
+
+    // Event tracking: log successful quiz completion
+    base44.analytics.track({
+      eventName: "quiz_completed",
+      properties: {
+        quiz_id: quiz.id || "unknown",
+        quiz_title: quiz.title || "",
+        score: finalScore,
+        passed: finalScore >= 60,
+      }
+    });
+
+    // Sync progress to server (for admin dashboard — students only)
+    syncProgressToServer();
+
     window.scrollTo({ top: document.querySelector('#quiz-section')?.offsetTop - 100, behavior: 'smooth' });
   };
 
