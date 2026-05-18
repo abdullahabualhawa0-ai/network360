@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag,
-  ChevronDown, BookOpen, Home, MonitorPlay
+  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Bot
 } from "lucide-react";
 import courseData from "../lib/courseData";
 import { useState } from "react";
@@ -63,6 +63,38 @@ export default function Sidebar({ onClose }) {
           <MonitorPlay size={16} />
           <span className="font-medium">محاكاة بناء شبكة</span>
           <span className="mr-auto text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">جديد</span>
+        </Link>
+      </div>
+
+      {/* Dashboard */}
+      <div className="px-3 pt-1">
+        <Link
+          to="/dashboard"
+          onClick={onClose}
+          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+            location.pathname === '/dashboard'
+              ? 'bg-gradient-to-l from-indigo-500 to-purple-600 text-white shadow-md'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          }`}
+        >
+          <BarChart2 size={16} />
+          <span className="font-medium">لوحة التقدم</span>
+        </Link>
+      </div>
+
+      {/* Agents */}
+      <div className="px-3 pt-1">
+        <Link
+          to="/agents"
+          onClick={onClose}
+          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+            location.pathname === '/agents'
+              ? 'bg-gradient-to-l from-purple-500 to-pink-600 text-white shadow-md'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          }`}
+        >
+          <Bot size={16} />
+          <span className="font-medium">المساعدون الذكيون</span>
         </Link>
       </div>
 

@@ -10,6 +10,8 @@ import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import TopicPage from './pages/TopicPage';
 import NetworkSimulator from './pages/NetworkSimulator';
+import Dashboard from './pages/Dashboard';
+import AgentsPage from './pages/AgentsPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -41,6 +43,8 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Home />} />
         <Route path="/topic/:sectionId/:topicId" element={<TopicPage />} />
         <Route path="/network-simulator" element={<NetworkSimulator />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/agents" element={<AgentsPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

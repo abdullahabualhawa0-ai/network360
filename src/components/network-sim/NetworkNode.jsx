@@ -177,6 +177,12 @@ export default function NetworkNode({ node, selected, connectMode, connectFrom, 
         >
           {node.label}
         </span>
+        {/* IP display */}
+        {node.ip && (
+          <span className="text-[9px] font-mono text-slate-500 bg-white/80 border border-slate-200 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+            {node.ip}
+          </span>
+        )}
       </div>
     </div>
   );

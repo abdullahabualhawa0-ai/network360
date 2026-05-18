@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import quizData from "../lib/quizData";
 import terminalData from "../lib/terminalData";
 import TerminalSimulator from "../components/TerminalSimulator";
@@ -17,12 +18,24 @@ const iconMap = {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag
 };
 
+// Track visited topics for dashboard
+function markTopicVisited(topicId) {
+  try {
+    const data = JSON.parse(localStorage.getItem("topic-progress") || "{}");
+    data[topicId] = { visited: true, visitedAt: new Date().toISOString() };
+    localStorage.setItem("topic-progress", JSON.stringify(data));
+  } catch {}
+}
+
 export default function TopicPage() {
   const { sectionId, topicId } = useParams();
   const navigate = useNavigate();
 
   const section = courseData.find(s => s.id === sectionId);
   const topic = section?.topics.find(t => t.id === topicId);
+
+  // Mark as visited
+  useEffect(() => { markTopicVisited(topicId); }, [topicId]);
 
   if (!section || !topic) {
     return (
@@ -148,7 +161,7 @@ export default function TopicPage() {
                     label="قراءة الأسئلة"
                   />
                 </div>
-                <QuizSection quiz={quizData[topicId]} />
+                <QuizSection quiz={{ ...quizData[topicId], id: topicId }} />
               </div>
             </ReadingGate>
           </div>

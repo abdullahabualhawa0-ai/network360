@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import NetworkCanvas from "../components/network-sim/NetworkCanvas";
 import NetworkToolbar from "../components/network-sim/NetworkToolbar";
 import NetworkControls from "../components/network-sim/NetworkControls";
+import NodeConfigPanel from "../components/network-sim/NodeConfigPanel";
+import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
 import { Network } from "lucide-react";
 
@@ -47,6 +49,10 @@ export default function NetworkSimulator() {
     setNodes(prev => prev.filter(n => n.id !== id));
     setConnections(prev => prev.filter(c => c.from !== id && c.to !== id));
     setSelectedNode(null);
+  }, []);
+
+  const updateNode = useCallback((id, data) => {
+    setNodes(prev => prev.map(n => n.id === id ? { ...n, ...data } : n));
   }, []);
 
   const handleNodeClick = useCallback((id) => {
@@ -113,7 +119,17 @@ export default function NetworkSimulator() {
         />
 
         {/* Canvas + Controls */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          {/* Node config panel */}
+          <AnimatePresence>
+            {selectedNode && !connectMode && (
+              <NodeConfigPanel
+                node={nodes.find(n => n.id === selectedNode)}
+                onUpdate={updateNode}
+                onClose={() => setSelectedNode(null)}
+              />
+            )}
+          </AnimatePresence>
           <NetworkControls
             zoom={zoom}
             setZoom={setZoom}
