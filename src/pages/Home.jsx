@@ -123,7 +123,7 @@ export default function Home() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-white font-black text-lg">محاكاة بناء شبكة</h3>
-                      <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">جديد</span>
+                      <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">جديد</span>
                     </div>
                     <p className="text-white/75 text-sm">اسحب الأجهزة وابنِ شبكتك بصرياً —  تفاعلي</p>
                   </div>
