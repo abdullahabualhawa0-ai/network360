@@ -84,14 +84,14 @@ const DEVICE_ICONS = {
 };
 
 export default function NetworkNode({
-  node, selected, connectMode, connectFrom, onMove, onClick, onDelete, zoom, hasActivePacket
+  node, selected, highlighted, connectMode, onClick, onDelete, onMove, zoom, hasActivePacket
 }) {
   const [dragging, setDragging] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const style = DEVICE_STYLES[node.type] || DEVICE_STYLES.PC;
-  const isConnectSource = connectFrom === node.id;
+  const isConnectSource = highlighted;
   const isActive = hasActivePacket;
 
   const handleMouseDown = (e) => {

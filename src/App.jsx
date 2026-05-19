@@ -11,7 +11,6 @@ import Home from './pages/Home';
 import TopicPage from './pages/TopicPage';
 import NetworkSimulator from './pages/NetworkSimulator';
 import Dashboard from './pages/Dashboard';
-import AgentsPage from './pages/AgentsPage';
 import AdminStudentsReport from './pages/AdminStudentsReport';
 import ScenarioLab from './pages/ScenarioLab';
 
@@ -21,8 +20,8 @@ const AuthenticatedApp = () => {
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex items-center justify-center" style={{ background: "#020617" }}>
+        <div className="w-8 h-8 rounded-full animate-spin" style={{ border: "3px solid rgba(6,182,212,0.2)", borderTopColor: "#06b6d4" }} />
       </div>
     );
   }
@@ -46,7 +45,6 @@ const AuthenticatedApp = () => {
         <Route path="/topic/:sectionId/:topicId" element={<TopicPage />} />
         <Route path="/network-simulator" element={<NetworkSimulator />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/agents" element={<AgentsPage />} />
         <Route path="/admin/students" element={<AdminStudentsReport />} />
         <Route path="/scenario-lab" element={<ScenarioLab />} />
         <Route path="*" element={<PageNotFound />} />

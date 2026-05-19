@@ -9,32 +9,40 @@ export default function Layout() {
   return (
     <div dir="rtl" className="min-h-screen bg-background font-main">
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 right-0 left-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center justify-between">
-        <button 
+      <div className="lg:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3"
+        style={{
+          background: "rgba(2,6,23,0.95)",
+          backdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(6,182,212,0.15)",
+        }}>
+        <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg hover:bg-muted transition-colors"
+          className="p-2 rounded-lg transition-all"
+          style={{ color: "#06b6d4", background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)" }}
         >
-          {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-            <span className="text-white text-sm font-bold">ش</span>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
+            <span className="text-white text-xs font-black">ش</span>
           </div>
-          <span className="font-bold text-foreground">مبادئ الشبكات</span>
+          <span className="font-black text-white text-sm">مبادئ الشبكات</span>
         </div>
         <div className="w-10" />
       </div>
 
-      {/* Mobile sidebar overlay */}
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
+        <div
+          className="lg:hidden fixed inset-0 z-40"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed top-0 right-0 h-full z-40 transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+      <div className={`fixed top-0 right-0 h-full z-40 transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}>
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
