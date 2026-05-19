@@ -118,7 +118,7 @@ export default function Sidebar({ onClose }) {
           
             <Users size={16} />
             <span className="font-medium">تقارير الطلاب</span>
-            <span className="mr-auto text-[9px] font-bold bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full">Admin</span>
+            <span className="mr-auto text-[9px] font-bold bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full hidden">Admin</span>
           </Link>
         </div>
       }
