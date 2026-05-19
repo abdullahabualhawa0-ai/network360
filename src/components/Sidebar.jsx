@@ -68,7 +68,7 @@ export default function Sidebar({ onClose }) {
           
           <MonitorPlay size={16} />
           <span className="font-medium">محاكاة بناء شبكة</span>
-          <span className="mr-auto text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full hidden">جديد</span>
+          
         </Link>
       </div>
 
