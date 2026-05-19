@@ -1,8 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag,
-  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Bot, Users } from
-"lucide-react";
+  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Bot, Users, FlaskConical } from "lucide-react";
 import courseData from "../lib/courseData";
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
@@ -101,6 +100,22 @@ export default function Sidebar({ onClose }) {
           
           <Bot size={16} />
           <span className="font-medium">المساعدون الذكيون</span>
+        </Link>
+      </div>
+
+      {/* Scenario Lab */}
+      <div className="px-3 pt-1">
+        <Link
+          to="/scenario-lab"
+          onClick={onClose}
+          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+          location.pathname === '/scenario-lab' ?
+          'bg-gradient-to-l from-violet-600 to-cyan-600 text-white shadow-md' :
+          'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+        >
+          <FlaskConical size={16} />
+          <span className="font-medium">Scenario Lab</span>
+          <span className="mr-auto text-[9px] font-bold bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full">جديد</span>
         </Link>
       </div>
 
