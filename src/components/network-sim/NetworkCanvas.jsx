@@ -5,10 +5,10 @@ import PacketAnimation from "./PacketAnimation";
 
 export default function NetworkCanvas({
   nodes, connections, zoom, pan, setPan,
-  addNode, moveNode, deleteNode, handleNodeClick, deleteConnection,
+  addNode, moveNode, moveNodeEnd, deleteNode, handleNodeClick, deleteConnection,
   connectMode, connectFrom, packetMode, packetFrom,
   selectedNode, setSelectedNode, activePackets = [],
-  highlightNodeId,
+  highlightNodeId, activeTool,
 }) {
   const canvasRef = useRef(null);
   const [isPanning, setIsPanning] = useState(false);
@@ -41,7 +41,10 @@ export default function NetworkCanvas({
 
   const handleMouseUp = () => setIsPanning(false);
 
-  const cursor = isPanning ? "grabbing" : (connectMode || packetMode) ? "crosshair" : "default";
+  const cursor = isPanning ? "grabbing"
+    : (connectMode || packetMode) ? "crosshair"
+    : activeTool === "delete" ? "not-allowed"
+    : "default";
 
   return (
     <div
@@ -102,9 +105,11 @@ export default function NetworkCanvas({
 
       {/* Transformed content */}
       <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "0 0", position: "absolute", width: "100%", height: "100%" }}>
-        <svg className="absolute inset-0 pointer-events-none" style={{ overflow: "visible", width: "100%", height: "100%" }}>
-          <ConnectionLines connections={connections} nodes={nodes} deleteConnection={deleteConnection} zoom={zoom} />
-          <PacketAnimation packets={activePackets} nodes={nodes} />
+        <svg className="absolute inset-0" style={{ overflow: "visible", width: "100%", height: "100%", pointerEvents: "none" }}>
+          <g style={{ pointerEvents: "all" }}>
+            <ConnectionLines connections={connections} nodes={nodes} deleteConnection={deleteConnection} zoom={zoom} />
+          </g>
+          <PacketAnimation packets={activePackets} nodes={nodes} connections={connections} />
         </svg>
 
         {nodes.map((node) => (
@@ -114,9 +119,11 @@ export default function NetworkCanvas({
             selected={selectedNode === node.id}
             highlighted={highlightNodeId === node.id}
             connectMode={connectMode || packetMode}
+            deleteMode={activeTool === "delete"}
             onClick={() => handleNodeClick(node.id)}
             onDelete={() => deleteNode(node.id)}
             onMove={moveNode}
+            onMoveEnd={moveNodeEnd}
             zoom={zoom}
             hasActivePacket={activePackets.some((p) => p.fromId === node.id || p.toId === node.id)}
           />

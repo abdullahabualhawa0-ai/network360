@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft, Zap, Target, Clock, Star, CheckCircle2,
-  AlertCircle, Play, RefreshCw, Bot, Trophy, BookOpen
+  AlertCircle, Play, Bot, Trophy, Lightbulb, ArrowRight
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -34,21 +34,16 @@ const SCENARIOS = [
     eval: (nodes, connections) => {
       const switches = nodes.filter((n) => n.type === "Switch");
       const pcs = nodes.filter((n) => n.type === "PC");
-      const score = Math.min(
-        100,
-        switches.length * 20 + pcs.length * 15 + connections.length * 10
-      );
+      const score = Math.min(100, switches.length * 20 + pcs.length * 15 + connections.length * 10);
       const passed = score >= 60;
       return {
-        score,
-        passed,
-        feedback: passed
-          ? "أحسنت! تم إعداد البنية الأساسية بنجاح."
-          : "تحتاج إلى إضافة سويتش وربط الأجهزة بشكل صحيح.",
+        score, passed,
+        feedback: passed ? "أحسنت! تم إعداد البنية الأساسية بنجاح." : "تحتاج إلى إضافة سويتش وربط الأجهزة بشكل صحيح.",
         details: [
           { label: "سويتش موجود", ok: switches.length > 0 },
           { label: "4 أجهزة PC أو أكثر", ok: pcs.length >= 4 },
-          { label: "اتصالات كافية", ok: connections.length >= 4 },
+          { label: "اتصالات كافية (4+)", ok: connections.length >= 4 },
+          { label: "جميع الأجهزة مربوطة", ok: pcs.length >= 4 && connections.length >= pcs.length },
         ],
       };
     },
@@ -76,24 +71,18 @@ const SCENARIOS = [
     eval: (nodes, connections) => {
       const servers = nodes.filter((n) => n.type === "Server");
       const switches = nodes.filter((n) => n.type === "Switch");
-      const serverConnected = servers.some((s) =>
-        connections.some((c) => c.from === s.id || c.to === s.id)
-      );
-      const score = Math.min(
-        100,
-        servers.length * 30 + switches.length * 20 + (serverConnected ? 40 : 0)
-      );
+      const pcs = nodes.filter((n) => n.type === "PC");
+      const serverConnected = servers.some((s) => connections.some((c) => c.from === s.id || c.to === s.id));
+      const score = Math.min(100, servers.length * 30 + switches.length * 20 + (serverConnected ? 30 : 0) + (pcs.length >= 2 ? 20 : 0));
       const passed = score >= 70;
       return {
-        score,
-        passed,
-        feedback: passed
-          ? "ممتاز! السيرفر متصل ويمكنه توزيع الـ IPs."
-          : "تأكد من وجود سيرفر متصل بالشبكة.",
+        score, passed,
+        feedback: passed ? "ممتاز! السيرفر متصل ويمكنه توزيع الـ IPs." : "تأكد من وجود سيرفر متصل بالشبكة.",
         details: [
           { label: "سيرفر DHCP موجود", ok: servers.length > 0 },
           { label: "السيرفر متصل بالشبكة", ok: serverConnected },
           { label: "سويتش للتوزيع", ok: switches.length > 0 },
+          { label: "أجهزة عملاء (2+)", ok: pcs.length >= 2 },
         ],
       };
     },
@@ -123,21 +112,17 @@ const SCENARIOS = [
       const routerConnected = routers.length >= 2 && connections.some(
         (c) => routers.some((r) => r.id === c.from) && routers.some((r) => r.id === c.to)
       );
-      const score = Math.min(
-        100,
-        routers.length * 25 + (routerConnected ? 40 : 0) + connections.length * 5
-      );
+      const pcs = nodes.filter((n) => n.type === "PC" || n.type === "Laptop");
+      const score = Math.min(100, routers.length * 25 + (routerConnected ? 40 : 0) + (pcs.length >= 4 ? 20 : pcs.length * 5) + (nodes.length >= 6 ? 10 : 0));
       const passed = score >= 65;
       return {
-        score,
-        passed,
-        feedback: passed
-          ? "رائع! الراوترات مترابطة وجاهزة للتوجيه."
-          : "تحتاج راوترين متصلين على الأقل.",
+        score, passed,
+        feedback: passed ? "رائع! الراوترات مترابطة وجاهزة للتوجيه." : "تحتاج راوترين متصلين على الأقل.",
         details: [
           { label: "راوترين على الأقل", ok: routers.length >= 2 },
           { label: "الراوترات مترابطة", ok: routerConnected },
-          { label: "شبكة كافية", ok: nodes.length >= 5 },
+          { label: "أجهزة في كل شبكة (4+)", ok: pcs.length >= 4 },
+          { label: "شبكة متكاملة (6+ أجهزة)", ok: nodes.length >= 6 },
         ],
       };
     },
@@ -167,21 +152,17 @@ const SCENARIOS = [
       const fwConnected = firewalls.some((f) =>
         connections.filter((c) => c.from === f.id || c.to === f.id).length >= 2
       );
-      const score = Math.min(
-        100,
-        firewalls.length * 40 + (fwConnected ? 50 : 0) + (nodes.length >= 4 ? 10 : 0)
-      );
+      const hasCloud = nodes.some((n) => n.type === "Cloud");
+      const score = Math.min(100, firewalls.length * 35 + (fwConnected ? 45 : 0) + (nodes.length >= 4 ? 10 : 0) + (hasCloud ? 10 : 0));
       const passed = score >= 70;
       return {
-        score,
-        passed,
-        feedback: passed
-          ? "عالي! الـ Firewall في موقعه الصحيح."
-          : "ضع الـ Firewall بين شبكتين ووصّله بكليهما.",
+        score, passed,
+        feedback: passed ? "عالي! الـ Firewall في موقعه الصحيح." : "ضع الـ Firewall بين شبكتين ووصّله بكليهما.",
         details: [
           { label: "Firewall موجود", ok: firewalls.length > 0 },
           { label: "Firewall متصل بشبكتين", ok: fwConnected },
-          { label: "شبكة كاملة", ok: nodes.length >= 4 },
+          { label: "شبكة خارجية (Cloud)", ok: hasCloud },
+          { label: "شبكة كاملة (4+ أجهزة)", ok: nodes.length >= 4 },
         ],
       };
     },
@@ -189,11 +170,8 @@ const SCENARIOS = [
 ];
 
 function loadProgress() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-  } catch {
-    return {};
-  }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+  catch { return {}; }
 }
 
 export default function ScenarioLab() {
@@ -203,15 +181,13 @@ export default function ScenarioLab() {
   const [aiTip, setAiTip] = useState("");
   const [loadingTip, setLoadingTip] = useState(false);
   const [progress, setProgress] = useState(loadProgress);
+  const navigate = useNavigate();
 
-  // Load current network from simulator
   const getSimNetwork = () => {
     try {
       const s = JSON.parse(localStorage.getItem("network-simulator-state") || "{}");
       return { nodes: s.nodes || [], connections: s.connections || [] };
-    } catch {
-      return { nodes: [], connections: [] };
-    }
+    } catch { return { nodes: [], connections: [] }; }
   };
 
   const evaluate = () => {
@@ -224,6 +200,12 @@ export default function ScenarioLab() {
       setProgress(prog);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prog));
     }
+  };
+
+  const openInSimulator = () => {
+    if (!selected) return;
+    localStorage.setItem("active-scenario", JSON.stringify(selected));
+    navigate("/network-simulator");
   };
 
   const getAiTip = async () => {
@@ -250,50 +232,31 @@ export default function ScenarioLab() {
   return (
     <div className="min-h-screen" style={{ background: "#020617" }}>
       {/* Header */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #0d1117 0%, #1a0533 50%, #0d1117 100%)",
-          borderBottom: "1px solid rgba(139,92,246,0.3)",
-        }}
-      >
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(139,92,246,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.05) 1px,transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+      <div className="relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg,#0d1117 0%,#1a0533 50%,#0d1117 100%)", borderBottom: "1px solid rgba(139,92,246,0.25)" }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ backgroundImage: "linear-gradient(rgba(139,92,246,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.04) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
         <div className="relative max-w-6xl mx-auto px-6 py-10">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-2 mb-2" style={{ color: "rgba(139,92,246,0.7)" }}>
-              <Link to="/" className="hover:text-purple-300 transition-colors text-sm">
-                الرئيسية
-              </Link>
+            <div className="flex items-center gap-2 mb-3 text-sm" style={{ color: "rgba(139,92,246,0.65)" }}>
+              <Link to="/" className="hover:text-purple-300 transition-colors">الرئيسية</Link>
               <ChevronLeft size={13} />
-              <span className="text-purple-300 text-sm">Scenario Lab</span>
+              <span className="text-purple-300">Scenario Lab</span>
             </div>
-            <h1
-              className="text-3xl font-black mb-1"
-              style={{
-                background: "linear-gradient(135deg,#a78bfa,#06b6d4)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
+            <h1 className="text-3xl font-black mb-2" style={{
+              background: "linear-gradient(135deg,#a78bfa,#06b6d4)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+            }}>
               🧪 مختبر السيناريوهات
             </h1>
-            <p className="text-slate-400 text-sm">
-              سيناريوهات عملية حقيقية — نفّذها على محاكي الشبكة واحصل على تقييم فوري
-            </p>
+            <p className="text-slate-400 text-sm">سيناريوهات عملية حقيقية — نفّذها على محاكي الشبكة واحصل على تقييم فوري</p>
           </motion.div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {!selected ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {SCENARIOS.map((sc, i) => {
               const done = progress[sc.id];
               return (
@@ -302,17 +265,17 @@ export default function ScenarioLab() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08 }}
-                  className="rounded-2xl p-6 cursor-pointer transition-all hover:scale-[1.02] group"
+                  className="rounded-2xl p-6 cursor-pointer transition-all hover:scale-[1.015] hover:shadow-2xl group"
                   style={{
-                    background: "rgba(15,23,42,0.8)",
-                    border: done
-                      ? "1px solid rgba(34,197,94,0.4)"
-                      : "1px solid rgba(139,92,246,0.2)",
-                    backdropFilter: "blur(10px)",
+                    background: "rgba(12,20,40,0.9)",
+                    border: done ? "1px solid rgba(34,197,94,0.35)" : "1px solid rgba(139,92,246,0.18)",
+                    backdropFilter: "blur(12px)",
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = done ? "rgba(34,197,94,0.55)" : "rgba(139,92,246,0.4)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = done ? "rgba(34,197,94,0.35)" : "rgba(139,92,246,0.18)"; }}
                   onClick={() => { setSelected(sc); setResult(null); setAiTip(""); setShowHints(false); }}
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-4">
                     <span className="text-3xl">{sc.icon}</span>
                     <div className="flex items-center gap-2">
                       {done && (
@@ -320,24 +283,20 @@ export default function ScenarioLab() {
                           ✓ {done.score}%
                         </span>
                       )}
-                      <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${sc.diffColor}`}>
+                      <span className={`text-[10px] border px-2.5 py-0.5 rounded-full font-bold ${sc.diffColor}`}>
                         {sc.difficulty}
                       </span>
                     </div>
                   </div>
-                  <h3 className="font-black text-white mb-1">{sc.title}</h3>
-                  <p className="text-slate-400 text-sm mb-4 leading-relaxed">{sc.desc}</p>
+                  <h3 className="font-black text-white text-lg mb-2">{sc.title}</h3>
+                  <p className="text-slate-400 text-sm mb-5 leading-relaxed">{sc.desc}</p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 text-xs text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} /> {sc.time}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Zap size={12} className="text-yellow-400" /> {sc.xp} XP
-                      </span>
+                      <span className="flex items-center gap-1.5"><Clock size={12} /> {sc.time}</span>
+                      <span className="flex items-center gap-1.5"><Zap size={12} className="text-yellow-400" /> {sc.xp} XP</span>
                     </div>
-                    <button className="text-xs font-bold text-purple-400 group-hover:text-purple-300 transition-colors flex items-center gap-1">
-                      <Play size={12} /> ابدأ
+                    <button className="flex items-center gap-1.5 text-xs font-bold text-purple-400 group-hover:text-purple-300 transition-colors">
+                      <Play size={12} /> ابدأ <ArrowRight size={11} />
                     </button>
                   </div>
                 </motion.div>
@@ -348,18 +307,15 @@ export default function ScenarioLab() {
           <div className="max-w-2xl mx-auto">
             <button
               onClick={() => { setSelected(null); setResult(null); }}
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 text-sm"
+              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 text-sm group"
             >
-              <ChevronLeft size={16} /> العودة للسيناريوهات
+              <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              العودة للسيناريوهات
             </button>
 
-            <div
-              className="rounded-2xl p-6 mb-4"
-              style={{
-                background: "rgba(15,23,42,0.9)",
-                border: "1px solid rgba(139,92,246,0.3)",
-              }}
-            >
+            {/* Scenario Card */}
+            <div className="rounded-2xl p-6 mb-4"
+              style={{ background: "rgba(12,20,40,0.95)", border: "1px solid rgba(139,92,246,0.28)", backdropFilter: "blur(16px)" }}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-4xl">{selected.icon}</span>
                 <div>
@@ -369,49 +325,73 @@ export default function ScenarioLab() {
                   </span>
                 </div>
               </div>
-              <p className="text-slate-300 text-sm mb-5">{selected.desc}</p>
+              <p className="text-slate-300 text-sm mb-5 leading-relaxed">{selected.desc}</p>
 
-              {/* Objectives */}
-              <div className="mb-4">
-                <h3 className="text-xs font-bold text-cyan-400 mb-2 uppercase tracking-wider">الأهداف</h3>
-                <ul className="space-y-2">
-                  {selected.objectives.map((obj, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-                      <span className="text-purple-400 mt-0.5 flex-shrink-0">◆</span>
-                      {obj}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {/* Objectives with live check */}
+              {(() => {
+                const { nodes, connections } = getSimNetwork();
+                const liveResult = selected.eval(nodes, connections);
+                const details = liveResult.details || [];
+                const completedCount = details.filter((d) => d.ok).length;
+                const totalCount = details.length;
+                const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                return (
+                  <div className="mb-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">الأهداف</h3>
+                      <span className="text-[10px] font-bold" style={{ color: pct === 100 ? "#34d399" : "rgba(167,139,250,0.8)" }}>
+                        {completedCount}/{totalCount} مكتمل
+                      </span>
+                    </div>
+                    {/* Progress */}
+                    <div className="h-1 rounded-full mb-3" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <div className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, background: pct === 100 ? "linear-gradient(90deg,#059669,#34d399)" : "linear-gradient(90deg,#7c3aed,#06b6d4)" }} />
+                    </div>
+                    <ul className="space-y-2">
+                      {details.map((d, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          {d.ok ? (
+                            <CheckCircle2 size={14} className="text-green-400 flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <AlertCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: "rgba(148,163,184,0.4)" }} />
+                          )}
+                          <span style={{ color: d.ok ? "#86efac" : "rgba(148,163,184,0.75)" }}>{d.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })()}
 
               {/* Actions */}
-              <div className="flex flex-wrap gap-2 mt-4">
-                <Link
-                  to="/network-simulator"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105"
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={openInSimulator}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:brightness-110"
                   style={{ background: "linear-gradient(135deg,#7c3aed,#06b6d4)" }}
                 >
-                  <Play size={14} /> افتح المحاكي
-                </Link>
+                  <Play size={14} /> افتح في المحاكي
+                </button>
                 <button
                   onClick={evaluate}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:brightness-110"
                   style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}
                 >
                   <Target size={14} /> تقييم الحل
                 </button>
                 <button
                   onClick={() => setShowHints(!showHints)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-amber-300 transition-all"
-                  style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)" }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105"
+                  style={{ background: showHints ? "rgba(245,158,11,0.15)" : "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", color: "#fbbf24" }}
                 >
-                  💡 تلميحات
+                  <Lightbulb size={14} /> تلميحات
                 </button>
                 <button
                   onClick={getAiTip}
                   disabled={loadingTip}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-purple-300 transition-all"
-                  style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)" }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 disabled:opacity-60"
+                  style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", color: "#c4b5fd" }}
                 >
                   <Bot size={14} /> {loadingTip ? "جاري التفكير..." : "تلميح AI"}
                 </button>
@@ -426,13 +406,15 @@ export default function ScenarioLab() {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   className="rounded-2xl p-5 mb-4 overflow-hidden"
-                  style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.3)" }}
+                  style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.25)" }}
                 >
-                  <h3 className="text-amber-400 font-bold text-sm mb-3">💡 تلميحات</h3>
+                  <h3 className="text-amber-400 font-bold text-sm mb-3 flex items-center gap-2">
+                    <Lightbulb size={14} /> تلميحات السيناريو
+                  </h3>
                   <ul className="space-y-2">
                     {selected.hints.map((h, i) => (
-                      <li key={i} className="text-amber-200 text-sm flex items-start gap-2">
-                        <span className="text-amber-500 flex-shrink-0">•</span> {h}
+                      <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "rgba(251,191,36,0.85)" }}>
+                        <span className="text-amber-500 flex-shrink-0 mt-0.5">•</span> {h}
                       </li>
                     ))}
                   </ul>
@@ -448,7 +430,7 @@ export default function ScenarioLab() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   className="rounded-2xl p-5 mb-4"
-                  style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.3)" }}
+                  style={{ background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.28)" }}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <Bot size={14} className="text-purple-400" />
@@ -467,30 +449,18 @@ export default function ScenarioLab() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="rounded-2xl p-6"
                   style={{
-                    background: result.passed
-                      ? "rgba(34,197,94,0.08)"
-                      : "rgba(239,68,68,0.08)",
-                    border: `1px solid ${result.passed ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"}`,
+                    background: result.passed ? "rgba(5,150,105,0.07)" : "rgba(239,68,68,0.07)",
+                    border: `1px solid ${result.passed ? "rgba(34,197,94,0.35)" : "rgba(239,68,68,0.35)"}`,
                   }}
                 >
                   <div className="flex items-center gap-4 mb-4">
-                    <div
-                      className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black"
-                      style={{
-                        background: result.passed
-                          ? "linear-gradient(135deg,#059669,#34d399)"
-                          : "linear-gradient(135deg,#dc2626,#ef4444)",
-                        color: "white",
-                      }}
-                    >
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black"
+                      style={{ background: result.passed ? "linear-gradient(135deg,#059669,#34d399)" : "linear-gradient(135deg,#dc2626,#ef4444)", color: "white" }}>
                       {result.score}%
                     </div>
                     <div>
-                      <h3
-                        className="text-lg font-black"
-                        style={{ color: result.passed ? "#34d399" : "#f87171" }}
-                      >
-                        {result.passed ? "🎉 ممتاز! اجتزت السيناريو" : "❌ لم تجتز السيناريو"}
+                      <h3 className="text-lg font-black" style={{ color: result.passed ? "#34d399" : "#f87171" }}>
+                        {result.passed ? "🎉 ممتاز! اجتزت السيناريو" : "❌ لم تجتز السيناريو بعد"}
                       </h3>
                       <p className="text-slate-300 text-sm">{result.feedback}</p>
                     </div>
@@ -498,11 +468,7 @@ export default function ScenarioLab() {
                   <div className="space-y-2">
                     {result.details.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
-                        {d.ok ? (
-                          <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />
-                        ) : (
-                          <AlertCircle size={14} className="text-red-400 flex-shrink-0" />
-                        )}
+                        {d.ok ? <CheckCircle2 size={14} className="text-green-400" /> : <AlertCircle size={14} className="text-red-400" />}
                         <span style={{ color: d.ok ? "#86efac" : "#fca5a5" }}>{d.label}</span>
                       </div>
                     ))}

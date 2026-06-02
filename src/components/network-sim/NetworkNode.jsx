@@ -84,11 +84,12 @@ const DEVICE_ICONS = {
 };
 
 export default function NetworkNode({
-  node, selected, highlighted, connectMode, onClick, onDelete, onMove, zoom, hasActivePacket
+  node, selected, highlighted, connectMode, deleteMode, onClick, onDelete, onMove, onMoveEnd, zoom, hasActivePacket
 }) {
   const [dragging, setDragging] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
+  const hasDragged = useRef(false);
 
   const style = DEVICE_STYLES[node.type] || DEVICE_STYLES.PC;
   const isConnectSource = highlighted;
@@ -97,19 +98,24 @@ export default function NetworkNode({
   const handleMouseDown = (e) => {
     if (e.button !== 0) return;
     e.stopPropagation();
-    if (connectMode) { onClick(); return; }
+    if (connectMode || deleteMode) { return; }
+    hasDragged.current = false;
     setDragging(true);
     dragOffset.current = {
       x: e.clientX / zoom - node.x,
       y: e.clientY / zoom - node.y,
     };
     const onMoveHandler = (ev) => {
+      hasDragged.current = true;
       onMove(node.id, ev.clientX / zoom - dragOffset.current.x, ev.clientY / zoom - dragOffset.current.y);
     };
-    const onUp = () => {
+    const onUp = (ev) => {
       setDragging(false);
       window.removeEventListener("mousemove", onMoveHandler);
       window.removeEventListener("mouseup", onUp);
+      if (hasDragged.current && onMoveEnd) {
+        onMoveEnd(node.id, ev.clientX / zoom - dragOffset.current.x, ev.clientY / zoom - dragOffset.current.y);
+      }
     };
     window.addEventListener("mousemove", onMoveHandler);
     window.addEventListener("mouseup", onUp);
@@ -117,7 +123,7 @@ export default function NetworkNode({
 
   const handleClick = (e) => {
     e.stopPropagation();
-    if (!dragging) onClick();
+    onClick();
   };
 
   const glowIntensity = selected || isConnectSource ? "0.9" : isActive ? "0.6" : "0.3";
@@ -134,7 +140,7 @@ export default function NetworkNode({
         left: node.x,
         top: node.y,
         transform: "translate(-50%, -50%)",
-        cursor: connectMode ? "crosshair" : dragging ? "grabbing" : "grab",
+        cursor: deleteMode ? "not-allowed" : connectMode ? "crosshair" : dragging ? "grabbing" : "grab",
         zIndex: dragging ? 1000 : selected ? 100 : 1,
         userSelect: "none",
       }}
@@ -183,8 +189,8 @@ export default function NetworkNode({
             />
           )}
 
-          {/* Delete button */}
-          {showDelete && !connectMode && (
+          {/* Delete button (only when no tool active) */}
+          {showDelete && !connectMode && !deleteMode && (
             <button
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onDelete(); }}

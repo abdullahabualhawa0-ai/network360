@@ -9,10 +9,10 @@ import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import TopicPage from './pages/TopicPage';
-import NetworkSimulator from './pages/NetworkSimulator';
+import NetworkSimulator from './pages/NetworkSimulator.jsx';
 import Dashboard from './pages/Dashboard';
 import AdminStudentsReport from './pages/AdminStudentsReport';
-import ScenarioLab from './pages/ScenarioLab';
+import ScenarioLab from './pages/ScenarioLab.jsx';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
