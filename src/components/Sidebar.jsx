@@ -4,19 +4,16 @@ import {
   ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText } from
 "lucide-react";
 import courseData from "../lib/courseData";
-import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
 
 const iconMap = { Network, Globe, Shield, Server, Radio, Cpu, Route, Tag };
 
 export default function Sidebar({ onClose }) {
   const location = useLocation();
   const [expandedSections, setExpandedSections] = useState({});
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    base44.auth.me().then((u) => setIsAdmin(u?.role === "admin")).catch(() => {});
-  }, []);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const toggleSection = (id) => {
     setExpandedSections((prev) => ({ ...prev, [id]: !prev[id] }));

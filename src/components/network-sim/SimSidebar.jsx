@@ -89,6 +89,7 @@ export default function SimSidebar({
   reset,
   snifferCount,
   selectedProtocol, setSelectedProtocol,
+  packetSpeed, setPacketSpeed,
   autoArrange,
   nodes, connections,
   activeScenario, setActiveScenario,
@@ -206,6 +207,27 @@ export default function SimSidebar({
                 onClick={() => setTool("delete")}
                 color="#f87171"
               />
+            </div>
+
+            {/* Speed control */}
+            <div className="px-1 pt-1 pb-1">
+              <div className="text-[8px] font-bold px-2 mb-1.5" style={{ color: "rgba(52,211,153,0.55)" }}>سرعة الإرسال</div>
+              <div className="grid grid-cols-4 gap-1 px-1">
+                {[{ v: 0.5, l: "0.5x" }, { v: 1, l: "1x" }, { v: 2, l: "2x" }, { v: 3, l: "3x" }].map(({ v, l }) => (
+                  <button
+                    key={v}
+                    onClick={() => setPacketSpeed(v)}
+                    className="py-1 rounded-lg text-[8px] font-black transition-all"
+                    style={{
+                      background: packetSpeed === v ? "rgba(52,211,153,0.2)" : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${packetSpeed === v ? "#34d399" : "rgba(255,255,255,0.06)"}`,
+                      color: packetSpeed === v ? "#34d399" : "rgba(148,163,184,0.5)",
+                    }}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Protocol selector */}

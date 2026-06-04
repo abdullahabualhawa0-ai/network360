@@ -11,6 +11,7 @@ import ScenarioPanel from "../components/network-sim/ScenarioPanel";
 import { findPath } from "../lib/networkUtils";
 import { useHistory } from "../lib/useHistory";
 import { getScenarioById } from "../lib/scenarios";
+import { getConnectionType, CONNECTION_STYLES } from "../lib/connectionTypes";
 import { Activity, ChevronLeft, AlertTriangle } from "lucide-react";
 import { AnimatePresence as AP, motion } from "framer-motion";
 
@@ -74,9 +75,12 @@ export default function NetworkSimulator() {
   const [snifferLog, setSnifferLog] = useState([]);
   const [showSniffer, setShowSniffer] = useState(false);
   const [showAI, setShowAI] = useState(false);
+  const [packetSpeed, setPacketSpeed] = useState(1); // 0.5 | 1 | 2 | 3
 
   // Error/toast
   const [errorMsg, setErrorMsg] = useState(null);
+  const [statusMsg, setStatusMsg] = useState(null); // success status messages
+  const [connInfo, setConnInfo] = useState(null); // connection type tooltip
 
   // Scenario — load by ID from the module (never from JSON to preserve eval functions)
   // Also clean up any old "active-scenario" key left from previous version
@@ -96,17 +100,21 @@ export default function NetworkSimulator() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, connections, nextId }));
   }, [nodes, connections, nextId]);
 
-  // Packet animation loop — only for packets in transit
+  // Packet animation loop
   useEffect(() => {
     if (activePackets.length === 0) return;
+    const step = 0.018 * packetSpeed;
     const interval = setInterval(() => {
       setActivePackets((prev) => {
         const stillMoving = [];
         for (const p of prev) {
-          const newProgress = p.progress + 0.025;
+          const newProgress = p.progress + step;
           if (newProgress >= 1) {
             const final = { ...p, progress: 1, status: "delivered" };
             setSnifferLog((log) => [...log.slice(-99), final]);
+            // Show delivery status message
+            setStatusMsg({ text: `✅ تم الاستلام — ${p.protocol}`, type: "success" });
+            setTimeout(() => setStatusMsg(null), 2000);
           } else {
             stillMoving.push({ ...p, progress: newProgress });
           }
@@ -115,7 +123,7 @@ export default function NetworkSimulator() {
       });
     }, 40);
     return () => clearInterval(interval);
-  }, [activePackets.length]);
+  }, [activePackets.length, packetSpeed]);
 
   const showError = (msg) => {
     setErrorMsg(msg);
@@ -203,7 +211,11 @@ export default function NetworkSimulator() {
             showError(`❌ لا يوجد مسار بين "${fromNode.label}" و"${toNode.label}" — تحقق من الاتصالات`);
           } else {
             const packets = generatePacketSegments(path, connections, nodes, selectedProtocol);
-            setActivePackets((prev) => [...prev, ...packets]);
+            // Random packet loss (10% chance for realism)
+            const lostIdx = Math.random() < 0.1 ? Math.floor(Math.random() * packets.length) : -1;
+            const finalPackets = packets.map((p, i) => lostIdx === i ? { ...p, status: "lost" } : p).filter(p => p.status !== "lost");
+            if (lostIdx !== -1) showError(`⚠️ Packet Lost! إعادة الإرسال...`);
+            setActivePackets((prev) => [...prev, ...finalPackets]);
             setSnifferLog((log) => [...log.slice(-99), {
               id: `log-${Date.now()}`,
               fromId: packetFrom, toId: id,
@@ -232,12 +244,20 @@ export default function NetworkSimulator() {
           (c) => (c.from === connectFrom && c.to === id) || (c.from === id && c.to === connectFrom)
         );
         if (!exists) {
+          const fromNode = nodes.find(n => n.id === connectFrom);
+          const toNode   = nodes.find(n => n.id === id);
+          const connType = fromNode && toNode ? getConnectionType(fromNode.type, toNode.type) : "ethernet";
           setConnections((prev) => {
-            const updated = [...prev, { id: `${connectFrom}-${id}`, from: connectFrom, to: id }];
+            const updated = [...prev, { id: `${connectFrom}-${id}`, from: connectFrom, to: id, connectionType: connType }];
             pushHistory(nodes, updated);
-            awardXP(20, "first_connection");
             return updated;
           });
+          awardXP(20, "first_connection");
+          const cs = CONNECTION_STYLES[connType];
+          if (cs) {
+            setConnInfo({ label: cs.label, desc: cs.description });
+            setTimeout(() => setConnInfo(null), 3000);
+          }
         }
         setConnectFrom(null);
         setActiveTool(null);
@@ -329,19 +349,29 @@ export default function NetworkSimulator() {
         <GamificationBar />
       </div>
 
-      {/* Error Toast */}
+      {/* Toast messages */}
       <AP>
         {errorMsg && (
-          <motion.div
-            key="err"
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
+          <motion.div key="err" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
             className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xl"
-            style={{ background: "rgba(20,8,8,0.95)", border: "1px solid rgba(239,68,68,0.5)", color: "#fca5a5" }}
-          >
+            style={{ background: "rgba(20,8,8,0.95)", border: "1px solid rgba(239,68,68,0.5)", color: "#fca5a5" }}>
             <AlertTriangle size={15} className="text-red-400" />
             {errorMsg}
+          </motion.div>
+        )}
+        {statusMsg && (
+          <motion.div key="status" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
+            className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xl"
+            style={{ background: "rgba(4,30,20,0.97)", border: "1px solid rgba(52,211,153,0.5)", color: "#6ee7b7" }}>
+            {statusMsg.text}
+          </motion.div>
+        )}
+        {connInfo && (
+          <motion.div key="conn" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
+            className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-2xl"
+            style={{ background: "rgba(5,15,40,0.97)", border: "1px solid rgba(6,182,212,0.45)" }}>
+            <span className="text-cyan-400 font-black text-sm">🔗 {connInfo.label}</span>
+            <span className="text-slate-400 text-xs">{connInfo.desc}</span>
           </motion.div>
         )}
       </AP>
@@ -367,6 +397,8 @@ export default function NetworkSimulator() {
           snifferCount={snifferLog.length}
           selectedProtocol={selectedProtocol}
           setSelectedProtocol={setSelectedProtocol}
+          packetSpeed={packetSpeed}
+          setPacketSpeed={setPacketSpeed}
           autoArrange={autoArrange}
           nodes={nodes}
           connections={connections}

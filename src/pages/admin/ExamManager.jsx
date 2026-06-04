@@ -1,49 +1,35 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  Plus, ChevronLeft, FileText, Eye, Printer, Trash2,
-  Pencil, Sparkles, CheckCircle2, AlertCircle, BookOpen,
-  Clock, Save, X, ChevronDown, ChevronUp, Loader2
+  Plus, ChevronLeft, FileText, Eye, Trash2,
+  Pencil, AlertCircle, BookOpen,
+  Clock, Loader2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import courseData from "../../lib/courseData";
+import { useAuth } from "@/lib/AuthContext";
 import ExamEditor from "../../components/exams/ExamEditor";
 import ExamPreview from "../../components/exams/ExamPreview";
 
 export default function ExamManager() {
-  const [user, setUser] = useState(null);
+  const { user, isLoadingAuth } = useAuth();
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("list"); // list | create | edit | preview
+  const [view, setView] = useState("list");
   const [selectedExam, setSelectedExam] = useState(null);
-  const [accessDenied, setAccessDenied] = useState(false);
+
+  const isAdmin = user?.role === "admin";
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const me = await base44.auth.me();
-        setUser(me);
-        if (me.role !== "admin") {
-          setAccessDenied(true);
-          setLoading(false);
-          return;
-        }
-        const data = await base44.entities.Exam.list("-created_date", 100);
-        setExams(data);
-      } catch {
-        setAccessDenied(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, []);
+    if (isLoadingAuth) return;
+    if (!isAdmin) { setLoading(false); return; }
+    base44.entities.Exam.list("-created_date", 100)
+      .then(setExams)
+      .finally(() => setLoading(false));
+  }, [isAdmin, isLoadingAuth]);
 
-  const refreshExams = async () => {
-    const data = await base44.entities.Exam.list("-created_date", 100);
-    setExams(data);
-  };
+  const refreshExams = () =>
+    base44.entities.Exam.list("-created_date", 100).then(setExams);
 
   const deleteExam = async (id) => {
     if (!confirm("هل أنت متأكد من حذف هذا الامتحان؟")) return;
@@ -51,7 +37,7 @@ export default function ExamManager() {
     setExams((prev) => prev.filter((e) => e.id !== id));
   };
 
-  if (loading) {
+  if (isLoadingAuth || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#020617" }}>
         <div className="flex flex-col items-center gap-3">
@@ -62,7 +48,7 @@ export default function ExamManager() {
     );
   }
 
-  if (accessDenied) {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#020617" }}>
         <div className="text-center">
