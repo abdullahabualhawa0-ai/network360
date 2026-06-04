@@ -10,6 +10,7 @@ import GamificationBar, { awardXP } from "../components/network-sim/Gamification
 import ScenarioPanel from "../components/network-sim/ScenarioPanel";
 import { findPath } from "../lib/networkUtils";
 import { useHistory } from "../lib/useHistory";
+import { getScenarioById } from "../lib/scenarios";
 import { Activity, ChevronLeft, AlertTriangle } from "lucide-react";
 import { AnimatePresence as AP, motion } from "framer-motion";
 
@@ -77,10 +78,13 @@ export default function NetworkSimulator() {
   // Error/toast
   const [errorMsg, setErrorMsg] = useState(null);
 
-  // Scenario
+  // Scenario — load by ID from the module (never from JSON to preserve eval functions)
+  // Also clean up any old "active-scenario" key left from previous version
   const [activeScenario, setActiveScenario] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("active-scenario") || "null");
+      localStorage.removeItem("active-scenario"); // clean legacy key
+      const id = localStorage.getItem("active-scenario-id");
+      return id ? getScenarioById(id) : null;
     } catch { return null; }
   });
 
@@ -381,7 +385,7 @@ export default function NetworkSimulator() {
                 connections={connections}
                 onClose={() => {
                   setActiveScenario(null);
-                  localStorage.removeItem("active-scenario");
+                  localStorage.removeItem("active-scenario-id");
                 }}
               />
             )}

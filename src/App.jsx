@@ -13,6 +13,7 @@ import NetworkSimulator from './pages/NetworkSimulator.jsx';
 import Dashboard from './pages/Dashboard';
 import AdminStudentsReport from './pages/AdminStudentsReport';
 import ScenarioLab from './pages/ScenarioLab.jsx';
+import ExamManager from './pages/admin/ExamManager';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -46,6 +47,7 @@ const AuthenticatedApp = () => {
         <Route path="/network-simulator" element={<NetworkSimulator />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin/students" element={<AdminStudentsReport />} />
+        <Route path="/admin/exams" element={<ExamManager />} />
         <Route path="/scenario-lab" element={<ScenarioLab />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
