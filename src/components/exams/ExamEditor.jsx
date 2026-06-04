@@ -66,21 +66,27 @@ export default function ExamEditor({ exam, onSave, onCancel }) {
       const raw = await base44.integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              text: { type: "string" },
-              type: { type: "string" },
-              options: { type: "array", items: { type: "string" } },
-              answer: { type: "string" },
+          type: "object",
+          properties: {
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  text: { type: "string" },
+                  type: { type: "string" },
+                  options: { type: "array", items: { type: "string" } },
+                  answer: { type: "string" },
+                },
+                required: ["text", "type", "options", "answer"],
+              },
             },
-            required: ["text", "type", "options", "answer"],
           },
+          required: ["questions"],
         },
       });
 
-      const generated = Array.isArray(raw) ? raw : JSON.parse(raw);
+      const generated = Array.isArray(raw) ? raw : (raw?.questions || JSON.parse(raw));
       setQuestions(generated.map((q) => ({
         text: q.text || "",
         type: q.type || "mcq",

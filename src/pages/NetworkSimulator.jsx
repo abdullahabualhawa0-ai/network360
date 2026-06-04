@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import NetworkCanvas from "../components/network-sim/NetworkCanvas";
@@ -27,31 +27,27 @@ function loadState() {
 }
 
 function generatePacketSegments(path, connections, nodes, protocol) {
-  // Generate one packet per segment (hop)
-  const packets = [];
+  // Generate one packet per hop — each carries the full hop plan so we can chain them
+  const segments = [];
   for (let i = 0; i < path.nodePath.length - 1; i++) {
     const fromNode = nodes.find((n) => n.id === path.nodePath[i]);
     const toNode = nodes.find((n) => n.id === path.nodePath[i + 1]);
     const connId = path.connPath[i];
     if (!fromNode || !toNode) continue;
-    packets.push({
-      id: `pkt-${Date.now()}-${i}-${Math.random()}`,
+    segments.push({
       fromId: fromNode.id,
       toId: toNode.id,
       connId,
       srcIP: fromNode.ip || `192.168.1.${fromNode.id}`,
       dstIP: toNode.ip || `192.168.1.${toNode.id}`,
       protocol: protocol || "ICMP",
-      ttl: 64,
+      ttl: 64 - i,
       size: Math.floor(Math.random() * 1400) + 64,
-      progress: 0,
-      status: "transit",
-      startedAt: Date.now(),
       hopIndex: i,
       totalHops: path.nodePath.length - 1,
     });
   }
-  return packets;
+  return segments;
 }
 
 export default function NetworkSimulator() {
@@ -76,6 +72,8 @@ export default function NetworkSimulator() {
   const [showSniffer, setShowSniffer] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const [packetSpeed, setPacketSpeed] = useState(1); // 0.5 | 1 | 2 | 3
+  // Queue of pending hops: [{segments, currentHop}] — one chain per send action
+  const pendingChains = useRef([]);
 
   // Error/toast
   const [errorMsg, setErrorMsg] = useState(null);
@@ -100,30 +98,59 @@ export default function NetworkSimulator() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, connections, nextId }));
   }, [nodes, connections, nextId]);
 
-  // Packet animation loop
+  // Packet animation loop — hop-by-hop chaining
   useEffect(() => {
-    if (activePackets.length === 0) return;
-    const step = 0.018 * packetSpeed;
+    const step = 0.022 * packetSpeed;
     const interval = setInterval(() => {
       setActivePackets((prev) => {
+        if (prev.length === 0) return prev;
         const stillMoving = [];
+        const completedPacketIds = [];
+
         for (const p of prev) {
           const newProgress = p.progress + step;
           if (newProgress >= 1) {
+            completedPacketIds.push(p.id);
             const final = { ...p, progress: 1, status: "delivered" };
             setSnifferLog((log) => [...log.slice(-99), final]);
-            // Show delivery status message
-            setStatusMsg({ text: `✅ تم الاستلام — ${p.protocol}`, type: "success" });
-            setTimeout(() => setStatusMsg(null), 2000);
           } else {
             stillMoving.push({ ...p, progress: newProgress });
           }
         }
+
+        // For each completed packet, check if there's a next hop in its chain
+        if (completedPacketIds.length > 0) {
+          const nextHops = [];
+          for (const pid of completedPacketIds) {
+            const chainIdx = pendingChains.current.findIndex((c) => c.currentPacketId === pid);
+            if (chainIdx !== -1) {
+              const chain = pendingChains.current[chainIdx];
+              const nextHopIdx = chain.currentHop + 1;
+              if (nextHopIdx < chain.segments.length) {
+                // Launch next hop
+                const seg = chain.segments[nextHopIdx];
+                const nextId = `pkt-${Date.now()}-${nextHopIdx}-${Math.random()}`;
+                pendingChains.current[chainIdx] = { ...chain, currentHop: nextHopIdx, currentPacketId: nextId };
+                nextHops.push({ id: nextId, ...seg, progress: 0, status: "transit", startedAt: Date.now() });
+              } else {
+                // Chain done
+                if (chain.segments.length > 0) {
+                  const lastSeg = chain.segments[chain.segments.length - 1];
+                  setStatusMsg({ text: `✅ تم الاستلام — ${lastSeg.protocol}`, type: "success" });
+                  setTimeout(() => setStatusMsg(null), 2000);
+                }
+                pendingChains.current.splice(chainIdx, 1);
+              }
+            }
+          }
+          return [...stillMoving, ...nextHops];
+        }
+
         return stillMoving;
       });
     }, 40);
     return () => clearInterval(interval);
-  }, [activePackets.length, packetSpeed]);
+  }, [packetSpeed]);
 
   const showError = (msg) => {
     setErrorMsg(msg);
@@ -210,12 +237,23 @@ export default function NetworkSimulator() {
           if (!path) {
             showError(`❌ لا يوجد مسار بين "${fromNode.label}" و"${toNode.label}" — تحقق من الاتصالات`);
           } else {
-            const packets = generatePacketSegments(path, connections, nodes, selectedProtocol);
-            // Random packet loss (10% chance for realism)
-            const lostIdx = Math.random() < 0.1 ? Math.floor(Math.random() * packets.length) : -1;
-            const finalPackets = packets.map((p, i) => lostIdx === i ? { ...p, status: "lost" } : p).filter(p => p.status !== "lost");
-            if (lostIdx !== -1) showError(`⚠️ Packet Lost! إعادة الإرسال...`);
-            setActivePackets((prev) => [...prev, ...finalPackets]);
+            const segments = generatePacketSegments(path, connections, nodes, selectedProtocol);
+            if (segments.length === 0) { showError("لا توجد قطاعات للإرسال"); return; }
+
+            // Random packet loss (10%)
+            const lostIdx = Math.random() < 0.1 ? Math.floor(Math.random() * segments.length) : -1;
+            if (lostIdx !== -1) {
+              showError(`⚠️ Packet Lost عند الـ Hop ${lostIdx + 1}! إعادة الإرسال...`);
+              segments.splice(lostIdx);
+              if (segments.length === 0) return;
+            }
+
+            // Launch first hop immediately, chain the rest
+            const firstSeg = segments[0];
+            const firstId = `pkt-${Date.now()}-0-${Math.random()}`;
+            pendingChains.current.push({ segments, currentHop: 0, currentPacketId: firstId });
+            setActivePackets((prev) => [...prev, { id: firstId, ...firstSeg, progress: 0, status: "transit", startedAt: Date.now() }]);
+
             setSnifferLog((log) => [...log.slice(-99), {
               id: `log-${Date.now()}`,
               fromId: packetFrom, toId: id,
@@ -293,6 +331,7 @@ export default function NetworkSimulator() {
     setPacketFrom(null);
     setZoom(1); setPan({ x: 0, y: 0 });
     setActivePackets([]); setSnifferLog([]);
+    pendingChains.current = [];
     resetHistory();
   }, [resetHistory]);
 
