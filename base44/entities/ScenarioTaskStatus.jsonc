@@ -1,0 +1,46 @@
+{
+  "name": "ScenarioTaskStatus",
+  "type": "object",
+  "properties": {
+    "lab_history_id": {
+      "type": "string",
+      "description": "\u0645\u0639\u0631\u0641 \u0633\u062c\u0644 Lab"
+    },
+    "student_id": {
+      "type": "string"
+    },
+    "school_id": {
+      "type": "string"
+    },
+    "scenario_id": {
+      "type": "string"
+    },
+    "task_index": {
+      "type": "number",
+      "description": "\u0631\u0642\u0645 \u0627\u0644\u0645\u0647\u0645\u0629 (0-based)"
+    },
+    "task_label": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed",
+        "failed"
+      ],
+      "default": "not_started"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "lab_history_id",
+    "student_id",
+    "scenario_id",
+    "task_index"
+  ]
+}
