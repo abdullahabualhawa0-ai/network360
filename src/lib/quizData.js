@@ -1,3 +1,5 @@
+import { NEW_UNIT_QUIZZES } from "./curriculum/quizzesNew";
+
 const quizData = {
   "mac-addresses": {
     title: "اختبار: عناوين MAC",
@@ -1086,4 +1088,6 @@ const quizData = {
   }
 };
 
-export default quizData;
+const mergedQuizzes = { ...quizData, ...NEW_UNIT_QUIZZES };
+
+export default mergedQuizzes;

@@ -11,7 +11,9 @@ import ScenarioPanel from "../components/network-sim/ScenarioPanel";
 import { findPath } from "../lib/networkUtils";
 import { useHistory } from "../lib/useHistory";
 import { getScenarioById } from "../lib/scenarios";
-import { getConnectionType, CONNECTION_STYLES } from "../lib/connectionTypes";
+import { getConnectionType } from "../lib/connectionTypes";
+import { CABLE_TYPES } from "../lib/ports";
+import ConnectionDialog from "../components/network-sim/ConnectionDialog";
 import { Activity, ChevronLeft, AlertTriangle } from "lucide-react";
 import { AnimatePresence as AP, motion } from "framer-motion";
 
@@ -79,6 +81,7 @@ export default function NetworkSimulator() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [statusMsg, setStatusMsg] = useState(null); // success status messages
   const [connInfo, setConnInfo] = useState(null); // connection type tooltip
+  const [pendingConnection, setPendingConnection] = useState(null); // { fromId, toId } — dialog open
 
   // Scenario — load by ID from the module (never from JSON to preserve eval functions)
   // Also clean up any old "active-scenario" key left from previous version
@@ -210,6 +213,31 @@ export default function NetworkSimulator() {
     });
   }, [connections, pushHistory]);
 
+  // إنشاء الاتصال بعد اختيار الكابل والمنافذ من النافذة
+  const confirmConnection = useCallback(({ cableType, fromPort, toPort }) => {
+    const pc = pendingConnection;
+    if (!pc) return;
+    const fromNode = nodes.find((n) => n.id === pc.fromId);
+    const toNode = nodes.find((n) => n.id === pc.toId);
+    if (!fromNode || !toNode) { setPendingConnection(null); return; }
+    const connType = getConnectionType(fromNode.type, toNode.type);
+    setConnections((prev) => {
+      const updated = [...prev, {
+        id: `${pc.fromId}-${pc.toId}`, from: pc.fromId, to: pc.toId,
+        connectionType: connType, cableType, fromPort, toPort,
+      }];
+      pushHistory(nodes, updated);
+      return updated;
+    });
+    awardXP(20, "first_connection");
+    const cable = CABLE_TYPES.find((c) => c.id === cableType);
+    if (cable) {
+      setConnInfo({ label: `🔗 ${cable.label}`, desc: cable.desc });
+      setTimeout(() => setConnInfo(null), 3000);
+    }
+    setPendingConnection(null);
+  }, [pendingConnection, nodes, pushHistory]);
+
   const deleteConnection = useCallback((connId) => {
     setConnections((prev) => {
       const updated = prev.filter((c) => c.id !== connId);
@@ -282,20 +310,10 @@ export default function NetworkSimulator() {
           (c) => (c.from === connectFrom && c.to === id) || (c.from === id && c.to === connectFrom)
         );
         if (!exists) {
-          const fromNode = nodes.find(n => n.id === connectFrom);
-          const toNode   = nodes.find(n => n.id === id);
-          const connType = fromNode && toNode ? getConnectionType(fromNode.type, toNode.type) : "ethernet";
-          setConnections((prev) => {
-            const updated = [...prev, { id: `${connectFrom}-${id}`, from: connectFrom, to: id, connectionType: connType }];
-            pushHistory(nodes, updated);
-            return updated;
-          });
-          awardXP(20, "first_connection");
-          const cs = CONNECTION_STYLES[connType];
-          if (cs) {
-            setConnInfo({ label: cs.label, desc: cs.description });
-            setTimeout(() => setConnInfo(null), 3000);
-          }
+          // افتح نافذة اختيار نوع الكابل والمنافذ
+          setPendingConnection({ fromId: connectFrom, toId: id });
+        } else {
+          showError("الاتصال موجود مسبقاً بين الجهازين");
         }
         setConnectFrom(null);
         setActiveTool(null);
@@ -332,6 +350,7 @@ export default function NetworkSimulator() {
     setZoom(1); setPan({ x: 0, y: 0 });
     setActivePackets([]); setSnifferLog([]);
     pendingChains.current = [];
+    setPendingConnection(null);
     resetHistory();
   }, [resetHistory]);
 
@@ -458,6 +477,19 @@ export default function NetworkSimulator() {
                   setActiveScenario(null);
                   localStorage.removeItem("active-scenario-id");
                 }}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Connection dialog — cable type + ports */}
+          <AnimatePresence>
+            {pendingConnection && (
+              <ConnectionDialog
+                fromNode={nodes.find((n) => n.id === pendingConnection.fromId)}
+                toNode={nodes.find((n) => n.id === pendingConnection.toId)}
+                connections={connections}
+                onConfirm={confirmConnection}
+                onCancel={() => setPendingConnection(null)}
               />
             )}
           </AnimatePresence>
