@@ -14,6 +14,10 @@ import Dashboard from './pages/Dashboard';
 import AdminStudentsReport from './pages/AdminStudentsReport';
 import ScenarioLab from './pages/ScenarioLab.jsx';
 import LabHistory from './pages/LabHistory.jsx';
+import Exams from './pages/Exams.jsx';
+import TakeExam from './pages/TakeExam.jsx';
+import ExamResults from './pages/admin/ExamResults.jsx';
+import Settings from './pages/Settings.jsx';
 import ExamManager from './pages/admin/ExamManager';
 
 const AuthenticatedApp = () => {
@@ -51,6 +55,10 @@ const AuthenticatedApp = () => {
         <Route path="/admin/exams" element={<ExamManager />} />
         <Route path="/scenario-lab" element={<ScenarioLab />} />
         <Route path="/lab-history" element={<LabHistory />} />
+        <Route path="/exams" element={<Exams />} />
+        <Route path="/exams/:examId" element={<TakeExam />} />
+        <Route path="/admin/exam-results" element={<ExamResults />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

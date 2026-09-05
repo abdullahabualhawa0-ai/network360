@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { resolveAdminSchool } from "@/lib/schoolUtils";
 import ExamEditor from "../../components/exams/ExamEditor";
 import ExamPreview from "../../components/exams/ExamPreview";
 
@@ -17,12 +18,14 @@ export default function ExamManager() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [selectedExam, setSelectedExam] = useState(null);
+  const [adminSchoolId, setAdminSchoolId] = useState("general");
 
   const isAdmin = user?.role === "admin";
 
   useEffect(() => {
     if (isLoadingAuth) return;
     if (!isAdmin) { setLoading(false); return; }
+    resolveAdminSchool(user).then((sid) => setAdminSchoolId(sid || "general"));
     base44.entities.Exam.list("-created_date", 100)
       .then(setExams)
       .finally(() => setLoading(false));
@@ -88,7 +91,7 @@ export default function ExamManager() {
       <ExamEditor
         exam={null}
         onSave={async (data) => {
-          await base44.entities.Exam.create(data);
+          await base44.entities.Exam.create({ ...data, school_id: adminSchoolId });
           await refreshExams();
           setView("list");
         }}

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag,
-  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText, History } from
+  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText, History, ClipboardList, FileCheck, Settings } from
 "lucide-react";
 import courseData from "../lib/courseData";
 import { useState } from "react";
@@ -75,8 +75,11 @@ export default function Sidebar({ onClose }) {
         {navItem("/dashboard", <BarChart2 size={16} />, "لوحة التقدم", "linear-gradient(135deg,#4f46e5,#7c3aed)")}
         {navItem("/scenario-lab", <FlaskConical size={16} />, "Scenario Lab", "linear-gradient(135deg,#7c3aed,#0891b2)", "جديد")}
         {navItem("/lab-history", <History size={16} />, "سجل المحاولات", "linear-gradient(135deg,#0e7490,#4f46e5)")}
+        {navItem("/exams", <ClipboardList size={16} />, "الامتحانات", "linear-gradient(135deg,#be123c,#0891b2)")}
+        {navItem("/settings", <Settings size={16} />, "الإعدادات", "linear-gradient(135deg,#475569,#334155)")}
         {isAdmin && navItem("/admin/students", <Users size={16} />, "تقارير الطلاب", "linear-gradient(135deg,#be123c,#9f1239)")}
         {isAdmin && navItem("/admin/exams", <FileText size={16} />, "إدارة الامتحانات", "linear-gradient(135deg,#0891b2,#059669)")}
+        {isAdmin && navItem("/admin/exam-results", <FileCheck size={16} />, "نتائج الامتحانات", "linear-gradient(135deg,#059669,#4f46e5)")}
       </div>
 
       {/* Divider */}
