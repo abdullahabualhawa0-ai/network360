@@ -18,6 +18,9 @@ import Exams from './pages/Exams.jsx';
 import TakeExam from './pages/TakeExam.jsx';
 import ExamResults from './pages/admin/ExamResults.jsx';
 import Settings from './pages/Settings.jsx';
+import SchoolsManager from './pages/admin/SchoolsManager.jsx';
+import SchoolStudents from './pages/admin/SchoolStudents.jsx';
+import RegistrationGate from './components/RegistrationGate';
 import ExamManager from './pages/admin/ExamManager';
 
 const AuthenticatedApp = () => {
@@ -45,6 +48,7 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <RegistrationGate>
     <Routes>
       <Route element={<><ScrollToTop /><Layout /></>}>
         <Route path="/" element={<Home />} />
@@ -59,9 +63,12 @@ const AuthenticatedApp = () => {
         <Route path="/exams/:examId" element={<TakeExam />} />
         <Route path="/admin/exam-results" element={<ExamResults />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/admin/schools" element={<SchoolsManager />} />
+        <Route path="/admin/school-students" element={<SchoolStudents />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
+    </RegistrationGate>
   );
 };
 

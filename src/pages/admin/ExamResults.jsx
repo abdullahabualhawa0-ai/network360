@@ -21,7 +21,7 @@ export default function ExamResults() {
   const [schoolId, setSchoolId] = useState(GENERAL_SCHOOL);
   const [processing, setProcessing] = useState(null);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "school_admin";
 
   const load = async () => {
     if (!isAdmin) { setLoading(false); return; }

@@ -20,19 +20,20 @@ export default function ExamManager() {
   const [selectedExam, setSelectedExam] = useState(null);
   const [adminSchoolId, setAdminSchoolId] = useState("general");
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "school_admin";
 
   useEffect(() => {
     if (isLoadingAuth) return;
     if (!isAdmin) { setLoading(false); return; }
     resolveAdminSchool(user).then((sid) => setAdminSchoolId(sid || "general"));
     base44.entities.Exam.list("-created_date", 100)
-      .then(setExams)
+      .then((rows) => setExams(user?.school_id ? (rows || []).filter((e) => e.school_id === user.school_id) : (rows || [])))
       .finally(() => setLoading(false));
   }, [isAdmin, isLoadingAuth]);
 
   const refreshExams = () =>
-    base44.entities.Exam.list("-created_date", 100).then(setExams);
+    base44.entities.Exam.list("-created_date", 100)
+      .then((rows) => setExams(user?.school_id ? (rows || []).filter((e) => e.school_id === user.school_id) : (rows || [])));
 
   const deleteExam = async (id) => {
     if (!confirm("هل أنت متأكد من حذف هذا الامتحان؟")) return;

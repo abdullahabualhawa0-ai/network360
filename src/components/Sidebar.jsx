@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag,
-  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText, History, ClipboardList, FileCheck, Settings } from
+  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText, History, ClipboardList, FileCheck, Settings, School, GraduationCap } from
 "lucide-react";
 import courseData from "../lib/courseData";
 import { useState } from "react";
@@ -13,7 +13,9 @@ export default function Sidebar({ onClose }) {
   const location = useLocation();
   const [expandedSections, setExpandedSections] = useState({});
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isSuperAdmin = user?.role === "admin";
+  const isSchoolAdmin = user?.role === "school_admin";
+  const isAdmin = isSuperAdmin || isSchoolAdmin;
 
   const toggleSection = (id) => {
     setExpandedSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -77,7 +79,9 @@ export default function Sidebar({ onClose }) {
         {navItem("/lab-history", <History size={16} />, "سجل المحاولات", "linear-gradient(135deg,#0e7490,#4f46e5)")}
         {navItem("/exams", <ClipboardList size={16} />, "الامتحانات", "linear-gradient(135deg,#be123c,#0891b2)")}
         {navItem("/settings", <Settings size={16} />, "الإعدادات", "linear-gradient(135deg,#475569,#334155)")}
-        {isAdmin && navItem("/admin/students", <Users size={16} />, "تقارير الطلاب", "linear-gradient(135deg,#be123c,#9f1239)")}
+        {isSuperAdmin && navItem("/admin/schools", <School size={16} />, "المدارس", "linear-gradient(135deg,#0891b2,#7c3aed)")}
+        {isSchoolAdmin && navItem("/admin/school-students", <GraduationCap size={16} />, "طلاب مدرستي", "linear-gradient(135deg,#be123c,#9f1239)")}
+        {isSuperAdmin && navItem("/admin/students", <Users size={16} />, "تقارير الطلاب", "linear-gradient(135deg,#be123c,#9f1239)")}
         {isAdmin && navItem("/admin/exams", <FileText size={16} />, "إدارة الامتحانات", "linear-gradient(135deg,#0891b2,#059669)")}
         {isAdmin && navItem("/admin/exam-results", <FileCheck size={16} />, "نتائج الامتحانات", "linear-gradient(135deg,#059669,#4f46e5)")}
       </div>

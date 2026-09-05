@@ -17,6 +17,7 @@ export async function resolveStudentSchool(user) {
 
 /** مدرسة المعلم/المدير — من حقل admin_email في جدول المدارس */
 export async function resolveAdminSchool(user) {
+  if (user?.school_id) return user.school_id;
   try {
     const schools = await base44.entities.School.filter({ admin_email: user?.email });
     return schools?.[0]?.id || null;

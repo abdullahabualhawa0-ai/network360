@@ -4,13 +4,19 @@
   "properties": {
     "user_id": {
       "type": "string",
-      "description": "\u0645\u0639\u0631\u0641 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645"
+      "description": "\u0645\u0639\u0631\u0641 \u062d\u0633\u0627\u0628 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u2014 \u064a\u064f\u0631\u0628\u0637 \u0639\u0646\u062f \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0637\u0627\u0644\u0628 \u0644\u0631\u0645\u0632\u0647 (\u0642\u064a\u0645\u0629 __unclaimed__ \u062d\u062a\u0649 \u0627\u0644\u062a\u0641\u0639\u064a\u0644)"
+    },
+    "student_code": {
+      "type": "string",
+      "description": "\u0631\u0645\u0632 \u0627\u0644\u0637\u0627\u0644\u0628 \u0627\u0644\u0645\u0645\u0646\u0648\u062d \u0645\u0646 \u0627\u0644\u0645\u062f\u0631\u0633\u0629 \u2014 \u0641\u0631\u064a\u062f \u062f\u0627\u062e\u0644 \u0627\u0644\u0645\u062f\u0631\u0633\u0629 \u0648\u0644\u0627 \u064a\u0639\u0645\u0644 \u0645\u0639 \u0645\u062f\u0631\u0633\u0629 \u0623\u062e\u0631\u0649"
     },
     "full_name": {
-      "type": "string"
+      "type": "string",
+      "description": "\u0627\u0633\u0645 \u0627\u0644\u0637\u0627\u0644\u0628"
     },
     "email": {
-      "type": "string"
+      "type": "string",
+      "description": "\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)"
     },
     "school_id": {
       "type": "string",
@@ -25,11 +31,11 @@
         "disabled"
       ],
       "default": "pending",
-      "description": "\u062d\u0627\u0644\u0629 \u062d\u0633\u0627\u0628 \u0627\u0644\u0637\u0627\u0644\u0628"
+      "description": "\u062d\u0627\u0644\u0629 \u062d\u0633\u0627\u0628 \u0627\u0644\u0637\u0627\u0644\u0628 \u2014 pending=\u0628\u0627\u0646\u062a\u0638\u0627\u0631 \u0645\u0648\u0627\u0641\u0642\u0629 \u0645\u0634\u0631\u0641 \u0627\u0644\u0645\u062f\u0631\u0633\u0629"
     },
     "approved_by": {
       "type": "string",
-      "description": "\u0645\u0639\u0631\u0641 \u0627\u0644\u0645\u0633\u0624\u0648\u0644 \u0627\u0644\u0630\u064a \u0648\u0627\u0641\u0642"
+      "description": "\u0628\u0631\u064a\u062f \u0627\u0644\u0645\u0634\u0631\u0641 \u0627\u0644\u0630\u064a \u0648\u0627\u0641\u0642"
     },
     "approved_at": {
       "type": "string",
@@ -46,8 +52,105 @@
     }
   },
   "required": [
-    "user_id",
-    "email",
-    "school_id"
-  ]
+    "school_id",
+    "student_code"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.user_id": "__unclaimed__"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "school_admin"
+              }
+            },
+            {
+              "data.school_id": "{{user.data.school_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "school_admin"
+              }
+            },
+            {
+              "data.school_id": "{{user.data.school_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.user_id": "__unclaimed__"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "school_admin"
+              }
+            },
+            {
+              "data.school_id": "{{user.data.school_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "school_admin"
+              }
+            },
+            {
+              "data.school_id": "{{user.data.school_id}}"
+            }
+          ]
+        }
+      ]
+    }
+  }
 }
