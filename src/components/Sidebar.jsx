@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag,
-  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText } from
+  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText, History } from
 "lucide-react";
 import courseData from "../lib/courseData";
 import { useState } from "react";
@@ -74,6 +74,7 @@ export default function Sidebar({ onClose }) {
         {navItem("/network-simulator", <MonitorPlay size={16} />, "محاكاة الشبكات", "linear-gradient(135deg,#059669,#0891b2)")}
         {navItem("/dashboard", <BarChart2 size={16} />, "لوحة التقدم", "linear-gradient(135deg,#4f46e5,#7c3aed)")}
         {navItem("/scenario-lab", <FlaskConical size={16} />, "Scenario Lab", "linear-gradient(135deg,#7c3aed,#0891b2)", "جديد")}
+        {navItem("/lab-history", <History size={16} />, "سجل المحاولات", "linear-gradient(135deg,#0e7490,#4f46e5)")}
         {isAdmin && navItem("/admin/students", <Users size={16} />, "تقارير الطلاب", "linear-gradient(135deg,#be123c,#9f1239)")}
         {isAdmin && navItem("/admin/exams", <FileText size={16} />, "إدارة الامتحانات", "linear-gradient(135deg,#0891b2,#059669)")}
       </div>

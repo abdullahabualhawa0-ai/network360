@@ -13,6 +13,7 @@ import NetworkSimulator from './pages/NetworkSimulator.jsx';
 import Dashboard from './pages/Dashboard';
 import AdminStudentsReport from './pages/AdminStudentsReport';
 import ScenarioLab from './pages/ScenarioLab.jsx';
+import LabHistory from './pages/LabHistory.jsx';
 import ExamManager from './pages/admin/ExamManager';
 
 const AuthenticatedApp = () => {
@@ -49,6 +50,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/students" element={<AdminStudentsReport />} />
         <Route path="/admin/exams" element={<ExamManager />} />
         <Route path="/scenario-lab" element={<ScenarioLab />} />
+        <Route path="/lab-history" element={<LabHistory />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
