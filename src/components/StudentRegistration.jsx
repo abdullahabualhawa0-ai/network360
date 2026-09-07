@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { getSchoolName } from "@/lib/schoolUtils";
 import { registerStudent } from "@/lib/registrationUtils";
-import { KeyRound, Loader2, AlertTriangle, LogOut } from "lucide-react";
+import { KeyRound, Loader2, AlertTriangle, LogOut, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function StudentRegistration({ onRegistered }) {
   const { user } = useAuth();
@@ -52,17 +53,17 @@ export default function StudentRegistration({ onRegistered }) {
             style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
             <KeyRound className="text-white" size={24} />
           </div>
-          <h1 className="font-black text-lg text-white">تسجيل طالب جديد</h1>
+          <h1 className="font-black text-lg text-white">تسجيل الدخول</h1>
           <p className="text-xs mt-1 text-slate-400">
-            أدخل الرموز التي حصلت عليها من مدرستك لتفعيل حسابك
+            أدخل رمز المدرسة ورمز الطالب للدخول إلى حسابك — لا يُقبل الدخول إلا برموز صحيحة ومتطابقة
           </p>
         </div>
 
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 mb-1.5">اسم الطالب</label>
+            <label className="block text-[11px] font-bold text-slate-400 mb-1.5">الاسم <span className="text-slate-600">(اختياري)</span></label>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required dir="rtl" className="w-full px-4 py-2.5 rounded-xl text-sm text-white focus:outline-none"
+              dir="rtl" className="w-full px-4 py-2.5 rounded-xl text-sm text-white focus:outline-none"
               style={inputStyle} />
           </div>
           <div>
@@ -100,13 +101,21 @@ export default function StudentRegistration({ onRegistered }) {
           <button type="submit" disabled={busy}
             className="w-full py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-60"
             style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
-            {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : "Register — تسجيل"}
+            {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : "تسجيل الدخول"}
           </button>
         </form>
 
         <p className="text-[10px] text-center mt-4 text-slate-500 leading-relaxed">
-          بعد التسجيل ينتظر حسابك موافقة مشرف مدرستك قبل استخدام التطبيق
+          بعد الدخول ينتظر حسابك موافقة مشرف مدرستك قبل استخدام التطبيق
         </p>
+
+        <div className="mt-4 pt-4 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <Link to="/plans" className="inline-flex items-center gap-1.5 text-xs font-black"
+            style={{ color: "#06b6d4" }}>
+            <UserPlus size={13} /> إنشاء حساب جديد
+          </Link>
+          <p className="text-[10px] text-slate-500 mt-1">اختر خطة الاشتراك أولاً — شخصية أو مدرسية</p>
+        </div>
       </div>
     </div>
   );

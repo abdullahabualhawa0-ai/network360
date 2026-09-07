@@ -21,6 +21,7 @@ import Settings from './pages/Settings.jsx';
 import SchoolsManager from './pages/admin/SchoolsManager.jsx';
 import SchoolStudents from './pages/admin/SchoolStudents.jsx';
 import RegistrationGate from './components/RegistrationGate';
+import Plans from './pages/Plans.jsx';
 import ExamManager from './pages/admin/ExamManager';
 
 const AuthenticatedApp = () => {
@@ -48,9 +49,11 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <RegistrationGate>
+    <>
+    <ScrollToTop />
     <Routes>
-      <Route element={<><ScrollToTop /><Layout /></>}>
+      <Route path="/plans" element={<Plans />} />
+      <Route element={<RegistrationGate><Layout /></RegistrationGate>}>
         <Route path="/" element={<Home />} />
         <Route path="/topic/:sectionId/:topicId" element={<TopicPage />} />
         <Route path="/network-simulator" element={<NetworkSimulator />} />
@@ -68,7 +71,7 @@ const AuthenticatedApp = () => {
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
-    </RegistrationGate>
+    </>
   );
 };
 

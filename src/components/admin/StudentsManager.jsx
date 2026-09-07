@@ -6,6 +6,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { UNCLAIMED } from "@/lib/registrationUtils";
+import { STUDENT_LIMIT_MSG } from "@/lib/plans";
 
 const STATUS_UI = {
   pending: { label: "بانتظار الموافقة", color: "#fbbf24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.35)" },
@@ -38,11 +39,17 @@ export default function StudentsManager({ school, onBack }) {
     if (!form.name.trim() || !code) { setFormError("أدخل اسم الطالب ورمزه"); return; }
     setBusy(true);
     setFormError(null);
-    // فرادة رمز الطالب داخل المدرسة
-    const dup = await base44.entities.StudentProfile.filter({
-      school_id: school.id, student_code: code,
-    });
-    if (dup && dup.length > 0) {
+    // عدد الطلاب الحالي — فحص مباشر من قاعدة البيانات
+    const all = await base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 500);
+    // 1) حد عدد الطلاب في خطة الاشتراك
+    const limit = school.student_limit || 0;
+    if (limit > 0 && (all || []).length >= limit) {
+      setFormError(STUDENT_LIMIT_MSG);
+      setBusy(false);
+      return;
+    }
+    // 2) فرادة رمز الطالب داخل المدرسة
+    if ((all || []).some((s) => s.student_code === code)) {
       setFormError("رمز الطالب مستخدم مسبقاً داخل هذه المدرسة");
       setBusy(false);
       return;
@@ -55,6 +62,8 @@ export default function StudentsManager({ school, onBack }) {
       status: "pending",
       user_id: UNCLAIMED,
     });
+    // مزامنة عداد الطلاب على سجل المدرسة (تنجح للمالك، وتُتجاهل بهدوء لغيره)
+    base44.entities.School.update(school.id, { current_student_count: (all || []).length + 1 }).catch(() => {});
     setForm({ name: "", code: "", email: "" });
     setShowForm(false);
     setBusy(false);
@@ -73,6 +82,10 @@ export default function StudentsManager({ school, onBack }) {
   const deleteStudent = async (s) => {
     if (!confirm(`حذف الطالب "${s.full_name}" (${s.student_code})؟`)) return;
     await base44.entities.StudentProfile.delete(s.id);
+    // مزامنة عداد الطلاب بعد الحذف
+    base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 500)
+      .then((rows) => base44.entities.School.update(school.id, { current_student_count: (rows || []).length }).catch(() => {}))
+      .catch(() => {});
     load();
   };
 
@@ -96,7 +109,7 @@ export default function StudentsManager({ school, onBack }) {
           <div className="min-w-0">
             <h2 className="font-black text-base truncate">طلاب مدرسة {school.name}</h2>
             <p className="text-[10px] text-muted-foreground">
-              {students?.length || 0} طالب • {pendingCount} بانتظار الموافقة • رمز المدرسة: {school.code}
+              {students?.length || 0}{school.student_limit > 0 ? ` / ${school.student_limit}` : ""} طالب • {pendingCount} بانتظار الموافقة • رمز المدرسة: {school.code}
             </p>
           </div>
         </div>

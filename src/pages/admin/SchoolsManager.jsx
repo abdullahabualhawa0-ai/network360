@@ -8,6 +8,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import StudentsManager from "../../components/admin/StudentsManager";
+import { PLANS, SCHOOL_TIERS, planLabel } from "@/lib/plans";
 
 /**
  * شاشة المدارس — Super Admin فقط (role = admin)
@@ -17,7 +18,7 @@ export default function SchoolsManager() {
   const { user, isLoadingAuth } = useAuth();
   const [schools, setSchools] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", code: "" });
+  const [form, setForm] = useState({ name: "", code: "", plan: "school_50" });
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState("list"); // list | students
@@ -51,6 +52,10 @@ export default function SchoolsManager() {
       code,
       is_active: true,
       created_by_id: user.id,
+      subscription_plan: form.plan,
+      student_limit: PLANS[form.plan]?.student_limit || 50,
+      current_student_count: 0,
+      subscription_status: "active",
     });
     setForm({ name: "", code: "" });
     setShowForm(false);
@@ -60,6 +65,14 @@ export default function SchoolsManager() {
 
   const toggleActive = async (s) => {
     await base44.entities.School.update(s.id, { is_active: !s.is_active });
+    load();
+  };
+
+  const changePlan = async (s, planId) => {
+    await base44.entities.School.update(s.id, {
+      subscription_plan: planId,
+      student_limit: PLANS[planId]?.student_limit || 50,
+    });
     load();
   };
 
@@ -85,7 +98,7 @@ export default function SchoolsManager() {
         <div className="text-center">
           <AlertTriangle size={36} className="text-red-400 mx-auto mb-3" />
           <h2 className="font-black text-lg mb-2">وصول مقيّد</h2>
-          <p className="text-xs text-muted-foreground mb-5">هذه الشاشة للمدير العام (Super Admin) فقط.</p>
+          <p className="text-xs text-muted-foreground mb-5">هذه الشاشة للمالك (Owner) فقط.</p>
           <Link to="/" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>العودة للرئيسية</Link>
         </div>
       </div>
@@ -116,7 +129,7 @@ export default function SchoolsManager() {
             <div>
               <h1 className="font-black text-xl">المدارس</h1>
               <p className="text-xs text-muted-foreground">
-                إضافة مدارس برموز فريدة، تعيين المشرفين، وإدارة طلاب كل مدرسة
+                شاشة المالك (Owner) — مدارس جديدة برموز فريدة، خطط الاشتراك وحدود الطلاب، تعيين المشرفين
               </p>
             </div>
           </div>
@@ -136,7 +149,7 @@ export default function SchoolsManager() {
         {/* Add School form */}
         {showForm && (
           <motion.form initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} onSubmit={addSchool}
-            className="rounded-2xl p-4 mb-5 grid sm:grid-cols-3 gap-3 items-end bg-card"
+            className="rounded-2xl p-4 mb-5 grid sm:grid-cols-4 gap-3 items-end bg-card"
             style={{ border: "1px solid rgba(6,182,212,0.3)" }}>
             <div>
               <label className="block text-[10px] font-bold text-muted-foreground mb-1">School Name *</label>
@@ -150,6 +163,18 @@ export default function SchoolsManager() {
                 placeholder="SCH2026A" dir="ltr"
                 className="w-full px-3 py-2 rounded-xl text-xs font-mono bg-transparent focus:outline-none"
                 style={{ border: "1px solid hsl(var(--border))" }} />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground mb-1">خطة الاشتراك *</label>
+              <select value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
+                style={{ border: "1px solid hsl(var(--border))" }}>
+                {SCHOOL_TIERS.map((id) => (
+                  <option key={id} value={id} className="bg-card">
+                    {PLANS[id].label} — {PLANS[id].price}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={busy}
@@ -199,9 +224,36 @@ export default function SchoolsManager() {
                         {s.is_active ? "Active" : "Inactive"}
                       </span>
                     </div>
-                    <div className="text-[10px] text-muted-foreground font-mono" dir="ltr">school_id: {s.id}</div>
+                    <div className="text-[10px] text-muted-foreground font-mono mb-1" dir="ltr">school_id: {s.id}</div>
+                    <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                      <span className="px-2 py-0.5 rounded-full font-bold"
+                        style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", color: "#a78bfa" }}>
+                        {planLabel(s.subscription_plan)}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full font-bold"
+                        style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
+                        الطلاب: {s.current_student_count || 0} / {s.student_limit || "—"}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full font-bold"
+                        style={s.subscription_status === "active"
+                          ? { background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.35)", color: "#34d399" }
+                          : s.subscription_status === "expired"
+                            ? { background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.35)", color: "#f87171" }
+                            : { background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.35)", color: "#fbbf24" }}>
+                        اشتراك: {s.subscription_status === "active" ? "فعّال" : s.subscription_status === "expired" ? "منتهي" : "بانتظار التفعيل"}
+                      </span>
+                      <span className="text-muted-foreground">التسجيل: {new Date(s.created_date).toLocaleDateString("ar")}</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    <select value={s.subscription_plan || "school_50"} onChange={(e) => changePlan(s, e.target.value)}
+                      title="تغيير خطة الاشتراك"
+                      className="px-2 py-1.5 rounded-xl text-[10px] font-bold bg-transparent focus:outline-none"
+                      style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
+                      {SCHOOL_TIERS.map((id) => (
+                        <option key={id} value={id} className="bg-card">{PLANS[id].label}</option>
+                      ))}
+                    </select>
                     <button onClick={() => { setSelectedSchool(s); setView("students"); }}
                       className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold"
                       style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.3)", color: "#06b6d4" }}>
