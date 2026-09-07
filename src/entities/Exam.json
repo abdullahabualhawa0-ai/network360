@@ -18,6 +18,10 @@
       "type": "string",
       "description": "عنوان القسم"
     },
+    "school_id": {
+      "type": "string",
+      "description": "معرف المدرسة — general للامتحانات العامة المشتركة بين المدارس"
+    },
     "questions": {
       "type": "array",
       "description": "قائمة الأسئلة",
@@ -41,5 +45,32 @@
       "description": "مدة الامتحان بالدقائق"
     }
   },
-  "required": ["title"]
+  "required": ["title"],
+  "rls": {
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "$and": [ { "user_condition": { "role": "school_admin" } }, { "$or": [ { "data.school_id": "{{user.data.school_id}}" }, { "data.school_id": "general" } ] } ] },
+        { "$and": [ { "user_condition": { "role": "student" } }, { "$or": [ { "data.school_id": "{{user.data.school_id}}" }, { "data.school_id": "general" }, { "data.school_id": { "$exists": false } } ] } ] }
+      ]
+    },
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "$and": [ { "user_condition": { "role": "school_admin" } }, { "data.school_id": "{{user.data.school_id}}" } ] }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "$and": [ { "user_condition": { "role": "school_admin" } }, { "data.school_id": "{{user.data.school_id}}" } ] }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "$and": [ { "user_condition": { "role": "school_admin" } }, { "data.school_id": "{{user.data.school_id}}" } ] }
+      ]
+    }
+  }
 }
