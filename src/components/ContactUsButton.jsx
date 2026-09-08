@@ -106,9 +106,17 @@ export default function ContactUsButton() {
                   />
 
                   {failed && (
-                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-bold mb-3"
-                      style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.35)", color: "#fca5a5" }}>
-                      <AlertTriangle size={13} /> {t("contactError")}
+                    <div className="px-3 py-3 rounded-xl mb-3"
+                      style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.35)" }}>
+                      <div className="flex items-center gap-2 text-[11px] font-bold mb-2" style={{ color: "#fbbf24" }}>
+                        <AlertTriangle size={13} /> {t("contactError")}
+                      </div>
+                      <a
+                        href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("ملاحظة عن التطبيق — " + (user?.full_name || user?.email || "مستخدم"))}&body=${encodeURIComponent(message.trim())}`}
+                        className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-black text-white"
+                        style={{ background: "linear-gradient(90deg,#d97706,#f59e0b)" }}>
+                        <Send size={11} /> {t("contactOpenMail")}
+                      </a>
                     </div>
                   )}
 

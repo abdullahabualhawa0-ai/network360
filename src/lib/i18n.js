@@ -32,7 +32,8 @@ const T = {
   contactSend: { ar: "إرسال", en: "Send", he: "שלח" },
   contactSending: { ar: "جاري الإرسال...", en: "Sending...", he: "שולח..." },
   contactSent: { ar: "تم إرسال ملاحظتك بنجاح — شكراً لك ✓", en: "Your feedback was sent — thank you ✓", he: "ההערה נשלחה — תודה ✓" },
-  contactError: { ar: "تعذر الإرسال — حاول مجدداً لاحقاً", en: "Failed to send — try again later", he: "השליחה נכשלה — נסו שוב מאוחר יותר" },
+  contactError: { ar: "تعذر الإرسال المباشر — أرسل ملاحظتك عبر بريدك الإلكتروني", en: "Direct sending failed — send your feedback via your email", he: "השליחה הישירה נכשלה — שלחו את ההערה מהמייל שלכם" },
+  contactOpenMail: { ar: "إرسال عبر بريدي", en: "Send via my email", he: "שלח מהמייל שלי" },
   contactCancel: { ar: "إغلاق", en: "Close", he: "סגור" },
 };
 
