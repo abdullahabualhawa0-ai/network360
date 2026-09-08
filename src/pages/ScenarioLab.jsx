@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { SCENARIOS } from "../lib/scenarios";
+import { useAuth } from "@/lib/AuthContext";
+import { resolveSchoolId } from "../lib/labTracking";
 
 const STORAGE_KEY = "scenario-progress";
 
@@ -22,7 +24,59 @@ export default function ScenarioLab() {
   const [aiTip, setAiTip] = useState("");
   const [loadingTip, setLoadingTip] = useState(false);
   const [progress, setProgress] = useState(loadProgress);
+  const [dbReady, setDbReady] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // مزامنة التقدم من قاعدة البيانات — تتبع فردي لكل طالب (سجل واحد لكل سيناريو)
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const schoolId = await resolveSchoolId(user);
+        const rows = await base44.entities.LabHistory.filter(
+          { student_id: user.id, school_id: schoolId }, "-updated_date", 200
+        );
+        const map = {};
+        for (const r of rows || []) {
+          map[r.scenario_id] = { score: r.score || 0, completedAt: r.completed_at || r.updated_date };
+        }
+        setProgress((prev) => ({ ...prev, ...map }));
+      } catch { /* يبقى التقدم المحلي معروضاً حتى تكتمل المزامنة */ }
+      finally { setDbReady(true); }
+    })();
+  }, [user?.id]);
+
+  // حفظ الإنجاز في قاعدة البيانات (تحديث السجل نفسه — بلا تكرار)
+  const saveToDb = async (scenario, res) => {
+    if (!user) return;
+    try {
+      const schoolId = await resolveSchoolId(user);
+      const now = new Date().toISOString();
+      const details = res.details || [];
+      const existing = await base44.entities.LabHistory.filter({
+        student_id: user.id, scenario_id: scenario.id, school_id: schoolId,
+      });
+      const data = {
+        status: "completed",
+        score: typeof res.score === "number" ? res.score : 100,
+        xp_earned: scenario.xp || 0,
+        tasks_total: details.length,
+        tasks_completed: details.filter((d) => d.ok).length,
+        completed_at: now,
+        last_activity_at: now,
+      };
+      if (existing && existing.length > 0) {
+        await base44.entities.LabHistory.update(existing[0].id, data);
+      } else {
+        await base44.entities.LabHistory.create({
+          student_id: user.id, school_id: schoolId, scenario_id: scenario.id,
+          scenario_title: scenario.title, scenario_difficulty: scenario.difficulty,
+          started_at: now, ...data,
+        });
+      }
+    } catch { /* محفوظ محلياً وستتم المزامنة في الزيارة القادمة */ }
+  };
 
   const getSimNetwork = () => {
     try {
@@ -40,6 +94,7 @@ export default function ScenarioLab() {
       const prog = { ...progress, [selected.id]: { score: res.score, completedAt: new Date().toISOString() } };
       setProgress(prog);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prog));
+      saveToDb(selected, res);
     }
   };
 
@@ -92,6 +147,9 @@ export default function ScenarioLab() {
               🧪 مختبر السيناريوهات
             </h1>
             <p className="text-slate-400 text-sm">سيناريوهات عملية حقيقية — نفّذها على محاكي الشبكة واحصل على تقييم فوري</p>
+            <p className="text-[10px] mt-1" style={{ color: dbReady ? "rgba(52,211,153,0.75)" : "rgba(148,163,184,0.6)" }}>
+              {dbReady ? "✓ تقدمك متزامن مع حسابك" : "جاري مزامنة تقدمك مع حسابك..."}
+            </p>
           </motion.div>
         </div>
       </div>

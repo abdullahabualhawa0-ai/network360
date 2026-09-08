@@ -6,6 +6,7 @@ import {
 import courseData from "../lib/courseData";
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { t, useLang } from "@/lib/i18n";
 
 const iconMap = { Network, Globe, Shield, Server, Radio, Cpu, Route, Tag };
 
@@ -13,6 +14,7 @@ export default function Sidebar({ onClose }) {
   const location = useLocation();
   const [expandedSections, setExpandedSections] = useState({});
   const { user } = useAuth();
+  useLang();
   const isSuperAdmin = user?.role === "admin";
   const isSchoolAdmin = user?.role === "school_admin";
   const isAdmin = isSuperAdmin || isSchoolAdmin;
@@ -64,33 +66,33 @@ export default function Sidebar({ onClose }) {
             <BookOpen className="text-white" size={20} />
           </div>
           <div>
-            <h1 className="font-black text-foreground text-base">مبادئ الشبكات</h1>
-            <p className="text-[11px] text-muted-foreground">منصة تعليمية تفاعلية</p>
+            <h1 className="font-black text-foreground text-base">{t("appName")}</h1>
+            <p className="text-[11px] text-muted-foreground">{t("appTagline")}</p>
           </div>
         </Link>
       </div>
 
       {/* Nav links */}
       <div className="pt-2">
-        {navItem("/", <Home size={16} />, "الصفحة الرئيسية", "linear-gradient(135deg,#0891b2,#0e7490)")}
-        {navItem("/network-simulator", <MonitorPlay size={16} />, "محاكاة الشبكات", "linear-gradient(135deg,#059669,#0891b2)")}
-        {navItem("/dashboard", <BarChart2 size={16} />, "لوحة التقدم", "linear-gradient(135deg,#4f46e5,#7c3aed)")}
-        {navItem("/scenario-lab", <FlaskConical size={16} />, "Scenario Lab", "linear-gradient(135deg,#7c3aed,#0891b2)", "جديد")}
-        {navItem("/lab-history", <History size={16} />, "سجل المحاولات", "linear-gradient(135deg,#0e7490,#4f46e5)")}
-        {navItem("/exams", <ClipboardList size={16} />, "الامتحانات", "linear-gradient(135deg,#be123c,#0891b2)")}
-        {navItem("/settings", <Settings size={16} />, "الإعدادات", "linear-gradient(135deg,#475569,#334155)")}
-        {isSuperAdmin && navItem("/admin/schools", <School size={16} />, "المدارس", "linear-gradient(135deg,#0891b2,#7c3aed)")}
-        {isSchoolAdmin && navItem("/admin/school-students", <GraduationCap size={16} />, "طلاب مدرستي", "linear-gradient(135deg,#be123c,#9f1239)")}
-        {isSuperAdmin && navItem("/admin/students", <Users size={16} />, "تقارير الطلاب", "linear-gradient(135deg,#be123c,#9f1239)")}
-        {isAdmin && navItem("/admin/exams", <FileText size={16} />, "إدارة الامتحانات", "linear-gradient(135deg,#0891b2,#059669)")}
-        {isAdmin && navItem("/admin/exam-results", <FileCheck size={16} />, "نتائج الامتحانات", "linear-gradient(135deg,#059669,#4f46e5)")}
+        {navItem("/", <Home size={16} />, t("navHome"), "linear-gradient(135deg,#0891b2,#0e7490)")}
+        {navItem("/network-simulator", <MonitorPlay size={16} />, t("navSimulator"), "linear-gradient(135deg,#059669,#0891b2)")}
+        {navItem("/dashboard", <BarChart2 size={16} />, t("navDashboard"), "linear-gradient(135deg,#4f46e5,#7c3aed)")}
+        {navItem("/scenario-lab", <FlaskConical size={16} />, t("navScenarioLab"), "linear-gradient(135deg,#7c3aed,#0891b2)", "جديد")}
+        {navItem("/lab-history", <History size={16} />, t("navLabHistory"), "linear-gradient(135deg,#0e7490,#4f46e5)")}
+        {navItem("/exams", <ClipboardList size={16} />, t("navExams"), "linear-gradient(135deg,#be123c,#0891b2)")}
+        {navItem("/settings", <Settings size={16} />, t("navSettings"), "linear-gradient(135deg,#475569,#334155)")}
+        {isSuperAdmin && navItem("/admin/schools", <School size={16} />, t("navSchools"), "linear-gradient(135deg,#0891b2,#7c3aed)")}
+        {isSchoolAdmin && navItem("/admin/school-students", <GraduationCap size={16} />, t("navMyStudents"), "linear-gradient(135deg,#be123c,#9f1239)")}
+        {isSuperAdmin && navItem("/admin/students", <Users size={16} />, t("navStudentReports"), "linear-gradient(135deg,#be123c,#9f1239)")}
+        {isAdmin && navItem("/admin/exams", <FileText size={16} />, t("navExamManage"), "linear-gradient(135deg,#0891b2,#059669)")}
+        {isAdmin && navItem("/admin/exam-results", <FileCheck size={16} />, t("navExamResults"), "linear-gradient(135deg,#059669,#4f46e5)")}
       </div>
 
       {/* Divider */}
       <div className="mx-4 my-3" style={{ height: 1, background: "rgba(6,182,212,0.1)" }} />
       <div className="px-4 mb-2">
         <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: "rgba(6,182,212,0.4)" }}>
-          محتوى الدورة
+          {t("courseContent")}
         </span>
       </div>
 

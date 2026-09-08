@@ -1,13 +1,16 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import ContactUsButton from "./ContactUsButton";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { t, useLang } from "@/lib/i18n";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  useLang();
 
   return (
-    <div dir="rtl" className="min-h-screen bg-background font-main">
+    <div className="min-h-screen bg-background font-main">
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3"
         style={{
@@ -27,7 +30,7 @@ export default function Layout() {
             style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
             <span className="text-white text-xs font-black">ش</span>
           </div>
-          <span className="font-black text-white text-sm">مبادئ الشبكات</span>
+          <span className="font-black text-white text-sm">{t("appName")}</span>
         </div>
         <div className="w-10" />
       </div>
@@ -50,6 +53,9 @@ export default function Layout() {
       <div className="lg:mr-72 pt-16 lg:pt-0">
         <Outlet />
       </div>
+
+      {/* تواصل معنا — زر عائم في كل الصفحات */}
+      <ContactUsButton />
     </div>
   );
 }

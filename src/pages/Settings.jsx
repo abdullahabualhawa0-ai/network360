@@ -4,6 +4,7 @@ import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School }
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { getSchoolName } from "@/lib/schoolUtils";
+import { getLang as getSavedLang, setLang as applyI18nLang } from "@/lib/i18n";
 
 const LANGUAGES = [
   { id: "ar", label: "العربية", native: "العربية", flag: "🇸🇦", dir: "rtl" },
@@ -20,7 +21,7 @@ const PROFILE_STATUS = {
 
 export default function Settings() {
   const { user } = useAuth();
-  const [lang, setLang] = useState("ar");
+  const [lang, setLang] = useState(getSavedLang);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -29,7 +30,7 @@ export default function Settings() {
   // تحميل التفضيلات والملف الشخصي
   useEffect(() => {
     if (!user) return;
-    setLang(user.preferred_language || "ar");
+    setLang(user.preferred_language || getSavedLang());
     (async () => {
       const profiles = await base44.entities.StudentProfile.filter({ user_id: user.id }).catch(() => []);
       const p = profiles?.[0] || null;
@@ -42,11 +43,9 @@ export default function Settings() {
     })();
   }, [user?.id]);
 
-  // تطبيق اتجاه الواجهة
+  // تطبيق اتجاه الواجهة + حفظ التفضيل ليعمل تعدد اللغات في كامل الواجهة
   useEffect(() => {
-    const l = LANGUAGES.find((x) => x.id === lang) || LANGUAGES[0];
-    document.documentElement.dir = l.dir;
-    document.documentElement.lang = lang;
+    applyI18nLang(lang);
   }, [lang]);
 
   const saveLanguage = async (newLang) => {
