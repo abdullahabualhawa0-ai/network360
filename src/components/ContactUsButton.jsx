@@ -133,7 +133,7 @@ export default function ContactUsButton() {
                     </button>
                   </div>
 
-                  <p className="text-center mt-3 [font-family:'Aether',_sans-serif] text-sm" style={{ color: "rgba(148,163,184,0.5)" }}>
+                  <p className="text-center mt-3 [font-family:'Aether',_sans-serif] text-xl" style={{ color: "rgba(148,163,184,0.5)" }}>
                     edupro.education09@gmail.com
                   </p>
                 </>
