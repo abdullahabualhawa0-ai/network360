@@ -145,7 +145,7 @@ export function AccountStatusScreen({ profile, onLogout }) {
           {isPending ? "⏳" : isRejected ? "🚫" : "⛔"}
         </div>
         <h1 className="font-black text-lg text-white mb-1">
-          {isPending ? "حسابك بانتظار الموافقة" : isRejected ? "تم رفض حسابك" : "حسابك معطّل"}
+          {isPending ? "الحساب بانتظار موافقة إدارة المدرسة." : isRejected ? "تم رفض حسابك" : "هذا الحساب معطل. يرجى التواصل مع إدارة المدرسة."}
         </h1>
         <p className="text-xs text-slate-400 mb-4 leading-relaxed">
           {isPending

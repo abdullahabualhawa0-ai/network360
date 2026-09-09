@@ -15,29 +15,42 @@ export async function registerStudent({ user, fullName, email, schoolCode, stude
   // 1) هل رمز المدرسة موجود ومفعّل؟
   const schools = await base44.entities.School.filter({ code, is_active: true });
   if (!schools || schools.length === 0) {
-    return { ok: false, error: "رمز المدرسة غير صحيح، أو المدرسة غير مفعّلة" };
+    return { ok: false, error: "رمز المدرسة غير صحيح." };
   }
   const school = schools[0];
 
-  // 2) + 3) هل رمز الطالب موجود؟ وهل تابع لنفس المدرسة؟
-  // (البحث داخل مدرسة الرمز فقط — لذلك لا يعمل رمز طالب مع رمز مدرسة أخرى)
+  // 2) هل رمز الطالب موجود في هذه المدرسة؟
   const students = await base44.entities.StudentProfile.filter({
     school_id: school.id,
     student_code: sCode,
   });
-  if (!students || students.length === 0) {
-    return { ok: false, error: "رمز الطالب غير صحيح لهذه المدرسة" };
-  }
-  const student = students[0];
+  let student = students?.[0] || null;
 
-  // 4) هل الطالب مسجل مسبقاً؟
+  // 3) إن لم يوجد — هل هو طالب تابع لمدرسة أخرى؟ → بيانات غير متطابقة
+  if (!student) {
+    const elsewhere = await base44.entities.StudentProfile.filter({ student_code: sCode });
+    if (elsewhere && elsewhere.some((s) => s.school_id !== school.id)) {
+      return { ok: false, error: "بيانات تسجيل الدخول غير متطابقة." };
+    }
+    return { ok: false, error: "رمز الطالب غير صحيح." };
+  }
+
+  // 4) نفس المستخدم يعيد الدخول برمزه → دخول طبيعي بلا تغيير الحالة
+  if (student.user_id && student.user_id !== UNCLAIMED && student.user_id === user.id) {
+    return { ok: true };
+  }
+
+  // 5) الرمز مرتبط بحساب مستخدم آخر
   if (student.user_id && student.user_id !== UNCLAIMED) {
     return { ok: false, error: "هذا الرمز مستخدم ومسجل مسبقاً — تواصل مع إدارة مدرستك" };
   }
 
-  // 5) هل الحساب فعال؟
-  if (student.status === "rejected" || student.status === "disabled") {
-    return { ok: false, error: "حسابك غير مفعّل — راجع إدارة المدرسة" };
+  // 6) حالة الحساب (رمز غير مُفعّل من الإدارة)
+  if (student.status === "disabled") {
+    return { ok: false, error: "هذا الحساب معطل. يرجى التواصل مع إدارة المدرسة." };
+  }
+  if (student.status === "rejected") {
+    return { ok: false, error: "الحساب غير معتمد. يرجى التواصل مع إدارة المدرسة." };
   }
 
   // البيانات صحيحة → ربط الحساب بحالة Pending Approval

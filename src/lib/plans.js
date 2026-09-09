@@ -19,7 +19,7 @@ export const PLANS = {
     label: "الخطة الشخصية — سنويًا",
     period: "سنويًا",
     price: "400 ₪ / سنة",
-    highlight: "ادفع 8 أشهر والباقي من السنة مجانًا",
+    highlight: "ادفع 8 أشهر وباقي السنة مجانًا",
   },
   school_50: { id: "school_50", student_limit: 50, label: "حتى 50 طالب", price: "4,000 ₪ سنويًا" },
   school_100: { id: "school_100", student_limit: 100, label: "حتى 100 طالب", price: "6,000 ₪ سنويًا" },

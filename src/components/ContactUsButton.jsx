@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Loader2, Send, CheckCircle2, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { t, useLang } from "@/lib/i18n";
 
+// البريد الافتراضي — يُستبدل تلقائياً بقيمة الإعدادات → معلومات التواصل (SystemSetting)
 const CONTACT_EMAIL = "edupro.education09@gmail.com";
 
 /**
@@ -14,7 +15,15 @@ const CONTACT_EMAIL = "edupro.education09@gmail.com";
 export default function ContactUsButton() {
   const { user } = useAuth();
   useLang();
+  const [contactEmail, setContactEmail] = useState(CONTACT_EMAIL);
   const [open, setOpen] = useState(false);
+
+  // بريد التواصل قابل للتعديل من: الإعدادات → معلومات التواصل
+  useEffect(() => {
+    base44.entities.SystemSetting.filter({ key: "contact_email" })
+      .then((rows) => { if (rows?.[0]?.value) setContactEmail(rows[0].value); })
+      .catch(() => {});
+  }, []);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -27,7 +36,7 @@ export default function ContactUsButton() {
     setFailed(false);
     try {
       await base44.integrations.Core.SendEmail({
-        to: CONTACT_EMAIL,
+        to: contactEmail,
         subject: `ملاحظة عن التطبيق — ${user?.full_name || user?.email || "مستخدم"}`,
         body: `المرسل: ${user?.full_name || "—"} (${user?.email || "بدون بريد"})\n\nالملاحظة:\n${text}`
       });
@@ -112,7 +121,7 @@ export default function ContactUsButton() {
                         <AlertTriangle size={13} /> {t("contactError")}
                       </div>
                       <a
-                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("ملاحظة عن التطبيق — " + (user?.full_name || user?.email || "مستخدم"))}&body=${encodeURIComponent(message.trim())}`}
+                  href={`mailto:${contactEmail}?subject=${encodeURIComponent("ملاحظة عن التطبيق — " + (user?.full_name || user?.email || "مستخدم"))}&body=${encodeURIComponent(message.trim())}`}
                   className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-black text-white"
                   style={{ background: "linear-gradient(90deg,#d97706,#f59e0b)" }}>
                         <Send size={11} /> {t("contactOpenMail")}
@@ -134,7 +143,7 @@ export default function ContactUsButton() {
                   </div>
 
                   <p className="text-center mt-3 [font-family:'Aether',_sans-serif] text-xl" style={{ color: "rgba(148,163,184,0.5)" }}>
-                    edupro.education09@gmail.com
+                    {contactEmail}
                   </p>
                 </>
             }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School } from "lucide-react";
+import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, Mail } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { getSchoolName } from "@/lib/schoolUtils";
@@ -62,6 +62,33 @@ export default function Settings() {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  };
+
+  // معلومات التواصل — بريد الدعم قابل للتعديل من المالك فقط (SystemSetting)
+  const isAdmin = user?.role === "admin";
+  const [contactEmail, setContactEmail] = useState("");
+  const [savingContact, setSavingContact] = useState(false);
+  const [contactSaved, setContactSaved] = useState(false);
+
+  useEffect(() => {
+    base44.entities.SystemSetting.filter({ key: "contact_email" })
+      .then((rows) => setContactEmail(rows?.[0]?.value || ""))
+      .catch(() => {});
+  }, []);
+
+  const saveContactEmail = async () => {
+    const v = contactEmail.trim();
+    if (!v) return;
+    setSavingContact(true);
+    setContactSaved(false);
+    try {
+      const rows = await base44.entities.SystemSetting.filter({ key: "contact_email" });
+      if (rows?.length > 0) await base44.entities.SystemSetting.update(rows[0].id, { value: v });
+      else await base44.entities.SystemSetting.create({ key: "contact_email", value: v });
+      setContactSaved(true);
+      setTimeout(() => setContactSaved(false), 2500);
+    } catch { /* تعديل البريد متاح للمالك فقط */ }
+    setSavingContact(false);
   };
 
   const statusInfo = profile ? (PROFILE_STATUS[profile.status] || PROFILE_STATUS.pending) : null;
@@ -167,6 +194,34 @@ export default function Settings() {
               </span>
             )}
           </motion.div>
+        </div>
+
+        {/* معلومات التواصل */}
+        <div className="rounded-2xl p-5 mt-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
+          <div className="flex items-center gap-2 mb-4 text-cyan-400">
+            <Mail size={15} />
+            <h2 className="text-sm font-black">معلومات التواصل</h2>
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-3">
+            البريد الذي تصل إليه ملاحظات المستخدمين عبر زر «تواصل معنا»
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)}
+              disabled={!isAdmin} dir="ltr"
+              className="flex-1 px-4 py-2.5 rounded-xl text-sm bg-transparent focus:outline-none disabled:opacity-60"
+              style={{ border: "1px solid hsl(var(--border))" }} />
+            {isAdmin && (
+              <button onClick={saveContactEmail} disabled={savingContact || !contactEmail.trim()}
+                className="px-4 py-2.5 rounded-xl text-xs font-black text-white disabled:opacity-50 flex items-center justify-center gap-1.5"
+                style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
+                {savingContact ? <Loader2 size={12} className="animate-spin" /> : contactSaved ? <Check size={12} /> : null}
+                {savingContact ? "جاري الحفظ..." : contactSaved ? "تم الحفظ" : "حفظ البريد"}
+              </button>
+            )}
+          </div>
+          {!isAdmin && (
+            <p className="text-[10px] text-muted-foreground mt-2">تعديل البريد متاح لمالك المنصة فقط</p>
+          )}
         </div>
       </div>
     </div>
