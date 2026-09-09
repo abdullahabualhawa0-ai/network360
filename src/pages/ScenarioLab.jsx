@@ -8,7 +8,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { SCENARIOS } from "../lib/scenarios";
 import { useAuth } from "@/lib/AuthContext";
-import { resolveSchoolId } from "../lib/labTracking";
+import { resolveSchoolId, ensureLabRecord, markTaskCompleted } from "../lib/labTracking";
 
 const STORAGE_KEY = "scenario-progress";
 
@@ -16,6 +16,12 @@ function loadProgress() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
   catch { return {}; }
 }
+
+// الترتيب حسب الصعوبة — من الأسهل إلى الأصعب
+const DIFF_ORDER = { "سهل": 0, "متوسط": 1, "صعب": 2 };
+const SORTED_SCENARIOS = [...SCENARIOS].sort(
+  (a, b) => (DIFF_ORDER[a.difficulty] ?? 1.5) - (DIFF_ORDER[b.difficulty] ?? 1.5)
+);
 
 export default function ScenarioLab() {
   const [selected, setSelected] = useState(null);
@@ -39,7 +45,11 @@ export default function ScenarioLab() {
         );
         const map = {};
         for (const r of rows || []) {
-          map[r.scenario_id] = { score: r.score || 0, completedAt: r.completed_at || r.updated_date };
+          map[r.scenario_id] = {
+            score: r.score || 0,
+            status: r.status,
+            completedAt: r.completed_at || r.updated_date,
+          };
         }
         setProgress((prev) => ({ ...prev, ...map }));
       } catch { /* يبقى التقدم المحلي معروضاً حتى تكتمل المزامنة */ }
@@ -47,32 +57,38 @@ export default function ScenarioLab() {
     })();
   }, [user?.id]);
 
-  // حفظ الإنجاز في قاعدة البيانات (تحديث السجل نفسه — بلا تكرار)
-  const saveToDb = async (scenario, res) => {
+  // إنشاء سجل المحاولة (in_progress) بمجرد فتح السيناريو — يظهر مباشرة في سجل المحاولات
+  const startLab = async (scenario) => {
     if (!user) return;
     try {
       const schoolId = await resolveSchoolId(user);
-      const now = new Date().toISOString();
+      await ensureLabRecord(user, schoolId, scenario, 0);
+    } catch { /* بدون تتبع سحابي هذه المرة */ }
+  };
+
+  // تتبع فردي لكل مهمة: تُعلَّم المهام المنجزة واحدة واحدة (بلا تكرار) وتتحدّث العدادات تلقائياً
+  const persistEvaluation = async (scenario, res) => {
+    if (!user) return;
+    try {
+      const schoolId = await resolveSchoolId(user);
       const details = res.details || [];
-      const existing = await base44.entities.LabHistory.filter({
-        student_id: user.id, scenario_id: scenario.id, school_id: schoolId,
-      });
-      const data = {
-        status: "completed",
-        score: typeof res.score === "number" ? res.score : 100,
-        xp_earned: scenario.xp || 0,
-        tasks_total: details.length,
-        tasks_completed: details.filter((d) => d.ok).length,
-        completed_at: now,
-        last_activity_at: now,
-      };
-      if (existing && existing.length > 0) {
-        await base44.entities.LabHistory.update(existing[0].id, data);
-      } else {
-        await base44.entities.LabHistory.create({
-          student_id: user.id, school_id: schoolId, scenario_id: scenario.id,
-          scenario_title: scenario.title, scenario_difficulty: scenario.difficulty,
-          started_at: now, ...data,
+      let lab = await ensureLabRecord(user, schoolId, scenario, details.length);
+      for (let i = 0; i < details.length; i++) {
+        if (details[i].ok) {
+          lab = await markTaskCompleted({
+            lab, user, schoolId, scenario,
+            taskIndex: i, taskLabel: details[i].label,
+          });
+        }
+      }
+      if (res.passed) {
+        const now = new Date().toISOString();
+        await base44.entities.LabHistory.update(lab.id, {
+          status: "completed",
+          score: typeof res.score === "number" ? res.score : lab.score,
+          xp_earned: scenario.xp || lab.xp_earned || 0,
+          completed_at: lab.completed_at || now,
+          last_activity_at: now,
         });
       }
     } catch { /* محفوظ محلياً وستتم المزامنة في الزيارة القادمة */ }
@@ -94,7 +110,7 @@ export default function ScenarioLab() {
       const prog = { ...progress, [selected.id]: { score: res.score, completedAt: new Date().toISOString() } };
       setProgress(prog);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prog));
-      saveToDb(selected, res);
+      persistEvaluation(selected, res);
     }
   };
 
@@ -150,6 +166,9 @@ export default function ScenarioLab() {
             <p className="text-[10px] mt-1" style={{ color: dbReady ? "rgba(52,211,153,0.75)" : "rgba(148,163,184,0.6)" }}>
               {dbReady ? "✓ تقدمك متزامن مع حسابك" : "جاري مزامنة تقدمك مع حسابك..."}
             </p>
+            <p className="text-[10px] mt-0.5" style={{ color: "rgba(167,139,250,0.7)" }}>
+              السيناريوهات مرتبة حسب الصعوبة — من الأسهل إلى الأصعب
+            </p>
           </motion.div>
         </div>
       </div>
@@ -157,7 +176,7 @@ export default function ScenarioLab() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         {!selected ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {SCENARIOS.map((sc, i) => {
+            {SORTED_SCENARIOS.map((sc, i) => {
               const done = progress[sc.id];
               return (
                 <motion.div
@@ -173,14 +192,19 @@ export default function ScenarioLab() {
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = done ? "rgba(34,197,94,0.55)" : "rgba(139,92,246,0.4)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = done ? "rgba(34,197,94,0.35)" : "rgba(139,92,246,0.18)"; }}
-                  onClick={() => { setSelected(sc); setResult(null); setAiTip(""); setShowHints(false); }}
+                  onClick={() => { setSelected(sc); setResult(null); setAiTip(""); setShowHints(false); startLab(sc); }}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <span className="text-3xl">{sc.icon}</span>
                     <div className="flex items-center gap-2">
-                      {done && (
+                      {done && (!done.status || done.status === "completed") && (
                         <span className="text-[10px] bg-green-400/10 text-green-400 border border-green-400/30 px-2 py-0.5 rounded-full font-bold">
                           ✓ {done.score}%
+                        </span>
+                      )}
+                      {done?.status && done.status !== "completed" && (
+                        <span className="text-[10px] bg-amber-400/10 text-amber-400 border border-amber-400/30 px-2 py-0.5 rounded-full font-bold">
+                          ⏳ متابعة ({done.score}%)
                         </span>
                       )}
                       <span className={`text-[10px] border px-2.5 py-0.5 rounded-full font-bold ${sc.diffColor}`}>
