@@ -62,7 +62,7 @@ export default function Home() {
               transition={{ delay: 0.1 }}
               className="inline-flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 px-4 py-2 rounded-full text-sm font-medium mb-6 backdrop-blur-sm">
               
-              <Zap size={14} className="text-cyan-400 hidden" />
+              
               منصة تعليمية تفاعلية متكاملة
             </motion.div>
 
