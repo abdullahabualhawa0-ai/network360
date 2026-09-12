@@ -82,21 +82,21 @@ export default function Home() {
               {[{ icon: Layers, val: courseData.length, label: "قسم", color: "text-cyan-400", bg: "bg-cyan-400/10 border-cyan-400/20" },
               { icon: BookOpen, val: totalTopics, label: "درس", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
               { icon: GraduationCap, val: "100%", label: "مجاني", color: "text-purple-400", bg: "bg-purple-400/10 border-purple-400/20" }].
-              map(({ icon: Icon, val, label, color, bg }, i) =>
-              <motion.div key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.1 }}
-              className={`flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-sm hidden ${bg}`}>
-                
-                  <div className={`w-9 h-9 rounded-xl hidden ${bg} border flex items-center justify-center`}>
-                    <Icon size={16} className={color} />
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-xl font-black ${color}`}>{val}</div>
-                    <div className="text-slate-400 text-xs">{label}</div>
-                  </div>
-                </motion.div>
+              map(({ icon: Icon, val, label, color, bg }, i) => null
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               )}
             </div>
           </motion.div>
