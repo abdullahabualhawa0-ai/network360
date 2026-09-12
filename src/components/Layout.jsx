@@ -56,7 +56,7 @@ export default function Layout() {
 
       {/* حقوق النشر — السنة تتحدث تلقائياً */}
       <footer className="lg:mr-72 py-5 text-center text-[11px]" style={{ color: "rgba(148,163,184,0.55)" }}>
-        © {new Date().getFullYear()} جميع حقوق النشر محفوظة
+        © {new Date().getFullYear()} {t("footerRights")}
       </footer>
 
       {/* تواصل معنا — زر عائم في كل الصفحات */}

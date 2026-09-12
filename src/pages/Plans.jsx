@@ -5,6 +5,7 @@ import { PLANS, randomCode } from "@/lib/plans";
 import PersonalPlans from "@/components/plans/PersonalPlans";
 import SchoolPlans from "@/components/plans/SchoolPlans";
 import { Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
+import { t, useLang } from "@/lib/i18n";
 
 /**
  * صفحة اختيار الخطة — "إنشاء حساب جديد"
@@ -14,6 +15,7 @@ import { Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
  */
 export default function Plans() {
   const { user } = useAuth();
+  useLang();
   const [busy, setBusy] = useState(null);
   const [hasProfile, setHasProfile] = useState(false);
   const [schoolDone, setSchoolDone] = useState(null);
@@ -63,7 +65,8 @@ export default function Plans() {
         approved_by: "self",
         approved_at: new Date().toISOString(),
       });
-      await base44.auth.updateMe({ school_id: school.id }).catch(() => {});
+      // مستخدم مستقل (Personal) — لا يحتاج School Code، ونوع الحساب يُفصل عن مستخدم المدرسة
+      await base44.auth.updateMe({ school_id: school.id, account_type: "personal" }).catch(() => {});
       window.location.href = "/";
     } catch {
       setError("تعذر إنشاء الحساب — حاول مجدداً");
@@ -105,8 +108,8 @@ export default function Plans() {
             style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
             <Sparkles className="text-white" size={24} />
           </div>
-          <h1 className="font-black text-2xl mb-1">إنشاء حساب جديد — اختيار الخطة</h1>
-          <p className="text-xs text-muted-foreground">لا يُنشأ الحساب قبل اختيار الخطة المناسبة</p>
+          <h1 className="font-black text-2xl mb-1">{t("plansTitle")}</h1>
+          <p className="text-xs text-muted-foreground">{t("plansSubtitle")}</p>
         </div>
 
         {schoolDone ? (

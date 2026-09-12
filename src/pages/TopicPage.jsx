@@ -13,8 +13,10 @@ import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
 import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { 
-  Network, Globe, Shield, Server, Radio, Cpu, Route, Tag
+  Network, Globe, Shield, Server, Radio, Cpu, Route, Tag, FlaskConical, Zap, Clock
 } from "lucide-react";
+import { SCENARIOS, DIFF_LABEL_KEYS } from "../lib/scenarios";
+import { t, useLang } from "@/lib/i18n";
 
 const iconMap = {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag
@@ -32,6 +34,7 @@ function markTopicVisited(topicId) {
 export default function TopicPage() {
   const { sectionId, topicId } = useParams();
   const navigate = useNavigate();
+  useLang();
 
   const section = courseData.find(s => s.id === sectionId);
   const topic = section?.topics.find(t => t.id === topicId);
@@ -180,6 +183,40 @@ export default function TopicPage() {
             </ReadingGate>
           </div>
         )}
+
+        {/* سيناريوهات هذا الدرس — العملية على المحاكي */}
+        {(() => {
+          const lessonScenarios = SCENARIOS.filter((s) => s.lessonId === topicId);
+          if (!lessonScenarios.length) return null;
+          return (
+            <div className="mt-6 bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <FlaskConical size={17} className="text-primary" />
+                <h2 className="font-black text-base">{t("lessonScenariosTitle")}</h2>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-4">{t("lessonScenariosDesc")}</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {lessonScenarios.map((sc) => (
+                  <Link key={sc.id} to={`/scenario-lab?lesson=${topicId}&open=${sc.id}`}
+                    className="rounded-xl p-4 transition-all hover:shadow-md"
+                    style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.25)" }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xl">{sc.icon}</span>
+                      <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${sc.diffColor}`}>
+                        {t(DIFF_LABEL_KEYS[sc.difficulty] || "diffMedium")}
+                      </span>
+                    </div>
+                    <div className="text-sm font-bold mb-1.5">{sc.title}</div>
+                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><Clock size={11} /> {sc.time}</span>
+                      <span className="flex items-center gap-1"><Zap size={11} className="text-yellow-400" /> {sc.xp} XP</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Navigation */}
         <div className="flex items-center justify-between mt-8 gap-4">

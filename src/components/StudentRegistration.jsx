@@ -1,19 +1,22 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { getSchoolName } from "@/lib/schoolUtils";
 import { registerStudent } from "@/lib/registrationUtils";
-import { KeyRound, Loader2, AlertTriangle, LogOut, UserPlus } from "lucide-react";
+import { KeyRound, Loader2, AlertTriangle, LogOut, UserPlus, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { t, useLang } from "@/lib/i18n";
 
+/**
+ * تسجيل دخول الطالب — بالرموز فقط (School Code + Student Code)
+ * لا بريد، لا كلمة مرور، لا دخول اجتماعي، لا أي وسيلة أخرى.
+ */
 export default function StudentRegistration({ onRegistered }) {
   const { user } = useAuth();
-  const [form, setForm] = useState({
-    name: user?.full_name || "",
-    email: user?.email || "",
-    schoolCode: "",
-    studentCode: "",
-  });
+  useLang();
+  const [schoolCode, setSchoolCode] = useState("");
+  const [studentCode, setStudentCode] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -24,15 +27,13 @@ export default function StudentRegistration({ onRegistered }) {
     try {
       const res = await registerStudent({
         user,
-        fullName: form.name,
-        email: form.email,
-        schoolCode: form.schoolCode,
-        studentCode: form.studentCode,
+        schoolCode,
+        studentCode,
       });
       if (!res.ok) setError(res.error);
       else onRegistered?.();
     } catch {
-      setError("حدث خطأ غير متوقع — تأكد من الاتصال وحاول مجدداً");
+      setError(t("errUnexpected"));
     } finally {
       setBusy(false);
     }
@@ -53,42 +54,24 @@ export default function StudentRegistration({ onRegistered }) {
             style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
             <KeyRound className="text-white" size={24} />
           </div>
-          <h1 className="font-black text-lg text-white">تسجيل الدخول</h1>
-          <p className="text-xs mt-1 text-slate-400">
-            أدخل رمز المدرسة ورمز الطالب للدخول إلى حسابك — لا يُقبل الدخول إلا برموز صحيحة ومتطابقة
-          </p>
+          <h1 className="font-black text-lg text-white">{t("loginTitle")}</h1>
+          <p className="text-xs mt-1 text-slate-400">{t("loginSubtitle")}</p>
         </div>
 
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 mb-1.5">الاسم <span className="text-slate-600">(اختياري)</span></label>
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-              dir="rtl" className="w-full px-4 py-2.5 rounded-xl text-sm text-white focus:outline-none"
+            <label className="block text-[11px] font-bold text-slate-400 mb-1.5">{t("schoolCode")}</label>
+            <input value={schoolCode} onChange={(e) => setSchoolCode(e.target.value)}
+              required placeholder="SCH2026A" dir="ltr"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-white font-mono focus:outline-none"
               style={inputStyle} />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 mb-1.5">
-              البريد الإلكتروني <span className="text-slate-600">(اختياري)</span>
-            </label>
-            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-              dir="ltr" className="w-full px-4 py-2.5 rounded-xl text-sm text-white focus:outline-none"
+            <label className="block text-[11px] font-bold text-slate-400 mb-1.5">{t("studentCode")}</label>
+            <input value={studentCode} onChange={(e) => setStudentCode(e.target.value)}
+              required placeholder="ST10025" dir="ltr"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-white font-mono focus:outline-none"
               style={inputStyle} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-400 mb-1.5">رمز المدرسة</label>
-              <input value={form.schoolCode} onChange={(e) => setForm({ ...form, schoolCode: e.target.value })}
-                required placeholder="SCH2026A" dir="ltr"
-                className="w-full px-4 py-2.5 rounded-xl text-sm text-white font-mono focus:outline-none"
-                style={inputStyle} />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-slate-400 mb-1.5">رمز الطالب</label>
-              <input value={form.studentCode} onChange={(e) => setForm({ ...form, studentCode: e.target.value })}
-                required placeholder="ST10025" dir="ltr"
-                className="w-full px-4 py-2.5 rounded-xl text-sm text-white font-mono focus:outline-none"
-                style={inputStyle} />
-            </div>
           </div>
 
           {error && (
@@ -101,20 +84,30 @@ export default function StudentRegistration({ onRegistered }) {
           <button type="submit" disabled={busy}
             className="w-full py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-60"
             style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
-            {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : "تسجيل الدخول"}
+            {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : t("loginBtn")}
           </button>
         </form>
 
         <p className="text-[10px] text-center mt-4 text-slate-500 leading-relaxed">
-          بعد الدخول ينتظر حسابك موافقة مشرف مدرستك قبل استخدام التطبيق
+          {t("loginPendingNote")}
         </p>
 
         <div className="mt-4 pt-4 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
           <Link to="/plans" className="inline-flex items-center gap-1.5 text-xs font-black"
             style={{ color: "#06b6d4" }}>
-            <UserPlus size={13} /> إنشاء حساب جديد
+            <UserPlus size={13} /> {t("createAccount")}
           </Link>
-          <p className="text-[10px] text-slate-500 mt-1">اختر خطة الاشتراك أولاً — شخصية أو مدرسية</p>
+          <p className="text-[10px] text-slate-500 mt-1">{t("createAccountNote")}</p>
+
+          {/* التسجيل بشكل مستقل بدون مدرسة */}
+          <Link to="/plans" className="mt-4 flex items-center gap-2.5 w-full px-4 py-3 rounded-xl transition-all hover:brightness-110"
+            style={{ background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.3)" }}>
+            <User size={15} style={{ color: "#34d399" }} />
+            <span className="text-right">
+              <span className="block text-[11px] font-black" style={{ color: "#34d399" }}>{t("personalOption")}</span>
+              <span className="block text-[9px] text-slate-500">{t("personalOptionDesc")}</span>
+            </span>
+          </Link>
         </div>
       </div>
     </div>
@@ -124,6 +117,7 @@ export default function StudentRegistration({ onRegistered }) {
 export function AccountStatusScreen({ profile, onLogout }) {
   const [schoolName, setSchoolName] = useState("...");
   const { logout } = useAuth();
+  useLang();
 
   useEffect(() => {
     getSchoolName(profile.school_id).then(setSchoolName);
@@ -145,20 +139,20 @@ export function AccountStatusScreen({ profile, onLogout }) {
           {isPending ? "⏳" : isRejected ? "🚫" : "⛔"}
         </div>
         <h1 className="font-black text-lg text-white mb-1">
-          {isPending ? "الحساب بانتظار موافقة إدارة المدرسة." : isRejected ? "تم رفض حسابك" : "هذا الحساب معطل. يرجى التواصل مع إدارة المدرسة."}
+          {isPending ? t("pendingTitle") : isRejected ? t("rejectedTitle") : t("errDisabled")}
         </h1>
         <p className="text-xs text-slate-400 mb-4 leading-relaxed">
           {isPending
-            ? `تم تسجيلك في مدرسة «${schoolName}» بنجاح. لن تستطيع استخدام التطبيق حتى يوافق مشرف المدرسة على حسابك.`
-            : `راجع إدارة مدرسة «${schoolName}» بخصوص حالة حسابك.`}
+            ? `${t("pendingDesc")} (مدرسة «${schoolName}»)`
+            : `${t("statusDesc")} (مدرسة «${schoolName}»)`}
         </p>
         <div className="text-[10px] text-slate-500 mb-5">
-          {profile.full_name} • رمز الطالب: {profile.student_code}
+          {profile.full_name} • {t("studentCodeLabel")}: {profile.student_code}
         </div>
         <button onClick={() => (onLogout || logout)()}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
           style={{ border: "1px solid rgba(255,255,255,0.15)", color: "#94a3b8" }}>
-          <LogOut size={12} /> تسجيل الخروج
+          <LogOut size={12} /> {t("logout")}
         </button>
       </div>
     </div>

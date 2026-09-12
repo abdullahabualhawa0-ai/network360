@@ -4,7 +4,7 @@ import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, 
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { getSchoolName } from "@/lib/schoolUtils";
-import { getLang as getSavedLang, setLang as applyI18nLang } from "@/lib/i18n";
+import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang } from "@/lib/i18n";
 
 const LANGUAGES = [
   { id: "ar", label: "العربية", native: "العربية", flag: "🇸🇦", dir: "rtl" },
@@ -21,21 +21,24 @@ const PROFILE_STATUS = {
 
 export default function Settings() {
   const { user } = useAuth();
+  useLang();
   const [lang, setLang] = useState(getSavedLang);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [profile, setProfile] = useState(null);
   const [schoolName, setSchoolName] = useState("عام");
 
-  // تحميل التفضيلات والملف الشخصي
+  // ── إصلاح مشكلة تغيّر اللغة تلقائياً عند فتح الإعدادات ──
+  // السبب الجذري كان: إعادة تطبيق user.preferred_language / profile.preferred_language
+  // عند كل فتح للصفحة، فتتجاوز القيمة القديمة اختيار المستخدم الأحدث.
+  // الإصلاح: اللغة لا تتغير إلا باختيار المستخدم صراحةً (saveLanguage).
+  // المصدر الموثوق: localStorage (app-language) + مزامنة الحساب عند الاختيار فقط.
   useEffect(() => {
     if (!user) return;
-    setLang(user.preferred_language || getSavedLang());
     (async () => {
       const profiles = await base44.entities.StudentProfile.filter({ user_id: user.id }).catch(() => []);
       const p = profiles?.[0] || null;
       setProfile(p);
-      if (p?.preferred_language && !user.preferred_language) setLang(p.preferred_language);
       if (p?.school_id) {
         const name = await getSchoolName(p.school_id);
         setSchoolName(name);
@@ -103,8 +106,8 @@ export default function Settings() {
             <SettingsIcon className="text-white" size={20} />
           </div>
           <div>
-            <h1 className="font-black text-xl">الإعدادات</h1>
-            <p className="text-xs text-muted-foreground">حسابك، لغة الواجهة، ومعلومات مدرستك</p>
+            <h1 className="font-black text-xl">{t("settingsTitle")}</h1>
+            <p className="text-xs text-muted-foreground">{t("settingsSubtitle")}</p>
           </div>
         </div>
 
@@ -112,7 +115,7 @@ export default function Settings() {
         <div className="rounded-2xl p-5 mb-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center gap-2 mb-4 text-cyan-400">
             <User size={15} />
-            <h2 className="text-sm font-black">الحساب</h2>
+            <h2 className="text-sm font-black">{t("accountSection")}</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-3 text-xs">
             <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
@@ -140,7 +143,7 @@ export default function Settings() {
         <div className="rounded-2xl p-5 mb-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center gap-2 mb-4 text-cyan-400">
             <GraduationCap size={15} />
-            <h2 className="text-sm font-black">لغة الواجهة</h2>
+            <h2 className="text-sm font-black">{t("languageSection")}</h2>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {LANGUAGES.map((l) => {
@@ -177,7 +180,7 @@ export default function Settings() {
         <div className="rounded-2xl p-5 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center gap-2 mb-4 text-cyan-400">
             <School size={15} />
-            <h2 className="text-sm font-black">المدرسة</h2>
+            <h2 className="text-sm font-black">{t("schoolSection")}</h2>
           </div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between rounded-xl p-3"
             style={{ background: "rgba(255,255,255,0.03)" }}>
@@ -200,10 +203,10 @@ export default function Settings() {
         <div className="rounded-2xl p-5 mt-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center gap-2 mb-4 text-cyan-400">
             <Mail size={15} />
-            <h2 className="text-sm font-black">معلومات التواصل</h2>
+            <h2 className="text-sm font-black">{t("contactSection")}</h2>
           </div>
           <p className="text-[11px] text-muted-foreground mb-3">
-            البريد الذي تصل إليه ملاحظات المستخدمين عبر زر «تواصل معنا»
+            {t("contactSectionDesc")}
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
             <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)}
@@ -215,12 +218,12 @@ export default function Settings() {
                 className="px-4 py-2.5 rounded-xl text-xs font-black text-white disabled:opacity-50 flex items-center justify-center gap-1.5"
                 style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
                 {savingContact ? <Loader2 size={12} className="animate-spin" /> : contactSaved ? <Check size={12} /> : null}
-                {savingContact ? "جاري الحفظ..." : contactSaved ? "تم الحفظ" : "حفظ البريد"}
+                {savingContact ? t("saving") : contactSaved ? t("saved") : t("saveEmail")}
               </button>
             )}
           </div>
           {!isAdmin && (
-            <p className="text-[10px] text-muted-foreground mt-2">تعديل البريد متاح لمالك المنصة فقط</p>
+            <p className="text-[10px] text-muted-foreground mt-2">{t("adminOnlyNote")}</p>
           )}
         </div>
       </div>

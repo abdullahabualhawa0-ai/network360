@@ -4,6 +4,7 @@
  *          → مسجل مسبقاً؟ → الحساب مفعّل؟ → ربط الحساب بحالة Pending Approval
  */
 import { base44 } from "@/api/base44Client";
+import { t } from "@/lib/i18n";
 
 export const UNCLAIMED = "__unclaimed__";
 
@@ -12,10 +13,10 @@ export async function registerStudent({ user, fullName, email, schoolCode, stude
   const sCode = (studentCode || "").trim();
   if (!code || !sCode) return { ok: false, error: "أدخل رمز المدرسة ورمز الطالب" };
 
-  // 1) هل رمز المدرسة موجود ومفعّل؟
+  // 1) هل رمز المدرسة موجود ومفعّل؟ (تحقق من قاعدة البيانات — لا يعتمد على الواجهة)
   const schools = await base44.entities.School.filter({ code, is_active: true });
   if (!schools || schools.length === 0) {
-    return { ok: false, error: "رمز المدرسة غير صحيح." };
+    return { ok: false, error: t("errSchoolCode") };
   }
   const school = schools[0];
 
@@ -30,9 +31,9 @@ export async function registerStudent({ user, fullName, email, schoolCode, stude
   if (!student) {
     const elsewhere = await base44.entities.StudentProfile.filter({ student_code: sCode });
     if (elsewhere && elsewhere.some((s) => s.school_id !== school.id)) {
-      return { ok: false, error: "بيانات تسجيل الدخول غير متطابقة." };
+      return { ok: false, error: t("errMismatch") };
     }
-    return { ok: false, error: "رمز الطالب غير صحيح." };
+    return { ok: false, error: t("errStudentCode") };
   }
 
   // 4) نفس المستخدم يعيد الدخول برمزه → دخول طبيعي بلا تغيير الحالة
@@ -42,15 +43,15 @@ export async function registerStudent({ user, fullName, email, schoolCode, stude
 
   // 5) الرمز مرتبط بحساب مستخدم آخر
   if (student.user_id && student.user_id !== UNCLAIMED) {
-    return { ok: false, error: "هذا الرمز مستخدم ومسجل مسبقاً — تواصل مع إدارة مدرستك" };
+    return { ok: false, error: t("errTaken") };
   }
 
   // 6) حالة الحساب (رمز غير مُفعّل من الإدارة)
   if (student.status === "disabled") {
-    return { ok: false, error: "هذا الحساب معطل. يرجى التواصل مع إدارة المدرسة." };
+    return { ok: false, error: t("errDisabled") };
   }
   if (student.status === "rejected") {
-    return { ok: false, error: "الحساب غير معتمد. يرجى التواصل مع إدارة المدرسة." };
+    return { ok: false, error: t("errNotApproved") };
   }
 
   // البيانات صحيحة → ربط الحساب بحالة Pending Approval
@@ -61,8 +62,9 @@ export async function registerStudent({ user, fullName, email, schoolCode, stude
     status: "pending",
   });
 
-  // حفظ المدرسة على حساب المستخدم (يُستخدم في عزل البيانات على مستوى القاعدة)
-  await base44.auth.updateMe({ school_id: school.id }).catch(() => {});
+  // حفظ المدرسة ونوع الحساب على حساب المستخدم (يُستخدم في عزل البيانات على مستوى القاعدة)
+  // account_type = school → مستخدم تابع لمدرسة (مقابل personal للمستخدم المستقل)
+  await base44.auth.updateMe({ school_id: school.id, account_type: "school" }).catch(() => {});
 
   return { ok: true };
 }

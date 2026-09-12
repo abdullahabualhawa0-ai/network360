@@ -1,13 +1,15 @@
 import { PLANS } from "@/lib/plans";
 import { Loader2 } from "lucide-react";
+import { t, useLang } from "@/lib/i18n";
 
 /** بطاقتا الخطة الشخصية — شهري 50₪ / سنوي 400₪ مع عرض "ادفع 8 أشهر والباقي مجانًا" */
 export default function PersonalPlans({ isStudent, hasProfile, busy, onSelect }) {
+  useLang();
   const plans = [PLANS.personal_monthly, PLANS.personal_annual];
   return (
     <section className="mb-10">
-      <h2 className="font-black text-base mb-1">الخطة الشخصية</h2>
-      <p className="text-[11px] text-muted-foreground mb-4">لمتعلم واحد — حساب طالب كامل</p>
+      <h2 className="font-black text-base mb-1">{t("personalPlanSection")}</h2>
+      <p className="text-[11px] text-muted-foreground mb-4">{t("personalPlanDesc")}</p>
       <div className="grid sm:grid-cols-2 gap-4">
         {plans.map((p) => (
           <div key={p.id} className="rounded-2xl p-5 bg-card"

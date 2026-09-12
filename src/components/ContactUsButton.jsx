@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Loader2, Send, CheckCircle2, AlertTriangle } from "lucide-react";
+import { MessageCircle, X, Loader2, Send, CheckCircle2, AlertTriangle, Copy } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { t, useLang } from "@/lib/i18n";
@@ -28,6 +28,27 @@ export default function ContactUsButton() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // نسخ البريد إلى الحافظة — يعمل على Desktop وMobile
+  const copyEmailToClipboard = async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(contactEmail);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = contactEmail;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch { /* الحافظة غير متاحة */ }
+  };
 
   const send = async () => {
     const text = message.trim();
@@ -142,9 +163,18 @@ export default function ContactUsButton() {
                     </button>
                   </div>
 
-                  <p className="text-center mt-3 [font-family:'Aether',_sans-serif] text-xl" style={{ color: "rgba(148,163,184,0.5)" }}>
-                    {contactEmail}
-                  </p>
+                  <div className="flex items-center justify-center gap-2 mt-3">
+                    <p className="text-center [font-family:'Aether',_sans-serif] text-xl truncate" style={{ color: "rgba(148,163,184,0.5)" }}>
+                      {contactEmail}
+                    </p>
+                    <button onClick={copyEmailToClipboard}
+                      title={t("copy")}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all hover:brightness-125"
+                      style={{ border: "1px solid rgba(6,182,212,0.35)", color: "#06b6d4", background: "rgba(6,182,212,0.08)" }}>
+                      {copied ? <CheckCircle2 size={11} /> : <Copy size={11} />}
+                      {copied ? t("copiedMsg") : t("copy")}
+                    </button>
+                  </div>
                 </>
             }
             </motion.div>

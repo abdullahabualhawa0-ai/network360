@@ -19,12 +19,40 @@ import { AnimatePresence as AP, motion } from "framer-motion";
 
 const STORAGE_KEY = "network-simulator-state";
 
+/**
+ * جلسة محاكاة مستقلة لكل سيناريو (Simulation Session):
+ * - سيناريو جديد → جلسة جديدة نظيفة (يُزال كل ما أضافه الطالب في سيناريو سابق)
+ * - إعادة فتح نفس السيناريو → استكمال من الحالة المحفوظة
+ * - Template السيناريو (الأجهزة المطلوبة أصلاً) يُحمّل عند أول فتح للجلسة
+ */
+function activeScenarioId() {
+  try { return localStorage.getItem("active-scenario-id"); } catch { return null; }
+}
+
 function loadState() {
+  const sid = activeScenarioId();
+  const key = sid ? `network-simulator-state-s${sid}` : STORAGE_KEY;
+  const empty = { nodes: [], connections: [], nextId: 1 };
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : { nodes: [], connections: [], nextId: 1 };
+    const saved = localStorage.getItem(key);
+    if (saved) return { key, state: JSON.parse(saved) };
+    // جلسة جديدة — حمّل قالب السيناريو إن وجد
+    if (sid) {
+      const sc = getScenarioById(sid);
+      if (sc?.template?.nodes?.length) {
+        return {
+          key,
+          state: {
+            nodes: sc.template.nodes.map((n) => ({ ...n })),
+            connections: (sc.template.connections || []).map((c) => ({ ...c })),
+            nextId: sc.template.nodes.length + 1,
+          },
+        };
+      }
+    }
+    return { key, state: empty };
   } catch {
-    return { nodes: [], connections: [], nextId: 1 };
+    return { key, state: empty };
   }
 }
 
@@ -53,9 +81,11 @@ function generatePacketSegments(path, connections, nodes, protocol) {
 }
 
 export default function NetworkSimulator() {
-  const [nodes, setNodes] = useState(() => loadState().nodes);
-  const [connections, setConnections] = useState(() => loadState().connections);
-  const [nextId, setNextId] = useState(() => loadState().nextId);
+  // جلسة المحاكاة — تُحسب مرة واحدة عند الفتح (مفتاح خاص لكل سيناريو)
+  const [session] = useState(loadState);
+  const [nodes, setNodes] = useState(session.state.nodes);
+  const [connections, setConnections] = useState(session.state.connections);
+  const [nextId, setNextId] = useState(session.state.nextId || (session.state.nodes.length + 1));
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
@@ -96,9 +126,9 @@ export default function NetworkSimulator() {
   // History
   const { pushHistory, undo: undoHistory, redo: redoHistory, reset: resetHistory } = useHistory(setNodes, setConnections);
 
-  // Auto-save
+  // Auto-save — داخل مفتاح جلسة السيناريو الحالي
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, connections, nextId }));
+    localStorage.setItem(session.key, JSON.stringify({ nodes, connections, nextId }));
   }, [nodes, connections, nextId]);
 
   // Packet animation loop — hop-by-hop chaining
