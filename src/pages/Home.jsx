@@ -3,8 +3,10 @@ import CategoryCard from "../components/CategoryCard";
 import { motion } from "framer-motion";
 import { BookOpen, GraduationCap, Layers, Network, Zap, ArrowLeft, MonitorPlay } from "lucide-react";
 import { Link } from "react-router-dom";
+import { t, useLang } from "@/lib/i18n";
 
 export default function Home() {
+  useLang();
   const totalTopics = courseData.reduce((sum, s) => sum + s.topics.length, 0);
 
   return (
@@ -62,42 +64,28 @@ export default function Home() {
               transition={{ delay: 0.1 }}
               className="inline-flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 px-4 py-2 rounded-full text-sm font-medium mb-6 backdrop-blur-sm">
               
-              
-              منصة تعليمية تفاعلية متكاملة
+              {t("homeHeroBadge")}
             </motion.div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-5 leading-tight">
-              تعلّم مبادئ{" "}
+              {t("homeHeroTitleA")}{" "}
               <span className="bg-gradient-to-l from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                الشبكات
+                {t("homeHeroTitleB")}
               </span>
             </h1>
-            <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">دليلك الشامل لفهم أساسيات الشبكات من العناوين والتوجيه إلى الأمان وإنترنت الأشياء     عمل الطلاب:  عبد الله أبو  الهوى ، امير دراويش            من : مدرسة شعفاط الشاملة للبنين
-
-
+            <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+              {t("homeHeroDesc")}
+            </p>
+            <p className="text-slate-400 text-xs mb-10" dir="rtl">
+              عمل الطلاب: عبد الله أبو الهوى ، امير دراويش — من: مدرسة شعفاط الشاملة للبنين
             </p>
 
             {/* Stats */}
             <div className="flex items-center justify-center gap-6 sm:gap-10">
-              {[{ icon: Layers, val: courseData.length, label: "قسم", color: "text-cyan-400", bg: "bg-cyan-400/10 border-cyan-400/20" },
-              { icon: BookOpen, val: totalTopics, label: "درس", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
-              { icon: GraduationCap, val: "100%", label: "مجاني", color: "text-purple-400", bg: "bg-purple-400/10 border-purple-400/20" }].
-              map(({ icon: Icon, val, label, color, bg }, i) => null
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-              )}
+              {[{ icon: Layers, val: courseData.length, label: "", color: "text-cyan-400", bg: "bg-cyan-400/10 border-cyan-400/20" },
+              { icon: BookOpen, val: totalTopics, label: "", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
+              { icon: GraduationCap, val: "100%", label: "", color: "text-purple-400", bg: "bg-purple-400/10 border-purple-400/20" }].
+              map(({ icon: Icon, val, label, color, bg }, i) => null)}
             </div>
           </motion.div>
         </div>
@@ -122,14 +110,14 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-white font-black text-lg">محاكاة بناء شبكة</h3>
+                      <h3 className="text-white font-black text-lg">{t("simCTATitle")}</h3>
                       
                     </div>
-                    <p className="text-white/75 text-sm">اسحب الأجهزة وابنِ شبكتك بصرياً —  تفاعلي</p>
+                    <p className="text-white/75 text-sm">{t("simCTADesc")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-white/80 group-hover:text-white group-hover:gap-3 transition-all">
-                  <span className="text-sm font-medium hidden sm:block">ابدأ الآن</span>
+                  <span className="text-sm font-medium hidden sm:block">{t("startNow")}</span>
                   <ArrowLeft size={20} />
                 </div>
               </div>
@@ -142,7 +130,7 @@ export default function Home() {
       <div className="max-w-5xl mx-auto px-6 pt-10 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full" />
-          <h2 className="text-lg font-bold text-foreground">مواضيع الدورة</h2>
+          <h2 className="text-lg font-bold text-foreground">{t("courseTopicsTitle")}</h2>
         </div>
       </div>
 

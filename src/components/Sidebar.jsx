@@ -7,6 +7,7 @@ import courseData from "../lib/courseData";
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { t, useLang } from "@/lib/i18n";
+import { sectionTitle, topicTitle } from "@/lib/courseI18n";
 
 const iconMap = { Network, Globe, Shield, Server, Radio, Cpu, Route, Tag };
 
@@ -56,7 +57,7 @@ export default function Sidebar({ onClose }) {
   };
 
   return (
-    <div className="w-72 h-full flex flex-col overflow-hidden"
+    <div className="w-80 h-full flex flex-col overflow-hidden"
     style={{ background: "hsl(var(--sidebar-background))", borderLeft: "1px solid hsl(var(--sidebar-border))" }}>
       {/* Logo */}
       <div className="p-5" style={{ borderBottom: "1px solid hsl(var(--sidebar-border))" }}>
@@ -91,13 +92,13 @@ export default function Sidebar({ onClose }) {
       {/* Divider */}
       <div className="mx-4 my-3" style={{ height: 1, background: "rgba(6,182,212,0.1)" }} />
       <div className="px-4 mb-2">
-        <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: "rgba(6,182,212,0.4)" }}>
+        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "rgba(6,182,212,0.45)" }}>
           {t("courseContent")}
         </span>
       </div>
 
-      {/* Course nav */}
-      <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-0.5">
+      {/* Course nav — واجهة أوسع وأوضح للقراءة والتنقل */}
+      <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-1">
         {courseData.map((section) => {
           const Icon = iconMap[section.icon] || Network;
           const isExpanded = expandedSections[section.id];
@@ -109,7 +110,7 @@ export default function Sidebar({ onClose }) {
             <div key={section.id}>
               <button
                 onClick={() => toggleSection(section.id)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-sm group"
+                className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all text-sm group"
                 style={{
                   color: hasActiveTopic ? "#06b6d4" : "rgba(148,163,184,0.7)",
                   background: hasActiveTopic ? "rgba(6,182,212,0.08)" : "transparent",
@@ -118,13 +119,13 @@ export default function Sidebar({ onClose }) {
                 onMouseEnter={(e) => {if (!hasActiveTopic) {e.currentTarget.style.background = "rgba(6,182,212,0.04)";e.currentTarget.style.color = "rgba(226,232,240,0.9)";}}}
                 onMouseLeave={(e) => {if (!hasActiveTopic) {e.currentTarget.style.background = "transparent";e.currentTarget.style.color = "rgba(148,163,184,0.7)";}}}>
                 
-                <Icon size={15} />
-                <span className="font-medium flex-1 text-right">{section.title}</span>
-                <ChevronDown size={13} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} style={{ color: "rgba(6,182,212,0.4)" }} />
+                <Icon size={16} />
+                <span className="font-bold flex-1 text-right">{sectionTitle(section)}</span>
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} style={{ color: "rgba(6,182,212,0.4)" }} />
               </button>
 
               {isExpanded &&
-              <div className="mr-6 mt-0.5 mb-1 space-y-0.5" style={{ borderRight: "2px solid rgba(6,182,212,0.15)", paddingRight: 10 }}>
+              <div className="mr-7 mt-1 mb-1.5 space-y-1" style={{ borderRight: "2px solid rgba(6,182,212,0.15)", paddingRight: 12 }}>
                   {section.topics.map((topic) => {
                   const isActive = location.pathname === `/topic/${section.id}/${topic.id}`;
                   return (
@@ -132,7 +133,7 @@ export default function Sidebar({ onClose }) {
                       key={topic.id}
                       to={`/topic/${section.id}/${topic.id}`}
                       onClick={onClose}
-                      className="block px-3 py-1.5 rounded-lg text-xs transition-all"
+                      className="block px-3.5 py-2 rounded-lg text-[13px] transition-all"
                       style={{
                         background: isActive ? "rgba(6,182,212,0.15)" : "transparent",
                         color: isActive ? "#06b6d4" : "rgba(148,163,184,0.65)",
@@ -142,7 +143,7 @@ export default function Sidebar({ onClose }) {
                       onMouseEnter={(e) => {if (!isActive) {e.currentTarget.style.background = "rgba(6,182,212,0.05)";e.currentTarget.style.color = "rgba(226,232,240,0.8)";}}}
                       onMouseLeave={(e) => {if (!isActive) {e.currentTarget.style.background = "transparent";e.currentTarget.style.color = "rgba(148,163,184,0.65)";}}}>
                       
-                        {topic.title}
+                        {topicTitle(topic)}
                       </Link>);
 
                 })}

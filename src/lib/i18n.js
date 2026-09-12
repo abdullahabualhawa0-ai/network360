@@ -177,6 +177,39 @@ const T = {
   contactError: { ar: "تعذر الإرسال المباشر — أرسل ملاحظتك عبر بريدك الإلكتروني", en: "Direct sending failed — send your feedback via your email", he: "השליחה הישירה נכשלה — שלחו את ההערה מהמייל שלכם" },
   contactOpenMail: { ar: "إرسال عبر بريدي", en: "Send via my email", he: "שלח מהמייל שלי" },
   contactCancel: { ar: "إغلاق", en: "Close", he: "סגור" },
+
+  /* ─── الصفحة الرئيسية ─── */
+  homeHeroBadge: { ar: "منصة تعليمية تفاعلية متكاملة", en: "A complete interactive learning platform", he: "פלטפורמת למידה אינטראקטיבית מלאה" },
+  homeHeroTitleA: { ar: "تعلّم مبادئ", en: "Learn the Principles of", he: "למדו את יסודות" },
+  homeHeroTitleB: { ar: "الشبكات", en: "Networking", he: "הרשתות" },
+  homeHeroDesc: { ar: "دليلك الشامل لفهم أساسيات الشبكات من العناوين والتوجيه إلى الأمان وإنترنت الأشياء", en: "Your complete guide to networking fundamentals — from addressing and routing to security and the Internet of Things", he: "המדריך המלא שלכם ליסודות הרשתות — מכתובוּת וניתוב ועד אבטחה והאינטרנט של הדברים" },
+  simCTATitle: { ar: "محاكاة بناء شبكة", en: "Network Building Simulator", he: "סימולטור בניית רשת" },
+  simCTADesc: { ar: "اسحب الأجهزة وابنِ شبكتك بصرياً — تفاعلي", en: "Drag devices and build your network visually — fully interactive", he: "גררו מכשירים ובנו את הרשת שלכם בצורה חזותית — אינטראקטיבי" },
+  courseTopicsTitle: { ar: "مواضيع الدورة", en: "Course Topics", he: "נושאי הקורס" },
+  lessonWord: { ar: "درس", en: "lessons", he: "שיעורים" },
+
+  /* ─── لوحة التقدم ─── */
+  dashTitle: { ar: "لوحة تقدمك", en: "Your Progress Dashboard", he: "לוח ההתקדמות שלכם" },
+  dashSubtitle: { ar: "تابع تقدمك في دروس الشبكات ونتائج الاختبارات", en: "Track your progress through networking lessons and quiz results", he: "עקבו אחר ההתקדמות בשיעורי הרשתות ובתוצאות הבחינות" },
+  dashLessonsDone: { ar: "الدروس المكتملة", en: "Lessons Visited", he: "שיעורים שנצפו" },
+  dashQuizzesDone: { ar: "الاختبارات المكتملة", en: "Quizzes Completed", he: "בחינות שהושלמו" },
+  dashAvgScore: { ar: "متوسط الدرجات", en: "Average Score", he: "ציון ממוצע" },
+  dashProgressPct: { ar: "نسبة التقدم", en: "Progress", he: "אחוז התקדמות" },
+  dashOverall: { ar: "التقدم الإجمالي في الدورة", en: "Overall Course Progress", he: "ההתקדמות הכוללת בקורס" },
+  dashBySection: { ar: "التقدم حسب القسم", en: "Progress by Section", he: "התקדמות לפי מקטע" },
+  dashTakeQuiz: { ar: "اختبر", en: "Take quiz", he: "הבחן" },
+  dashLessonsDoneShort: { ar: "درس مكتمل", en: "lessons done", he: "שיעורים שהושלמו" },
+  dashQuizResults: { ar: "نتائج الاختبارات", en: "Quiz Results", he: "תוצאות בחינות" },
+  dashEmptyMsg: { ar: "ابدأ الدراسة لترى تقدمك هنا!", en: "Start learning to see your progress here!", he: "התחילו ללמוד כדי לראות כאן את ההתקדמות שלכם!" },
+  dashGoLessons: { ar: "اذهب إلى الدروس", en: "Go to lessons", he: "מעבר לשיעורים" },
+
+  /* ─── صفحة الدرس ─── */
+  topicNotFound: { ar: "الموضوع غير موجود", en: "Topic not found", he: "הנושא לא נמצא" },
+  ttsReadLabel: { ar: "قراءة الشرح", en: "Read aloud", he: "קריאה בקול" },
+  ttsReadQuestions: { ar: "قراءة الأسئلة", en: "Read questions", he: "קריאת השאלות" },
+  navPrev: { ar: "السابق", en: "Previous", he: "הקודם" },
+  navNext: { ar: "التالي", en: "Next", he: "הבא" },
+  translatingLesson: { ar: "جارٍ ترجمة الدرس آلياً — للحظات فقط...", en: "Translating this lesson automatically — just a moment...", he: "מתרגם את השיעור אוטומטית — רק רגע..." },
 };
 
 export function getLang() {

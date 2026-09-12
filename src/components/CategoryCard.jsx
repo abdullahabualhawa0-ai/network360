@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { Network, Globe, Shield, Server, Radio, Cpu, Route, Tag, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { t, useLang } from "@/lib/i18n";
+import { sectionTitle, topicTitle } from "@/lib/courseI18n";
 
 const iconMap = { Network, Globe, Shield, Server, Radio, Cpu, Route, Tag };
 
 export default function CategoryCard({ section, index }) {
+  useLang();
   const Icon = iconMap[section.icon] || Network;
 
   return (
@@ -38,11 +41,11 @@ export default function CategoryCard({ section, index }) {
           </div>
           <span className="text-[10px] font-bold px-2.5 py-1 rounded-full"
             style={{ background: "rgba(6,182,212,0.1)", color: "rgba(6,182,212,0.7)", border: "1px solid rgba(6,182,212,0.2)" }}>
-            {section.topics.length} درس
+            {section.topics.length} {t("lessonWord")}
           </span>
         </div>
 
-        <h3 className="font-black text-base mb-3" style={{ color: "rgba(226,232,240,0.9)" }}>{section.title}</h3>
+        <h3 className="font-black text-base mb-3" style={{ color: "rgba(226,232,240,0.9)" }}>{sectionTitle(section)}</h3>
 
         <div className="space-y-0.5">
           {section.topics.map((topic) => (
@@ -61,7 +64,7 @@ export default function CategoryCard({ section, index }) {
               }}
             >
               <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: "rgba(6,182,212,0.5)" }} />
-              <span className="text-xs flex-1">{topic.title}</span>
+              <span className="text-xs flex-1">{topicTitle(topic)}</span>
               <ArrowLeft size={11} className="opacity-0 group-hover/item:opacity-100 transition-opacity" style={{ color: "#06b6d4" }} />
             </Link>
           ))}

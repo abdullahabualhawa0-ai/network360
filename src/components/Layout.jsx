@@ -50,12 +50,12 @@ export default function Layout() {
       </div>
 
       {/* Main content */}
-      <div className="lg:mr-72 pt-16 lg:pt-0">
+      <div className="lg:mr-80 pt-16 lg:pt-0">
         <Outlet />
       </div>
 
       {/* حقوق النشر — السنة تتحدث تلقائياً */}
-      <footer className="lg:mr-72 py-5 text-center text-[11px]" style={{ color: "rgba(148,163,184,0.55)" }}>
+      <footer className="lg:mr-80 py-5 text-center text-[11px]" style={{ color: "rgba(148,163,184,0.55)" }}>
         © {new Date().getFullYear()} {t("footerRights")}
       </footer>
 

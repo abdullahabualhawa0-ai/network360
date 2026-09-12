@@ -11,12 +11,14 @@ import ReadingGate from "../components/ReadingGate";
 import courseData from "../lib/courseData";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { 
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag, FlaskConical, Zap, Clock
 } from "lucide-react";
 import { SCENARIOS, DIFF_LABEL_KEYS } from "../lib/scenarios";
 import { t, useLang } from "@/lib/i18n";
+import { sectionTitle, topicTitle } from "@/lib/courseI18n";
+import useAiTranslation from "@/lib/useAiTranslation";
 
 const iconMap = {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag
@@ -37,7 +39,10 @@ export default function TopicPage() {
   useLang();
 
   const section = courseData.find(s => s.id === sectionId);
-  const topic = section?.topics.find(t => t.id === topicId);
+  const topic = section?.topics.find(tp => tp.id === topicId);
+
+  // ترجمة محتوى الدرس آلياً عند اختيار لغة غير العربية (تُخزَّن مرة واحدة لكل درس)
+  const { content: displayContent, translating } = useAiTranslation(topicId, topic?.content || "");
 
   // Mark as visited + Event Tracking + sync
   useEffect(() => {
@@ -58,8 +63,8 @@ export default function TopicPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-foreground mb-2">الموضوع غير موجود</h2>
-          <Link to="/" className="text-primary hover:underline text-sm">العودة للرئيسية</Link>
+          <h2 className="text-xl font-bold text-foreground mb-2">{t("topicNotFound")}</h2>
+          <Link to="/" className="text-primary hover:underline text-sm">{t("backHome")}</Link>
         </div>
       </div>
     );
@@ -90,20 +95,20 @@ export default function TopicPage() {
           >
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-white/70 text-sm mb-4">
-              <Link to="/" className="hover:text-white transition-colors">الرئيسية</Link>
+              <Link to="/" className="hover:text-white transition-colors">{t("backHome")}</Link>
               <ChevronLeft size={14} />
-              <span>{section.title}</span>
+              <span>{sectionTitle(section)}</span>
               <ChevronLeft size={14} />
-              <span className="text-white">{topic.title}</span>
+              <span className="text-white">{topicTitle(topic)}</span>
             </div>
 
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <Icon className="text-white" size={20} />
               </div>
-              <span className="text-white/80 text-sm font-medium">{section.title}</span>
+              <span className="text-white/80 text-sm font-medium">{sectionTitle(section)}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white">{topic.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-white">{topicTitle(topic)}</h1>
           </motion.div>
         </div>
       </div>
@@ -118,8 +123,17 @@ export default function TopicPage() {
         >
           {/* TTS button */}
           <div className="flex justify-end mb-4">
-            <TextToSpeech text={topic.content} label="قراءة الشرح" />
+            <TextToSpeech text={displayContent} label={t("ttsReadLabel")} />
           </div>
+
+          {/* شريط الترجمة الآلية أثناء تجهيز النص */}
+          {translating && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl text-[11px] font-bold"
+              style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
+              <Loader2 size={12} className="animate-spin" /> {t("translatingLesson")}
+            </div>
+          )}
+
           <ReactMarkdown
             className="prose prose-sm sm:prose-base prose-slate max-w-none
               prose-headings:font-bold prose-headings:text-foreground
@@ -156,7 +170,7 @@ export default function TopicPage() {
               }
             }}
           >
-            {topic.content}
+            {displayContent}
           </ReactMarkdown>
         </motion.div>
 
@@ -170,12 +184,12 @@ export default function TopicPage() {
         {/* Quiz — gated by reading time */}
         {quizData[topicId] && (
           <div className="mt-6">
-            <ReadingGate content={topic.content}>
+            <ReadingGate content={displayContent}>
               <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
                 <div className="flex justify-end mb-2">
                   <TextToSpeech
-                    text={quizData[topicId].questions.map((q, i) => `سؤال ${i+1}: ${q.question}. الخيارات: ${q.options.join(". ")}`).join(". ")}
-                    label="قراءة الأسئلة"
+                    text={quizData[topicId].questions.map((q, i) => `${t("lessonLabel")} ${i+1}: ${q.question}`).join(". ")}
+                    label={t("ttsReadQuestions")}
                   />
                 </div>
                 <QuizSection quiz={{ ...quizData[topicId], id: topicId }} />
@@ -230,9 +244,9 @@ export default function TopicPage() {
             >
               <ArrowRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
               <div className="text-right">
-                <div className="text-[10px] text-muted-foreground">السابق</div>
+                <div className="text-[10px] text-muted-foreground">{t("navPrev")}</div>
                 <div className="text-sm font-medium text-foreground truncate">
-                  {prevTopic ? prevTopic.title : prevSection.topics[prevSection.topics.length - 1].title}
+                  {prevTopic ? topicTitle(prevTopic) : topicTitle(prevSection.topics[prevSection.topics.length - 1])}
                 </div>
               </div>
             </Link>
@@ -247,9 +261,9 @@ export default function TopicPage() {
               className="flex items-center gap-2 px-4 py-3 rounded-xl bg-card border border-border hover:shadow-md transition-all group flex-1 max-w-xs justify-end"
             >
               <div className="text-left">
-                <div className="text-[10px] text-muted-foreground">التالي</div>
+                <div className="text-[10px] text-muted-foreground">{t("navNext")}</div>
                 <div className="text-sm font-medium text-foreground truncate">
-                  {nextTopic ? nextTopic.title : nextSection.topics[0].title}
+                  {nextTopic ? topicTitle(nextTopic) : topicTitle(nextSection.topics[0])}
                 </div>
               </div>
               <ArrowLeft size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />

@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/lib/AuthContext";
 import { resolveSchoolId, ensureLabRecord, markTaskCompleted } from "../lib/labTracking";
 import { t, useLang } from "@/lib/i18n";
+import { topicTitleById } from "@/lib/courseI18n";
 
 /** حالة المحاكاة محفوظة لكل سيناريو في جلسة مستقلة (Simulation Session) */
 export const simStateKey = (scenarioId) => (scenarioId ? `network-simulator-state-s${scenarioId}` : "network-simulator-state");
@@ -307,7 +308,7 @@ export default function ScenarioLab() {
                       <p className="text-slate-400 text-sm mb-3 leading-relaxed">{sc.desc}</p>
                       {lesson && (
                         <div className="flex items-center gap-1.5 text-[10px] mb-4" style={{ color: "rgba(6,182,212,0.8)" }}>
-                          <BookOpen size={11} /> {t("relatedLesson")}: {lesson.lessonTitle}
+                          <BookOpen size={11} /> {t("relatedLesson")}: {topicTitleById(lesson.lessonId, lesson.lessonTitle)}
                         </div>
                       )}
                       <div className="flex items-center justify-between">
@@ -349,7 +350,7 @@ export default function ScenarioLab() {
                       return lesson ? (
                         <Link to={`/topic/${lesson.unitId}/${lesson.lessonId}`}
                           className="text-[10px] flex items-center gap-1 hover:underline" style={{ color: "#06b6d4" }}>
-                          <BookOpen size={10} /> {lesson.lessonTitle}
+                          <BookOpen size={10} /> {topicTitleById(lesson.lessonId, lesson.lessonTitle)}
                         </Link>
                       ) : null;
                     })()}

@@ -7,6 +7,8 @@ import {
   BookOpen, CheckCircle2, Star, TrendingUp, Award,
   ChevronLeft, Lock, BarChart2, Target, Zap
 } from "lucide-react";
+import { t, useLang } from "@/lib/i18n";
+import { sectionTitle, topicTitle } from "@/lib/courseI18n";
 
 const PROGRESS_KEY = "topic-progress";
 const QUIZ_KEY = "quiz-results";
@@ -29,6 +31,7 @@ const SECTION_ICONS = {
 };
 
 export default function Dashboard() {
+  useLang();
   const [progress, setProgress] = useState(loadProgress());
   const [quizResults, setQuizResults] = useState(loadQuizResults());
 
@@ -76,12 +79,12 @@ export default function Dashboard() {
         <div className="relative max-w-5xl mx-auto px-6 py-10">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center gap-2 text-indigo-300/70 text-sm mb-2">
-              <Link to="/" className="hover:text-indigo-200 transition-colors">الرئيسية</Link>
+              <Link to="/" className="hover:text-indigo-200 transition-colors">{t("backHome")}</Link>
               <ChevronLeft size={13} />
-              <span className="text-indigo-200">لوحة التقدم</span>
+              <span className="text-indigo-200">{t("navDashboard")}</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white mb-1">لوحة تقدمك</h1>
-            <p className="text-slate-400 text-sm">تابع تقدمك في دروس الشبكات ونتائج الاختبارات</p>
+            <h1 className="text-3xl sm:text-4xl font-black text-white mb-1">{t("dashTitle")}</h1>
+            <p className="text-slate-400 text-sm">{t("dashSubtitle")}</p>
           </motion.div>
         </div>
       </div>
@@ -90,10 +93,10 @@ export default function Dashboard() {
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { icon: BookOpen, label: "الدروس المكتملة", val: `${visitedTopics}/${totalTopics}`, color: "text-blue-500", bg: "bg-blue-50 border-blue-100" },
-            { icon: CheckCircle2, label: "الاختبارات المكتملة", val: `${completedQuizzes}/${totalQuizzes}`, color: "text-green-500", bg: "bg-green-50 border-green-100" },
-            { icon: Star, label: "متوسط الدرجات", val: completedQuizzes ? `${avgScore}%` : "—", color: "text-amber-500", bg: "bg-amber-50 border-amber-100" },
-            { icon: TrendingUp, label: "نسبة التقدم", val: `${totalTopics ? Math.round(visitedTopics / totalTopics * 100) : 0}%`, color: "text-purple-500", bg: "bg-purple-50 border-purple-100" },
+            { icon: BookOpen, label: t("dashLessonsDone"), val: `${visitedTopics}/${totalTopics}`, color: "text-blue-500", bg: "bg-blue-50 border-blue-100" },
+            { icon: CheckCircle2, label: t("dashQuizzesDone"), val: `${completedQuizzes}/${totalQuizzes}`, color: "text-green-500", bg: "bg-green-50 border-green-100" },
+            { icon: Star, label: t("dashAvgScore"), val: completedQuizzes ? `${avgScore}%` : "—", color: "text-amber-500", bg: "bg-amber-50 border-amber-100" },
+            { icon: TrendingUp, label: t("dashProgressPct"), val: `${totalTopics ? Math.round(visitedTopics / totalTopics * 100) : 0}%`, color: "text-purple-500", bg: "bg-purple-50 border-purple-100" },
           ].map(({ icon: Icon, label, val, color, bg }, i) => (
             <motion.div key={i}
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -115,9 +118,9 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Target size={16} className="text-primary" />
-              <span className="font-bold text-sm text-foreground">التقدم الإجمالي في الدورة</span>
+              <span className="font-bold text-sm text-foreground">{t("dashOverall")}</span>
             </div>
-            <span className="text-xs font-bold text-primary">{visitedTopics}/{totalTopics} درس</span>
+            <span className="text-xs font-bold text-primary">{visitedTopics}/{totalTopics} {t("lessonWord")}</span>
           </div>
           <div className="h-3 bg-muted rounded-full overflow-hidden">
             <motion.div
@@ -133,7 +136,7 @@ export default function Dashboard() {
         <div>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-5 bg-gradient-to-b from-primary to-secondary rounded-full" />
-            <h2 className="font-bold text-foreground">التقدم حسب القسم</h2>
+            <h2 className="font-bold text-foreground">{t("dashBySection")}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {sectionStrengths.map((sec, i) => (
@@ -145,7 +148,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{SECTION_ICONS[sec.id] || "📚"}</span>
-                    <span className="font-semibold text-sm text-foreground">{sec.title}</span>
+                    <span className="font-semibold text-sm text-foreground">{sectionTitle(sec)}</span>
                   </div>
                   {sec.avgScore !== null && (
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -184,13 +187,13 @@ export default function Dashboard() {
                         <span className={`text-xs flex-1 truncate transition-colors ${
                           visited ? "text-foreground" : "text-muted-foreground"
                         } group-hover:text-primary`}>
-                          {topic.title}
+                          {topicTitle(topic)}
                         </span>
                         {qResult && (
                           <span className="text-[10px] font-bold text-green-600">{qResult.score}%</span>
                         )}
                         {hasQuiz && !qResult && visited && (
-                          <span className="text-[10px] text-amber-500">اختبر</span>
+                          <span className="text-[10px] text-amber-500">{t("dashTakeQuiz")}</span>
                         )}
                       </Link>
                     );
@@ -204,7 +207,7 @@ export default function Dashboard() {
                     style={{ width: `${sec.total ? (sec.visited / sec.total) * 100 : 0}%` }}
                   />
                 </div>
-                <div className="text-[10px] text-muted-foreground mt-1">{sec.visited}/{sec.total} درس مكتمل</div>
+                <div className="text-[10px] text-muted-foreground mt-1">{sec.visited}/{sec.total} {t("dashLessonsDoneShort")}</div>
               </motion.div>
             ))}
           </div>
@@ -215,7 +218,7 @@ export default function Dashboard() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-1 h-5 bg-gradient-to-b from-amber-400 to-orange-500 rounded-full" />
-              <h2 className="font-bold text-foreground">نتائج الاختبارات</h2>
+              <h2 className="font-bold text-foreground">{t("dashQuizResults")}</h2>
             </div>
             <div className="bg-card border border-border rounded-2xl divide-y divide-border overflow-hidden">
               {Object.entries(quizResults).map(([topicId, result]) => {
@@ -230,7 +233,7 @@ export default function Dashboard() {
                   >
                     <div className="flex items-center gap-3">
                       <Award size={15} className={result.score >= 80 ? "text-amber-500" : "text-slate-400"} />
-                      <span className="text-sm text-foreground">{topic.title}</span>
+                      <span className="text-sm text-foreground">{topicTitle(topic)}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
@@ -255,9 +258,9 @@ export default function Dashboard() {
         {visitedTopics === 0 && completedQuizzes === 0 && (
           <div className="text-center py-12">
             <Zap size={40} className="text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground text-sm">ابدأ الدراسة لترى تقدمك هنا!</p>
+            <p className="text-muted-foreground text-sm">{t("dashEmptyMsg")}</p>
             <Link to="/" className="mt-4 inline-block text-primary text-sm hover:underline font-medium">
-              اذهب إلى الدروس ←
+              {t("dashGoLessons")} ←
             </Link>
           </div>
         )}

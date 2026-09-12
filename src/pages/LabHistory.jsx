@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { SCENARIOS, getLessonInfo } from "@/lib/scenarios";
 import { t, useLang } from "@/lib/i18n";
+import { topicTitleById } from "@/lib/courseI18n";
 
 const STATUS_MAP = {
   completed: { key: "stCompleted", color: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.35)" },
@@ -142,7 +143,7 @@ export default function LabHistory() {
                         <span className="text-[9px] text-muted-foreground">{r.scenario_difficulty}</span>
                       )}
                       {lesson && (
-                        <span className="text-[9px] text-muted-foreground">📖 {t("lessonLabel")}: {lesson.lessonTitle}</span>
+                        <span className="text-[9px] text-muted-foreground">📖 {t("lessonLabel")}: {topicTitleById(lesson.lessonId, lesson.lessonTitle)}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-3 mb-2">
