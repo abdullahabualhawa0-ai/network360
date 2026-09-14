@@ -14,23 +14,23 @@ export default function Layout() {
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3"
         style={{
-          background: "rgba(2,6,23,0.95)",
+          background: "rgba(255,255,255,0.97)",
           backdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(6,182,212,0.15)",
+          borderBottom: "1px solid #E2E8F0",
         }}>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 rounded-lg transition-all"
-          style={{ color: "#06b6d4", background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)" }}
+          style={{ color: "#173F5F", background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)" }}
         >
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
+            style={{ background: "#173F5F" }}>
             <span className="text-white text-xs font-black">ش</span>
           </div>
-          <span className="font-black text-white text-sm">{t("appName")}</span>
+          <span className="font-black text-sm text-primary">{t("appName")}</span>
         </div>
         <div className="w-10" />
       </div>
@@ -55,7 +55,7 @@ export default function Layout() {
       </div>
 
       {/* حقوق النشر — السنة تتحدث تلقائياً */}
-      <footer className="lg:mr-80 py-5 text-center text-[11px]" style={{ color: "rgba(148,163,184,0.55)" }}>
+      <footer className="lg:mr-80 py-4 text-center text-[11px] text-white" style={{ background: "#173F5F" }}>
         © {new Date().getFullYear()} {t("footerRights")}
       </footer>
 

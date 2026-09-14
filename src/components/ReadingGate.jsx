@@ -47,7 +47,7 @@ export default function ReadingGate({ content, children }) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mb-6 bg-gradient-to-l from-primary/5 to-secondary/5 border border-primary/15 rounded-2xl p-4"
+            className="mb-6 bg-card border border-border rounded-2xl p-4"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -61,7 +61,7 @@ export default function ReadingGate({ content, children }) {
             </div>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-l from-primary to-secondary rounded-full"
+                className="h-full bg-primary rounded-full"
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.5 }}
               />
@@ -78,7 +78,7 @@ export default function ReadingGate({ content, children }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className="mb-6 flex flex-col items-center"
           >
-            <div className="flex items-center gap-2 text-sm text-emerald-600 mb-3">
+            <div className="flex items-center gap-2 text-sm text-success mb-3">
               <CheckCircle2 size={16} />
               <span>انتهى وقت القراءة — أنت مستعد للاختبار!</span>
             </div>
@@ -86,7 +86,7 @@ export default function ReadingGate({ content, children }) {
               onClick={() => setShowQuiz(true)}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-gradient-to-l from-primary to-secondary text-white font-bold text-base shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow"
+              className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-bold text-base hover:shadow-lg transition-shadow"
             >
               <CheckCircle2 size={18} />
               اختبر نفسك

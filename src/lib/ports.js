@@ -37,13 +37,13 @@ export function getPortsForDevice(type) {
 
 // ── أنواع الكابلات ────────────────────────────────
 export const CABLE_TYPES = [
-  { id: "utp",  label: "UTP",  icon: "🔌", color: "#fb923c",
+  { id: "utp",  label: "UTP",  icon: "🔌", color: "#D69E2E",
     desc: "كابل نحاسي غير محمي — الأكثر شيوعاً في الشبكات المحلية" },
-  { id: "stp",  label: "STP",  icon: "🛡️", color: "#f59e0b",
+  { id: "stp",  label: "STP",  icon: "🛡️", color: "#173F5F",
     desc: "كابل نحاسي محمي ضد التشويش الكهرومغناطيسي" },
-  { id: "fiber", label: "Fiber", icon: "💠", color: "#a78bfa",
+  { id: "fiber", label: "Fiber", icon: "💠", color: "#3A86A8",
     desc: "ألياف ضوئية — سرعة عالية جداً ومسافات طويلة" },
-  { id: "wifi", label: "Wi-Fi", icon: "📶", color: "#34d399",
+  { id: "wifi", label: "Wi-Fi", icon: "📶", color: "#2E7D5B",
     desc: "اتصال لاسلكي — لا يحتاج منفذاً فيزيائياً" },
 ];
 
@@ -84,7 +84,7 @@ export function getPortStatus(port, usedPorts) {
 }
 
 export const PORT_STATUS_LABELS = {
-  available: { label: "متاح", color: "#34d399" },
-  connected: { label: "متصل", color: "#f59e0b" },
-  disabled: { label: "معطّل", color: "#f87171" },
+  available: { label: "متاح", color: "#2E7D5B" },
+  connected: { label: "متصل", color: "#D69E2E" },
+  disabled: { label: "معطّل", color: "#C94C4C" },
 };

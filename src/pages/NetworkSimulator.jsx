@@ -393,27 +393,24 @@ export default function NetworkSimulator() {
   const packetMode = activeTool === "packet";
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden" style={{ background: "#020617", color: "#e2e8f0" }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: "#F7F9FC", color: "#1F2937" }}>
       {/* Slim Top Bar */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-2"
-        style={{ background: "rgba(2,6,23,0.98)", borderBottom: "1px solid rgba(6,182,212,0.15)", height: 48 }}>
+        style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0", height: 48 }}>
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-1 text-xs transition-colors"
-            style={{ color: "rgba(148,163,184,0.6)" }}
-            onMouseEnter={(e) => e.currentTarget.style.color = "#94a3b8"}
-            onMouseLeave={(e) => e.currentTarget.style.color = "rgba(148,163,184,0.6)"}>
+            style={{ color: "rgba(31,41,55,0.55)" }}
+            onMouseEnter={(e) => e.currentTarget.style.color = "#173F5F"}
+            onMouseLeave={(e) => e.currentTarget.style.color = "rgba(31,41,55,0.55)"}>
             <ChevronLeft size={12} /> الرئيسية
           </Link>
-          <div className="w-px h-4" style={{ background: "rgba(6,182,212,0.2)" }} />
+          <div className="w-px h-4" style={{ background: "#E2E8F0" }} />
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
+              style={{ background: "#173F5F" }}>
               <Activity size={12} className="text-white" />
             </div>
-            <span className="font-black text-sm" style={{
-              background: "linear-gradient(90deg,#06b6d4,#a78bfa)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
-            }}>
+            <span className="font-black text-sm" style={{ color: "#173F5F" }}>
               Network Simulator
             </span>
           </div>
@@ -421,9 +418,9 @@ export default function NetworkSimulator() {
           {activeTool && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold animate-pulse"
               style={{
-                background: connectMode ? "rgba(6,182,212,0.15)" : packetMode ? "rgba(167,139,250,0.15)" : "rgba(239,68,68,0.15)",
-                border: `1px solid ${connectMode ? "rgba(6,182,212,0.4)" : packetMode ? "rgba(167,139,250,0.4)" : "rgba(239,68,68,0.4)"}`,
-                color: connectMode ? "#06b6d4" : packetMode ? "#a78bfa" : "#f87171",
+                background: connectMode ? "rgba(47,102,144,0.1)" : packetMode ? "rgba(58,134,168,0.1)" : "rgba(201,76,76,0.1)",
+                border: `1px solid ${connectMode ? "rgba(47,102,144,0.35)" : packetMode ? "rgba(58,134,168,0.35)" : "rgba(201,76,76,0.4)"}`,
+                color: connectMode ? "#2F6690" : packetMode ? "#3A86A8" : "#C94C4C",
               }}>
               <div className="w-1.5 h-1.5 rounded-full bg-current" />
               {connectMode
@@ -442,24 +439,24 @@ export default function NetworkSimulator() {
         {errorMsg && (
           <motion.div key="err" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
             className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xl"
-            style={{ background: "rgba(20,8,8,0.95)", border: "1px solid rgba(239,68,68,0.5)", color: "#fca5a5" }}>
-            <AlertTriangle size={15} className="text-red-400" />
+            style={{ background: "#FFFFFF", border: "1px solid rgba(201,76,76,0.5)", color: "#C94C4C", boxShadow: "0 8px 24px rgba(23,63,95,0.15)" }}>
+            <AlertTriangle size={15} className="text-destructive" />
             {errorMsg}
           </motion.div>
         )}
         {statusMsg && (
           <motion.div key="status" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
             className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xl"
-            style={{ background: "rgba(4,30,20,0.97)", border: "1px solid rgba(52,211,153,0.5)", color: "#6ee7b7" }}>
+            style={{ background: "#FFFFFF", border: "1px solid rgba(46,125,91,0.5)", color: "#2E7D5B", boxShadow: "0 8px 24px rgba(23,63,95,0.15)" }}>
             {statusMsg.text}
           </motion.div>
         )}
         {connInfo && (
           <motion.div key="conn" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
             className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-2xl"
-            style={{ background: "rgba(5,15,40,0.97)", border: "1px solid rgba(6,182,212,0.45)" }}>
-            <span className="text-cyan-400 font-black text-sm">🔗 {connInfo.label}</span>
-            <span className="text-slate-400 text-xs">{connInfo.desc}</span>
+            style={{ background: "#FFFFFF", border: "1px solid rgba(47,102,144,0.45)", boxShadow: "0 8px 24px rgba(23,63,95,0.15)" }}>
+            <span className="font-black text-sm" style={{ color: "#2F6690" }}>🔗 {connInfo.label}</span>
+            <span className="text-xs text-muted-foreground">{connInfo.desc}</span>
           </motion.div>
         )}
       </AP>

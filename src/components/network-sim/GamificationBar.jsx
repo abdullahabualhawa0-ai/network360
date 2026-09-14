@@ -13,11 +13,11 @@ const BADGES = [
 ];
 
 const LEVELS = [
-  { min: 0, name: "مبتدئ", color: "#64748b" },
-  { min: 50, name: "متعلم", color: "#3B82F6" },
-  { min: 150, name: "متقدم", color: "#8B5CF6" },
-  { min: 350, name: "خبير", color: "#F59E0B" },
-  { min: 700, name: "محترف", color: "#EF4444" },
+  { min: 0, name: "مبتدئ", color: "#64748B" },
+  { min: 50, name: "متعلم", color: "#2F6690" },
+  { min: 150, name: "متقدم", color: "#3A86A8" },
+  { min: 350, name: "خبير", color: "#D69E2E" },
+  { min: 700, name: "محترف", color: "#173F5F" },
 ];
 
 export function loadGamification() {
@@ -65,8 +65,8 @@ export default function GamificationBar() {
     <div
       className="flex items-center gap-3 px-3 py-1.5 rounded-xl"
       style={{
-        background: "rgba(2,6,23,0.8)",
-        border: "1px solid rgba(139,92,246,0.3)",
+        background: "#FFFFFF",
+        border: "1px solid #E2E8F0",
       }}
     >
       <Zap size={13} style={{ color: level.color }} />
@@ -76,7 +76,7 @@ export default function GamificationBar() {
         </span>
         <div
           className="w-20 h-1.5 rounded-full overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.1)" }}
+          style={{ background: "rgba(23,63,95,0.08)" }}
         >
           <motion.div
             className="h-full rounded-full"
@@ -86,7 +86,7 @@ export default function GamificationBar() {
             transition={{ duration: 0.5 }}
           />
         </div>
-        <span className="text-[10px] text-slate-400 font-mono">{gdata.xp} XP</span>
+        <span className="text-[10px] text-muted-foreground font-mono">{gdata.xp} XP</span>
       </div>
       <div className="flex gap-1">
         {BADGES.filter((b) => gdata.badges.includes(b.id)).map((b) => (
@@ -102,7 +102,8 @@ export default function GamificationBar() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute top-16 left-1/2 -translate-x-1/2 bg-yellow-400 text-black text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-50"
+            className="absolute top-16 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-50"
+            style={{ background: "#D69E2E", color: "#FFFFFF" }}
           >
             ⭐ {toast}
           </motion.div>

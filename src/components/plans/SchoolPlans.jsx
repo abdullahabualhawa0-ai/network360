@@ -8,12 +8,12 @@ export default function SchoolPlans({ busy, form, setForm, onSelect }) {
   return (
     <section>
       <h2 className="font-black text-base mb-1 flex items-center gap-2">
-        <SchoolIcon size={16} style={{ color: "#a78bfa" }} /> {t("schoolPlanSection")}
+        <SchoolIcon size={16} style={{ color: "#2F6690" }} /> {t("schoolPlanSection")}
       </h2>
       <p className="text-[11px] text-muted-foreground mb-4">{t("schoolPlanDesc")}</p>
 
       <div className="rounded-2xl p-4 mb-4 grid sm:grid-cols-2 gap-3 bg-card"
-        style={{ border: "1px solid rgba(139,92,246,0.3)" }}>
+        style={{ border: "1px solid rgba(47,102,144,0.25)" }}>
         <div>
           <label className="block text-[10px] font-bold text-muted-foreground mb-1">اسم المدرسة *</label>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -33,12 +33,12 @@ export default function SchoolPlans({ busy, form, setForm, onSelect }) {
           const p = PLANS[id];
           return (
             <div key={id} className="rounded-2xl p-5 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-              <div className="text-[11px] font-black mb-2" style={{ color: "#a78bfa" }}>{p.label}</div>
+              <div className="text-[11px] font-black mb-2" style={{ color: "#2F6690" }}>{p.label}</div>
               <div className="text-2xl font-black mb-1">{p.price}</div>
               <div className="text-[11px] text-muted-foreground mb-4">{t("studentLimitLabel")}: {p.student_limit} طالب</div>
               <button onClick={() => onSelect(id)} disabled={busy !== null}
                 className="w-full py-2.5 rounded-xl text-xs font-black text-white transition-all disabled:opacity-50"
-                style={{ background: "linear-gradient(90deg,#7c3aed,#0891b2)" }}>
+                style={{ background: "#173F5F" }}>
                 {busy === id ? <Loader2 size={13} className="animate-spin mx-auto" /> : "اختيار هذه الخطة"}
               </button>
             </div>

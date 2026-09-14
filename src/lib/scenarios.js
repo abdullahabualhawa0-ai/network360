@@ -66,11 +66,11 @@ export const DIFF_LABEL_KEYS = {
 };
 
 const DIFF_STYLE = {
-  "مبتدئ": "text-sky-400 bg-sky-400/10 border-sky-400/30",
-  "سهل": "text-green-400 bg-green-400/10 border-green-400/30",
-  "متوسط": "text-amber-400 bg-amber-400/10 border-amber-400/30",
-  "صعب": "text-red-400 bg-red-400/10 border-red-400/30",
-  "متقدم": "text-fuchsia-400 bg-fuchsia-400/10 border-fuchsia-400/30",
+  "مبتدئ": "text-secondary bg-secondary/10 border-secondary/30",
+  "سهل": "text-accent bg-accent/10 border-accent/30",
+  "متوسط": "text-warning bg-warning/10 border-warning/30",
+  "صعب": "text-destructive bg-destructive/10 border-destructive/30",
+  "متقدم": "text-primary bg-primary/10 border-primary/30",
 };
 
 const withStyle = (arr) =>

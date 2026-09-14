@@ -32,22 +32,21 @@ export default function Sidebar({ onClose }) {
           to={to}
           onClick={onClose}
           className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-sm font-medium group relative overflow-hidden ${
-          isActive ? "text-white shadow-lg" : "text-muted-foreground hover:text-foreground"}`
+          isActive ? "font-bold text-primary" : "text-muted-foreground hover:text-foreground"}`
           }
           style={isActive ? {
-            background: gradient,
-            boxShadow: "0 4px 15px rgba(6,182,212,0.2)"
+            background: "rgba(47,102,144,0.1)"
           } : {}}>
           
           {!isActive &&
           <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ background: "rgba(6,182,212,0.06)" }} />
+          style={{ background: "rgba(47,102,144,0.06)" }} />
           }
           {icon}
           <span>{label}</span>
           {badge &&
           <span className="mr-auto text-[9px] font-black px-1.5 py-0.5 rounded-full hidden"
-          style={{ background: "rgba(139,92,246,0.2)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.3)" }}>
+          style={{ background: "rgba(47,102,144,0.12)", color: "#2F6690", border: "1px solid rgba(47,102,144,0.25)" }}>
               {badge}
             </span>
           }
@@ -63,7 +62,7 @@ export default function Sidebar({ onClose }) {
       <div className="p-5" style={{ borderBottom: "1px solid hsl(var(--sidebar-border))" }}>
         <Link to="/" onClick={onClose} className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105"
-          style={{ background: "linear-gradient(135deg, #0891b2, #7c3aed)" }}>
+          style={{ background: "#173F5F" }}>
             <BookOpen className="text-white" size={20} />
           </div>
           <div>
@@ -90,9 +89,9 @@ export default function Sidebar({ onClose }) {
       </div>
 
       {/* Divider */}
-      <div className="mx-4 my-3" style={{ height: 1, background: "rgba(6,182,212,0.1)" }} />
+      <div className="mx-4 my-3" style={{ height: 1, background: "#E2E8F0" }} />
       <div className="px-4 mb-2">
-        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "rgba(6,182,212,0.45)" }}>
+        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "rgba(47,102,144,0.55)" }}>
           {t("courseContent")}
         </span>
       </div>
@@ -112,20 +111,20 @@ export default function Sidebar({ onClose }) {
                 onClick={() => toggleSection(section.id)}
                 className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all text-sm group"
                 style={{
-                  color: hasActiveTopic ? "#06b6d4" : "rgba(148,163,184,0.7)",
-                  background: hasActiveTopic ? "rgba(6,182,212,0.08)" : "transparent",
-                  border: hasActiveTopic ? "1px solid rgba(6,182,212,0.2)" : "1px solid transparent"
+                  color: hasActiveTopic ? "#173F5F" : "rgba(31,41,55,0.65)",
+                  background: hasActiveTopic ? "rgba(47,102,144,0.08)" : "transparent",
+                  border: hasActiveTopic ? "1px solid rgba(47,102,144,0.22)" : "1px solid transparent"
                 }}
-                onMouseEnter={(e) => {if (!hasActiveTopic) {e.currentTarget.style.background = "rgba(6,182,212,0.04)";e.currentTarget.style.color = "rgba(226,232,240,0.9)";}}}
-                onMouseLeave={(e) => {if (!hasActiveTopic) {e.currentTarget.style.background = "transparent";e.currentTarget.style.color = "rgba(148,163,184,0.7)";}}}>
+                onMouseEnter={(e) => {if (!hasActiveTopic) {e.currentTarget.style.background = "rgba(47,102,144,0.05)";e.currentTarget.style.color = "#173F5F";}}}
+                onMouseLeave={(e) => {if (!hasActiveTopic) {e.currentTarget.style.background = "transparent";e.currentTarget.style.color = "rgba(31,41,55,0.65)";}}}>
                 
                 <Icon size={16} />
                 <span className="font-bold flex-1 text-right">{sectionTitle(section)}</span>
-                <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} style={{ color: "rgba(6,182,212,0.4)" }} />
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} style={{ color: "rgba(47,102,144,0.45)" }} />
               </button>
 
               {isExpanded &&
-              <div className="mr-7 mt-1 mb-1.5 space-y-1" style={{ borderRight: "2px solid rgba(6,182,212,0.15)", paddingRight: 12 }}>
+              <div className="mr-7 mt-1 mb-1.5 space-y-1" style={{ borderRight: "2px solid rgba(47,102,144,0.2)", paddingRight: 12 }}>
                   {section.topics.map((topic) => {
                   const isActive = location.pathname === `/topic/${section.id}/${topic.id}`;
                   return (
@@ -135,13 +134,13 @@ export default function Sidebar({ onClose }) {
                       onClick={onClose}
                       className="block px-3.5 py-2 rounded-lg text-[13px] transition-all"
                       style={{
-                        background: isActive ? "rgba(6,182,212,0.15)" : "transparent",
-                        color: isActive ? "#06b6d4" : "rgba(148,163,184,0.65)",
+                        background: isActive ? "rgba(47,102,144,0.12)" : "transparent",
+                        color: isActive ? "#173F5F" : "rgba(31,41,55,0.6)",
                         fontWeight: isActive ? 700 : 400,
-                        border: isActive ? "1px solid rgba(6,182,212,0.3)" : "1px solid transparent"
+                        border: isActive ? "1px solid rgba(47,102,144,0.25)" : "1px solid transparent"
                       }}
-                      onMouseEnter={(e) => {if (!isActive) {e.currentTarget.style.background = "rgba(6,182,212,0.05)";e.currentTarget.style.color = "rgba(226,232,240,0.8)";}}}
-                      onMouseLeave={(e) => {if (!isActive) {e.currentTarget.style.background = "transparent";e.currentTarget.style.color = "rgba(148,163,184,0.65)";}}}>
+                      onMouseEnter={(e) => {if (!isActive) {e.currentTarget.style.background = "rgba(47,102,144,0.05)";e.currentTarget.style.color = "#173F5F";}}}
+                      onMouseLeave={(e) => {if (!isActive) {e.currentTarget.style.background = "transparent";e.currentTarget.style.color = "rgba(31,41,55,0.6)";}}}>
                       
                         {topicTitle(topic)}
                       </Link>);

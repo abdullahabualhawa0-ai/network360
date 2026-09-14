@@ -93,33 +93,32 @@ ${historyText}
       exit={{ opacity: 0, scale: 0.9, y: 20 }}
       className="absolute bottom-4 right-4 w-80 z-50 rounded-2xl overflow-hidden flex flex-col"
       style={{
-        background: "rgba(2,6,23,0.97)",
-        border: "1px solid rgba(139,92,246,0.4)",
-        backdropFilter: "blur(20px)",
-        boxShadow: "0 0 40px rgba(139,92,246,0.15)",
+        background: "#FFFFFF",
+        border: "1px solid #E2E8F0",
+        boxShadow: "0 12px 32px rgba(23,63,95,0.18)",
         height: "420px",
       }}
-    >
+      >
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
-        style={{ borderColor: "rgba(139,92,246,0.2)" }}
+        style={{ borderColor: "#E2E8F0" }}
       >
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#173F5F" }}>
             <Sparkles size={13} className="text-white" />
           </div>
           <div>
-            <span className="text-white font-bold text-xs">مساعد الشبكات</span>
+            <span className="font-bold text-xs" style={{ color: "#173F5F" }}>مساعد الشبكات</span>
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-green-400 text-[9px]">متصل</span>
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#2E7D5B" }} />
+              <span className="text-[9px] text-success">متصل</span>
             </div>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="text-slate-500 hover:text-red-400 transition-colors"
+          className="text-muted-foreground hover:text-destructive transition-colors"
         >
           <X size={14} />
         </button>
@@ -129,13 +128,13 @@ ${historyText}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="text-center py-4">
-            <div className="text-slate-500 text-xs mb-3">اسألني عن شبكتك أو أي مفهوم</div>
+            <div className="text-muted-foreground text-xs mb-3">اسألني عن شبكتك أو أي مفهوم</div>
             <div className="space-y-2">
               {suggestions.map((s) => (
                 <button
                   key={s}
                   onClick={() => setInput(s)}
-                  className="block w-full text-right text-xs px-3 py-2 rounded-lg bg-purple-500/10 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 transition-colors"
+                  className="block w-full text-right text-xs px-3 py-2 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 transition-colors"
                 >
                   {s}
                 </button>
@@ -151,12 +150,12 @@ ${historyText}
             <div
               className={`max-w-[90%] rounded-xl px-3 py-2 text-xs ${
                 msg.role === "user"
-                  ? "bg-purple-500/20 text-purple-100 border border-purple-500/30"
-                  : "bg-slate-800/80 text-slate-200 border border-slate-700/50"
+                  ? "bg-secondary/15 text-foreground border border-secondary/30"
+                  : "bg-muted text-foreground border border-border"
               }`}
             >
               {msg.role === "assistant" ? (
-                <ReactMarkdown className="prose prose-xs prose-invert max-w-none [&>*]:text-xs [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                <ReactMarkdown className="prose prose-xs max-w-none [&>*]:text-xs [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
                   {msg.content}
                 </ReactMarkdown>
               ) : (
@@ -167,12 +166,12 @@ ${historyText}
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-slate-800/80 border border-slate-700/50 rounded-xl px-3 py-2">
+            <div className="bg-muted border border-border rounded-xl px-3 py-2">
               <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce"
+                    className="w-1.5 h-1.5 rounded-full bg-secondary animate-bounce"
                     style={{ animationDelay: `${i * 0.15}s` }}
                   />
                 ))}
@@ -186,20 +185,21 @@ ${historyText}
       {/* Input */}
       <div
         className="px-3 py-3 border-t flex gap-2 flex-shrink-0"
-        style={{ borderColor: "rgba(139,92,246,0.2)" }}
-      >
+        style={{ borderColor: "#E2E8F0" }}
+        >
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="اسأل عن الشبكات..."
-          className="flex-1 bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500/50"
+          className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-secondary"
           dir="rtl"
         />
         <button
           onClick={sendMessage}
           disabled={loading || !input.trim()}
-          className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center transition-all disabled:opacity-40 hover:scale-105"
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-40 hover:scale-105"
+          style={{ background: "#173F5F" }}
         >
           <Send size={13} className="text-white" />
         </button>

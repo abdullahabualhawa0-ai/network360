@@ -10,10 +10,10 @@ import { t, useLang } from "@/lib/i18n";
 import { topicTitleById } from "@/lib/courseI18n";
 
 const STATUS_MAP = {
-  completed: { key: "stCompleted", color: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.35)" },
-  partially_completed: { key: "stPartial", color: "#fbbf24", bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.35)" },
-  in_progress: { key: "stInProgress", color: "#06b6d4", bg: "rgba(6,182,212,0.12)", border: "rgba(6,182,212,0.35)" },
-  not_started: { key: "stNotStarted", color: "#94a3b8", bg: "rgba(148,163,184,0.12)", border: "rgba(148,163,184,0.3)" },
+  completed: { key: "stCompleted", color: "#2E7D5B", bg: "rgba(46,125,91,0.10)", border: "rgba(46,125,91,0.35)" },
+  partially_completed: { key: "stPartial", color: "#D69E2E", bg: "rgba(214,158,46,0.10)", border: "rgba(214,158,46,0.35)" },
+  in_progress: { key: "stInProgress", color: "#2F6690", bg: "rgba(47,102,144,0.10)", border: "rgba(47,102,144,0.3)" },
+  not_started: { key: "stNotStarted", color: "#64748B", bg: "rgba(100,116,139,0.10)", border: "rgba(100,116,139,0.3)" },
 };
 
 function formatDate(d) {
@@ -52,7 +52,7 @@ export default function LabHistory() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#0e7490,#4f46e5)" }}>
+              style={{ background: "#173F5F" }}>
               <History className="text-white" size={20} />
             </div>
             <div>
@@ -72,10 +72,10 @@ export default function LabHistory() {
         {records && records.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
-              { label: t("totalAttempts"), value: records.length, icon: <FlaskConical size={16} />, color: "#06b6d4" },
-              { label: t("completedScenarios"), value: completedCount, icon: <CheckCircle2 size={16} />, color: "#34d399" },
-              { label: t("totalXp"), value: totalXp, icon: <Zap size={16} />, color: "#fbbf24" },
-              { label: t("avgScore"), value: `${avgScore}%`, icon: <Trophy size={16} />, color: "#a78bfa" },
+              { label: t("totalAttempts"), value: records.length, icon: <FlaskConical size={16} />, color: "#2F6690" },
+              { label: t("completedScenarios"), value: completedCount, icon: <CheckCircle2 size={16} />, color: "#2E7D5B" },
+              { label: t("totalXp"), value: totalXp, icon: <Zap size={16} />, color: "#D69E2E" },
+              { label: t("avgScore"), value: `${avgScore}%`, icon: <Trophy size={16} />, color: "#173F5F" },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl p-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
                 <div className="flex items-center gap-2 mb-1.5" style={{ color: s.color }}>{s.icon}</div>
@@ -127,7 +127,7 @@ export default function LabHistory() {
                   style={{ border: "1px solid hsl(var(--border))" }}>
                   {/* Icon */}
                   <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                    style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)" }}>
+                    style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)" }}>
                     {scenario?.icon || "🧪"}
                   </div>
 
@@ -147,11 +147,11 @@ export default function LabHistory() {
                       )}
                     </div>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.07)" }}>
+                      <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(23,63,95,0.08)" }}>
                         <div className="h-full rounded-full"
                           style={{
                             width: `${pct}%`,
-                            background: r.status === "completed" ? "linear-gradient(90deg,#059669,#34d399)" : "linear-gradient(90deg,#7c3aed,#06b6d4)",
+                            background: r.status === "completed" ? "#2E7D5B" : "#2F6690",
                           }} />
                       </div>
                       <span className="text-[10px] font-bold flex-shrink-0" style={{ color: st.color }}>
@@ -161,25 +161,25 @@ export default function LabHistory() {
                     <div className="text-[10px] text-muted-foreground leading-relaxed">
                       {t("startedAtLabel")}: {formatDate(r.started_at)} • {t("lastActivityLabel")}: {formatDate(r.last_activity_at)}
                       {r.status === "completed" && r.completed_at && (
-                        <> • <span style={{ color: "#34d399" }}>{t("completedAtLabel")}: {formatDate(r.completed_at)}</span></>
+                        <> • <span style={{ color: "#2E7D5B" }}>{t("completedAtLabel")}: {formatDate(r.completed_at)}</span></>
                       )}
                     </div>
                   </div>
 
                   {/* Score & XP */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="px-3 py-1.5 rounded-xl text-center" style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)" }}>
-                      <div className="text-sm font-black" style={{ color: "#06b6d4" }}>{r.score || 0}%</div>
+                    <div className="px-3 py-1.5 rounded-xl text-center" style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)" }}>
+                      <div className="text-sm font-black" style={{ color: "#2F6690" }}>{r.score || 0}%</div>
                       <div className="text-[8px] text-muted-foreground">{t("scoreLabel")}</div>
                     </div>
-                    <div className="px-3 py-1.5 rounded-xl text-center" style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)" }}>
-                      <div className="text-sm font-black" style={{ color: "#fbbf24" }}>+{r.xp_earned || 0}</div>
+                    <div className="px-3 py-1.5 rounded-xl text-center" style={{ background: "rgba(214,158,46,0.1)", border: "1px solid rgba(214,158,46,0.3)" }}>
+                      <div className="text-sm font-black" style={{ color: "#D69E2E" }}>+{r.xp_earned || 0}</div>
                       <div className="text-[8px] text-muted-foreground">XP</div>
                     </div>
                     {r.status !== "completed" && (
                       <Link to="/scenario-lab"
                         className="px-3 py-2 rounded-xl text-[10px] font-bold text-white whitespace-nowrap"
-                        style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
+                        style={{ background: "#173F5F" }}>
                         {t("continueLabel")}
                       </Link>
                     )}

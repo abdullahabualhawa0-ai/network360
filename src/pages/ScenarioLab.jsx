@@ -190,46 +190,42 @@ export default function ScenarioLab() {
   const diffLabel = (d) => t(DIFF_LABEL_KEYS[d] || "diffMedium");
 
   return (
-    <div className="min-h-screen" style={{ background: "#020617" }}>
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <div className="relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg,#0d1117 0%,#1a0533 50%,#0d1117 100%)", borderBottom: "1px solid rgba(139,92,246,0.25)" }}>
+      <div className="relative overflow-hidden border-b border-border" style={{ background: "#F7F9FC" }}>
         <div className="absolute inset-0 pointer-events-none"
-          style={{ backgroundImage: "linear-gradient(rgba(139,92,246,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.04) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
+          style={{ backgroundImage: "linear-gradient(rgba(47,102,144,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(47,102,144,0.05) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
         <div className="relative max-w-6xl mx-auto px-6 py-10">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-2 mb-3 text-sm" style={{ color: "rgba(139,92,246,0.65)" }}>
-              <Link to="/" className="hover:text-purple-300 transition-colors">{t("backHome")}</Link>
+            <div className="flex items-center gap-2 mb-3 text-sm" style={{ color: "rgba(47,102,144,0.75)" }}>
+              <Link to="/" className="hover:text-primary transition-colors">{t("backHome")}</Link>
               <ChevronLeft size={13} />
-              <span className="text-purple-300">{t("scenarioLabTitle")}</span>
+              <span style={{ color: "#173F5F" }}>{t("scenarioLabTitle")}</span>
             </div>
-            <h1 className="text-3xl font-black mb-2" style={{
-              background: "linear-gradient(135deg,#a78bfa,#06b6d4)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
-            }}>
+            <h1 className="text-3xl font-black mb-2" style={{ color: "#173F5F" }}>
               🧪 {lessonInfo ? t("lessonScenariosTitle") : t("scenarioLabTitle")}
             </h1>
-            <p className="text-slate-400 text-sm">
+            <p className="text-sm text-muted-foreground">
               {lessonInfo ? `${t("lessonScenariosDesc")} — ${lessonInfo.lessonTitle}` : t("scenarioLabSubtitle")}
             </p>
-            <p className="text-[10px] mt-1" style={{ color: dbReady ? "rgba(52,211,153,0.75)" : "rgba(148,163,184,0.6)" }}>
+            <p className="text-[10px] mt-1" style={{ color: dbReady ? "#2E7D5B" : "rgba(31,41,55,0.5)" }}>
               {dbReady ? `✓ ${t("syncedNote")}` : t("syncingNote")}
             </p>
-            <p className="text-[10px] mt-0.5" style={{ color: "rgba(167,139,250,0.7)" }}>
+            <p className="text-[10px] mt-0.5" style={{ color: "rgba(47,102,144,0.7)" }}>
               {t("diffSortedNote")}
             </p>
 
             {/* شريط التقدم الكلي */}
             <div className="mt-4 max-w-md">
               <div className="flex items-center justify-between text-[10px] mb-1">
-                <span className="flex items-center gap-1 font-bold" style={{ color: "#34d399" }}>
+                <span className="flex items-center gap-1 font-bold" style={{ color: "#2E7D5B" }}>
                   <Trophy size={11} /> {t("completedProgress")}
                 </span>
-                <span className="font-bold text-slate-400">{completedCount} / {TOTAL_SCENARIOS} {t("ofScenarios")}</span>
+                <span className="font-bold text-muted-foreground">{completedCount} / {TOTAL_SCENARIOS} {t("ofScenarios")}</span>
               </div>
-              <div className="h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.07)" }}>
+              <div className="h-1.5 rounded-full" style={{ background: "rgba(23,63,95,0.08)" }}>
                 <div className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${Math.round((completedCount / TOTAL_SCENARIOS) * 100)}%`, background: "linear-gradient(90deg,#059669,#34d399)" }} />
+                  style={{ width: `${Math.round((completedCount / TOTAL_SCENARIOS) * 100)}%`, background: "#2E7D5B" }} />
               </div>
             </div>
           </motion.div>
@@ -243,7 +239,7 @@ export default function ScenarioLab() {
             {lessonInfo && (
               <Link to="/scenario-lab"
                 className="inline-flex items-center gap-1.5 mb-5 px-3 py-1.5 rounded-xl text-[11px] font-bold"
-                style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
+                style={{ background: "rgba(47,102,144,0.07)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}>
                 <ChevronLeft size={12} /> {t("backToAllScenarios")}
               </Link>
             )}
@@ -251,16 +247,16 @@ export default function ScenarioLab() {
             {available.length === 0 ? (
               /* اكتملت جميع السيناريوهات — لا تعود المكتملة للظهور */
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl p-12 text-center"
-                style={{ background: "rgba(5,150,105,0.06)", border: "1px solid rgba(52,211,153,0.35)" }}>
+                className="rounded-2xl p-12 text-center bg-card"
+                style={{ border: "1px solid rgba(46,125,91,0.35)" }}>
                 <div className="text-5xl mb-4">🏆</div>
-                <h2 className="text-xl font-black mb-2" style={{ color: "#34d399" }}>{t("allCompletedMsg")}</h2>
-                <p className="text-xs text-slate-400 mb-6">
+                <h2 className="text-xl font-black mb-2" style={{ color: "#2E7D5B" }}>{t("allCompletedMsg")}</h2>
+                <p className="text-xs text-muted-foreground mb-6">
                   {completedCount} / {TOTAL_SCENARIOS} {t("ofScenarios")}
                 </p>
                 <Link to="/lab-history"
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-                  style={{ background: "linear-gradient(90deg,#059669,#10b981)" }}>
+                  style={{ background: "#173F5F" }}>
                   <History size={14} /> {t("viewHistory")}
                 </Link>
               </motion.div>
@@ -276,26 +272,26 @@ export default function ScenarioLab() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className="rounded-2xl p-6 cursor-pointer transition-all hover:scale-[1.015] hover:shadow-2xl group"
+                      className="rounded-2xl p-6 cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 group bg-white"
                       style={{
-                        background: "rgba(12,20,40,0.9)",
-                        border: inProgress ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(139,92,246,0.18)",
-                        backdropFilter: "blur(12px)",
+                        border: inProgress ? "1px solid rgba(214,158,46,0.45)" : "1px solid #E2E8F0",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = inProgress ? "rgba(251,191,36,0.55)" : "rgba(139,92,246,0.4)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = inProgress ? "rgba(251,191,36,0.3)" : "rgba(139,92,246,0.18)"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = inProgress ? "rgba(214,158,46,0.6)" : "#3A86A8"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = inProgress ? "rgba(214,158,46,0.45)" : "#E2E8F0"; }}
                       onClick={() => { setSelected(sc); setResult(null); setAiTip(""); setShowHints(false); startLab(sc); }}
                     >
                       <div className="flex items-start justify-between mb-4">
                         <span className="text-3xl">{sc.icon}</span>
                         <div className="flex items-center gap-2">
                           {inProgress && (
-                            <span className="text-[10px] bg-amber-400/10 text-amber-400 border border-amber-400/30 px-2 py-0.5 rounded-full font-bold">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                              style={{ background: "rgba(214,158,46,0.1)", color: "#D69E2E", border: "1px solid rgba(214,158,46,0.3)" }}>
                               ⏳ {t("continueLabel")} ({rec.score}%)
                             </span>
                           )}
                           {!rec && (
-                            <span className="text-[10px] bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 px-2 py-0.5 rounded-full font-bold">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                              style={{ background: "rgba(47,102,144,0.08)", color: "#2F6690", border: "1px solid rgba(47,102,144,0.25)" }}>
                               {t("newLabel")}
                             </span>
                           )}
@@ -304,19 +300,19 @@ export default function ScenarioLab() {
                           </span>
                         </div>
                       </div>
-                      <h3 className="font-black text-white text-lg mb-2">{sc.title}</h3>
-                      <p className="text-slate-400 text-sm mb-3 leading-relaxed">{sc.desc}</p>
+                      <h3 className="font-black text-lg mb-2" style={{ color: "#173F5F" }}>{sc.title}</h3>
+                      <p className="text-sm mb-3 leading-relaxed" style={{ color: "rgba(31,41,55,0.7)" }}>{sc.desc}</p>
                       {lesson && (
-                        <div className="flex items-center gap-1.5 text-[10px] mb-4" style={{ color: "rgba(6,182,212,0.8)" }}>
+                        <div className="flex items-center gap-1.5 text-[10px] mb-4" style={{ color: "#2F6690" }}>
                           <BookOpen size={11} /> {t("relatedLesson")}: {topicTitleById(lesson.lessonId, lesson.lessonTitle)}
                         </div>
                       )}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1.5"><Clock size={12} /> {sc.time}</span>
-                          <span className="flex items-center gap-1.5"><Zap size={12} className="text-yellow-400" /> {sc.xp} XP</span>
+                          <span className="flex items-center gap-1.5"><Zap size={12} className="text-warning" /> {sc.xp} XP</span>
                         </div>
-                        <button className="flex items-center gap-1.5 text-xs font-bold text-purple-400 group-hover:text-purple-300 transition-colors">
+                        <button className="flex items-center gap-1.5 text-xs font-bold text-secondary group-hover:text-primary transition-colors">
                           <Play size={12} /> {inProgress ? t("continueLabel") : t("startLabel")} <ArrowRight size={11} />
                         </button>
                       </div>
@@ -329,18 +325,18 @@ export default function ScenarioLab() {
         ) : (
           <div className="max-w-2xl mx-auto">
             <button onClick={backToList}
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 text-sm group">
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 text-sm group">
               <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
               {t("backToScenarios")}
             </button>
 
             {/* Scenario Card */}
-            <div className="rounded-2xl p-6 mb-4"
-              style={{ background: "rgba(12,20,40,0.95)", border: "1px solid rgba(139,92,246,0.28)", backdropFilter: "blur(16px)" }}>
+            <div className="rounded-2xl p-6 mb-4 bg-white"
+              style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(23,63,95,0.06)" }}>
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-4xl">{selected.icon}</span>
                 <div>
-                  <h2 className="text-xl font-black text-white">{selected.title}</h2>
+                  <h2 className="text-xl font-black" style={{ color: "#173F5F" }}>{selected.title}</h2>
                   <div className="flex items-center gap-2 flex-wrap mt-1">
                     <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${selected.diffColor}`}>
                       {diffLabel(selected.difficulty)} • {selected.time} • {selected.xp} XP
@@ -349,7 +345,7 @@ export default function ScenarioLab() {
                       const lesson = getLessonInfo(selected.lessonId);
                       return lesson ? (
                         <Link to={`/topic/${lesson.unitId}/${lesson.lessonId}`}
-                          className="text-[10px] flex items-center gap-1 hover:underline" style={{ color: "#06b6d4" }}>
+                          className="text-[10px] flex items-center gap-1 hover:underline" style={{ color: "#2F6690" }}>
                           <BookOpen size={10} /> {topicTitleById(lesson.lessonId, lesson.lessonTitle)}
                         </Link>
                       ) : null;
@@ -357,7 +353,7 @@ export default function ScenarioLab() {
                   </div>
                 </div>
               </div>
-              <p className="text-slate-300 text-sm mb-5 leading-relaxed">{selected.desc}</p>
+              <p className="text-sm mb-5 leading-relaxed" style={{ color: "rgba(31,41,55,0.75)" }}>{selected.desc}</p>
 
               {/* Objectives with live check */}
               {(() => {
@@ -370,24 +366,24 @@ export default function ScenarioLab() {
                 return (
                   <div className="mb-5">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">{t("objectivesTitle")}</h3>
-                      <span className="text-[10px] font-bold" style={{ color: pct === 100 ? "#34d399" : "rgba(167,139,250,0.8)" }}>
+                      <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "#2F6690" }}>{t("objectivesTitle")}</h3>
+                      <span className="text-[10px] font-bold" style={{ color: pct === 100 ? "#2E7D5B" : "#2F6690" }}>
                         {completedCountTasks}/{totalCount} {t("completedCount")}
                       </span>
-                    </div>
-                    <div className="h-1 rounded-full mb-3" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      </div>
+                      <div className="h-1 rounded-full mb-3" style={{ background: "rgba(23,63,95,0.08)" }}>
                       <div className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, background: pct === 100 ? "linear-gradient(90deg,#059669,#34d399)" : "linear-gradient(90deg,#7c3aed,#06b6d4)" }} />
+                        style={{ width: `${pct}%`, background: pct === 100 ? "#2E7D5B" : "#2F6690" }} />
                     </div>
                     <ul className="space-y-2">
                       {details.map((d, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm">
                           {d.ok ? (
-                            <CheckCircle2 size={14} className="text-green-400 flex-shrink-0 mt-0.5" />
+                            <CheckCircle2 size={14} className="text-success flex-shrink-0 mt-0.5" />
                           ) : (
-                            <AlertCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: "rgba(148,163,184,0.4)" }} />
+                            <AlertCircle size={14} className="flex-shrink-0 mt-0.5 text-muted-foreground" />
                           )}
-                          <span style={{ color: d.ok ? "#86efac" : "rgba(148,163,184,0.75)" }}>{d.label}</span>
+                          <span style={{ color: d.ok ? "#2E7D5B" : "rgba(31,41,55,0.7)" }}>{d.label}</span>
                         </li>
                       ))}
                     </ul>
@@ -398,23 +394,23 @@ export default function ScenarioLab() {
               {/* Actions */}
               <div className="flex flex-wrap gap-2">
                 <button onClick={openInSimulator}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:brightness-110"
-                  style={{ background: "linear-gradient(135deg,#7c3aed,#06b6d4)" }}>
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105"
+                  style={{ background: "#173F5F" }}>
                   <Play size={14} /> {t("openInSimulator")}
                 </button>
                 <button onClick={evaluate}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:brightness-110"
-                  style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}>
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105"
+                  style={{ background: "#2E7D5B" }}>
                   <Target size={14} /> {t("evaluate")}
                 </button>
                 <button onClick={() => setShowHints(!showHints)}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105"
-                  style={{ background: showHints ? "rgba(245,158,11,0.15)" : "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", color: "#fbbf24" }}>
+                  style={{ background: showHints ? "rgba(214,158,46,0.15)" : "rgba(214,158,46,0.08)", border: "1px solid rgba(214,158,46,0.35)", color: "#D69E2E" }}>
                   <Lightbulb size={14} /> {t("hints")}
                 </button>
                 <button onClick={getAiTip} disabled={loadingTip}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 disabled:opacity-60"
-                  style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", color: "#c4b5fd" }}>
+                  style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)", color: "#2F6690" }}>
                   <Bot size={14} /> {loadingTip ? t("aiThinking") : t("aiHintBtn")}
                 </button>
               </div>
@@ -428,15 +424,15 @@ export default function ScenarioLab() {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   className="rounded-2xl p-5 mb-4 overflow-hidden"
-                  style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.25)" }}
-                >
-                  <h3 className="text-amber-400 font-bold text-sm mb-3 flex items-center gap-2">
+                  style={{ background: "rgba(214,158,46,0.05)", border: "1px solid rgba(214,158,46,0.25)" }}
+                  >
+                  <h3 className="font-bold text-sm mb-3 flex items-center gap-2" style={{ color: "#D69E2E" }}>
                     <Lightbulb size={14} /> {t("hints")}
                   </h3>
                   <ul className="space-y-2">
                     {selected.hints.map((h, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "rgba(251,191,36,0.85)" }}>
-                        <span className="text-amber-500 flex-shrink-0 mt-0.5">•</span> {h}
+                      <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "rgba(31,41,55,0.75)" }}>
+                        <span className="flex-shrink-0 mt-0.5" style={{ color: "#D69E2E" }}>•</span> {h}
                       </li>
                     ))}
                   </ul>
@@ -452,13 +448,13 @@ export default function ScenarioLab() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   className="rounded-2xl p-5 mb-4"
-                  style={{ background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.28)" }}
-                >
+                  style={{ background: "rgba(47,102,144,0.05)", border: "1px solid rgba(47,102,144,0.25)" }}
+                  >
                   <div className="flex items-center gap-2 mb-2">
-                    <Bot size={14} className="text-purple-400" />
-                    <h3 className="text-purple-400 font-bold text-sm">{t("aiHintBtn")}</h3>
+                    <Bot size={14} className="text-secondary" />
+                    <h3 className="text-secondary font-bold text-sm">{t("aiHintBtn")}</h3>
                   </div>
-                  <p className="text-slate-200 text-sm leading-relaxed">{aiTip}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "rgba(31,41,55,0.8)" }}>{aiTip}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -471,22 +467,22 @@ export default function ScenarioLab() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="rounded-2xl p-6"
                   style={{
-                    background: result.passed ? "rgba(5,150,105,0.07)" : "rgba(239,68,68,0.07)",
-                    border: `1px solid ${result.passed ? "rgba(34,197,94,0.35)" : "rgba(239,68,68,0.35)"}`,
+                    background: result.passed ? "rgba(46,125,91,0.06)" : "rgba(201,76,76,0.06)",
+                    border: `1px solid ${result.passed ? "rgba(46,125,91,0.35)" : "rgba(201,76,76,0.35)"}`,
                   }}
-                >
+                  >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black"
-                      style={{ background: result.passed ? "linear-gradient(135deg,#059669,#34d399)" : "linear-gradient(135deg,#dc2626,#ef4444)", color: "white" }}>
+                      style={{ background: result.passed ? "#2E7D5B" : "#C94C4C", color: "white" }}>
                       {result.score}%
                     </div>
                     <div>
-                      <h3 className="text-lg font-black" style={{ color: result.passed ? "#34d399" : "#f87171" }}>
+                      <h3 className="text-lg font-black" style={{ color: result.passed ? "#2E7D5B" : "#C94C4C" }}>
                         {result.passed ? `🎉 ${t("passedMsg")}` : `❌ ${t("failedMsg")}`}
                       </h3>
-                      <p className="text-slate-300 text-sm">{result.feedback}</p>
+                      <p className="text-sm" style={{ color: "rgba(31,41,55,0.75)" }}>{result.feedback}</p>
                       {result.passed && (
-                        <p className="text-[10px] mt-1" style={{ color: "#34d399" }}>
+                        <p className="text-[10px] mt-1" style={{ color: "#2E7D5B" }}>
                           → <Link to="/lab-history" className="underline">{t("viewHistory")}</Link>
                         </p>
                       )}
@@ -495,8 +491,8 @@ export default function ScenarioLab() {
                   <div className="space-y-2">
                     {result.details.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
-                        {d.ok ? <CheckCircle2 size={14} className="text-green-400" /> : <AlertCircle size={14} className="text-red-400" />}
-                        <span style={{ color: d.ok ? "#86efac" : "#fca5a5" }}>{d.label}</span>
+                        {d.ok ? <CheckCircle2 size={14} className="text-success" /> : <AlertCircle size={14} className="text-destructive" />}
+                        <span style={{ color: d.ok ? "#2E7D5B" : "#C94C4C" }}>{d.label}</span>
                       </div>
                     ))}
                   </div>

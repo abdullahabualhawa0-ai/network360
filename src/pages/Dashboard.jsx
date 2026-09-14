@@ -71,20 +71,20 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-bl from-slate-900 via-indigo-950 to-slate-900">
+      <div className="relative overflow-hidden border-b border-border" style={{ background: "#F7F9FC" }}>
         <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(47,102,144,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(47,102,144,0.05) 1px, transparent 1px)`,
           backgroundSize: "40px 40px"
         }} />
         <div className="relative max-w-5xl mx-auto px-6 py-10">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-2 text-indigo-300/70 text-sm mb-2">
-              <Link to="/" className="hover:text-indigo-200 transition-colors">{t("backHome")}</Link>
+            <div className="flex items-center gap-2 text-sm mb-2" style={{ color: "rgba(47,102,144,0.7)" }}>
+              <Link to="/" className="transition-colors hover:text-primary">{t("backHome")}</Link>
               <ChevronLeft size={13} />
-              <span className="text-indigo-200">{t("navDashboard")}</span>
+              <span style={{ color: "#173F5F" }}>{t("navDashboard")}</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white mb-1">{t("dashTitle")}</h1>
-            <p className="text-slate-400 text-sm">{t("dashSubtitle")}</p>
+            <h1 className="text-3xl sm:text-4xl font-black mb-1" style={{ color: "#173F5F" }}>{t("dashTitle")}</h1>
+            <p className="text-sm text-muted-foreground">{t("dashSubtitle")}</p>
           </motion.div>
         </div>
       </div>
@@ -93,10 +93,10 @@ export default function Dashboard() {
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { icon: BookOpen, label: t("dashLessonsDone"), val: `${visitedTopics}/${totalTopics}`, color: "text-blue-500", bg: "bg-blue-50 border-blue-100" },
-            { icon: CheckCircle2, label: t("dashQuizzesDone"), val: `${completedQuizzes}/${totalQuizzes}`, color: "text-green-500", bg: "bg-green-50 border-green-100" },
-            { icon: Star, label: t("dashAvgScore"), val: completedQuizzes ? `${avgScore}%` : "—", color: "text-amber-500", bg: "bg-amber-50 border-amber-100" },
-            { icon: TrendingUp, label: t("dashProgressPct"), val: `${totalTopics ? Math.round(visitedTopics / totalTopics * 100) : 0}%`, color: "text-purple-500", bg: "bg-purple-50 border-purple-100" },
+            { icon: BookOpen, label: t("dashLessonsDone"), val: `${visitedTopics}/${totalTopics}`, color: "text-secondary", bg: "bg-card border-border" },
+            { icon: CheckCircle2, label: t("dashQuizzesDone"), val: `${completedQuizzes}/${totalQuizzes}`, color: "text-success", bg: "bg-card border-border" },
+            { icon: Star, label: t("dashAvgScore"), val: completedQuizzes ? `${avgScore}%` : "—", color: "text-warning", bg: "bg-card border-border" },
+            { icon: TrendingUp, label: t("dashProgressPct"), val: `${totalTopics ? Math.round(visitedTopics / totalTopics * 100) : 0}%`, color: "text-primary", bg: "bg-card border-border" },
           ].map(({ icon: Icon, label, val, color, bg }, i) => (
             <motion.div key={i}
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -105,7 +105,7 @@ export default function Dashboard() {
             >
               <Icon size={20} className={`${color} mb-2`} />
               <div className={`text-2xl font-black ${color}`}>{val}</div>
-              <div className="text-xs text-slate-500 mt-0.5">{label}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
             </motion.div>
           ))}
         </div>
@@ -124,7 +124,7 @@ export default function Dashboard() {
           </div>
           <div className="h-3 bg-muted rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+              className="h-full bg-primary rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${totalTopics ? (visitedTopics / totalTopics) * 100 : 0}%` }}
               transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
@@ -135,7 +135,7 @@ export default function Dashboard() {
         {/* Section strengths */}
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-1 h-5 bg-gradient-to-b from-primary to-secondary rounded-full" />
+            <div className="w-1 h-5 bg-primary rounded-full" />
             <h2 className="font-bold text-foreground">{t("dashBySection")}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -152,9 +152,9 @@ export default function Dashboard() {
                   </div>
                   {sec.avgScore !== null && (
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                      sec.avgScore >= 80 ? "bg-green-100 text-green-700"
-                      : sec.avgScore >= 60 ? "bg-amber-100 text-amber-700"
-                      : "bg-red-100 text-red-600"
+                      sec.avgScore >= 80 ? "bg-success/10 text-success"
+                      : sec.avgScore >= 60 ? "bg-warning/10 text-warning"
+                      : "bg-destructive/10 text-destructive"
                     }`}>
                       {sec.avgScore}%
                     </span>
@@ -174,7 +174,7 @@ export default function Dashboard() {
                         className="flex items-center gap-2 group"
                       >
                         <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                          qResult ? "bg-green-500" : visited ? "bg-primary/70" : "bg-muted"
+                          qResult ? "bg-success" : visited ? "bg-primary/70" : "bg-muted"
                         }`}>
                           {qResult ? (
                             <CheckCircle2 size={10} className="text-white" />
@@ -190,10 +190,10 @@ export default function Dashboard() {
                           {topicTitle(topic)}
                         </span>
                         {qResult && (
-                          <span className="text-[10px] font-bold text-green-600">{qResult.score}%</span>
+                          <span className="text-[10px] font-bold text-success">{qResult.score}%</span>
                         )}
                         {hasQuiz && !qResult && visited && (
-                          <span className="text-[10px] text-amber-500">{t("dashTakeQuiz")}</span>
+                          <span className="text-[10px] text-warning">{t("dashTakeQuiz")}</span>
                         )}
                       </Link>
                     );
@@ -203,7 +203,7 @@ export default function Dashboard() {
                 {/* Section bar */}
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all"
+                    className="h-full bg-secondary rounded-full transition-all"
                     style={{ width: `${sec.total ? (sec.visited / sec.total) * 100 : 0}%` }}
                   />
                 </div>
@@ -217,7 +217,7 @@ export default function Dashboard() {
         {completedQuizzes > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-1 h-5 bg-gradient-to-b from-amber-400 to-orange-500 rounded-full" />
+              <div className="w-1 h-5 bg-warning rounded-full" />
               <h2 className="font-bold text-foreground">{t("dashQuizResults")}</h2>
             </div>
             <div className="bg-card border border-border rounded-2xl divide-y divide-border overflow-hidden">
@@ -232,20 +232,20 @@ export default function Dashboard() {
                     className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <Award size={15} className={result.score >= 80 ? "text-amber-500" : "text-slate-400"} />
+                      <Award size={15} className={result.score >= 80 ? "text-warning" : "text-muted-foreground"} />
                       <span className="text-sm text-foreground">{topicTitle(topic)}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            result.score >= 80 ? "bg-green-500" : result.score >= 60 ? "bg-amber-400" : "bg-red-400"
+                            result.score >= 80 ? "bg-success" : result.score >= 60 ? "bg-warning" : "bg-destructive"
                           }`}
                           style={{ width: `${result.score}%` }}
                         />
                       </div>
                       <span className={`text-xs font-bold w-10 text-right ${
-                        result.score >= 80 ? "text-green-600" : result.score >= 60 ? "text-amber-600" : "text-red-500"
+                        result.score >= 80 ? "text-success" : result.score >= 60 ? "text-warning" : "text-destructive"
                       }`}>{result.score}%</span>
                     </div>
                   </Link>

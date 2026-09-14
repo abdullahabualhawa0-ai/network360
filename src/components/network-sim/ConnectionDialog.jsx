@@ -12,13 +12,13 @@ function PortList({ node, connections, selected, onSelect }) {
 
   return (
     <div className="rounded-xl p-3"
-      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+      style={{ background: "rgba(23,63,95,0.03)", border: "1px solid #E2E8F0" }}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-bold" style={{ color: "#e2e8f0" }}>
+        <span className="text-xs font-bold" style={{ color: "#173F5F" }}>
           {node?.label}
         </span>
         <span className="text-[9px] font-mono px-1.5 py-0.5 rounded"
-          style={{ background: "rgba(6,182,212,0.12)", color: "#06b6d4" }}>
+          style={{ background: "rgba(47,102,144,0.1)", color: "#2F6690" }}>
           {node?.type}
         </span>
       </div>
@@ -36,12 +36,12 @@ function PortList({ node, connections, selected, onSelect }) {
               title={port.note || st.label}
               className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[10px] font-mono transition-all disabled:cursor-not-allowed"
               style={{
-                background: isSel ? "rgba(6,182,212,0.2)" : "rgba(255,255,255,0.03)",
-                border: `1px solid ${isSel ? "#06b6d4" : "rgba(255,255,255,0.05)"}`,
+                background: isSel ? "rgba(47,102,144,0.12)" : "rgba(23,63,95,0.03)",
+                border: `1px solid ${isSel ? "#2F6690" : "#E2E8F0"}`,
                 opacity: selectable ? 1 : 0.55,
               }}
-            >
-              <span style={{ color: isSel ? "#06b6d4" : "#cbd5e1" }}>{port.name}</span>
+              >
+              <span style={{ color: isSel ? "#2F6690" : "rgba(31,41,55,0.75)" }}>{port.name}</span>
               <span className="flex items-center gap-1 font-sans">
                 <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.color }} />
                 <span style={{ color: st.color }}>{st.label}</span>
@@ -77,24 +77,24 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
         transition={{ type: "spring", duration: 0.3 }}
         className="w-full max-w-2xl rounded-2xl p-5 max-h-[90%] overflow-y-auto"
         style={{
-          background: "rgba(6,12,30,0.98)",
-          border: "1px solid rgba(6,182,212,0.25)",
-          boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+          background: "#FFFFFF",
+          border: "1px solid #E2E8F0",
+          boxShadow: "0 24px 60px rgba(23,63,95,0.25)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-black" style={{ color: "#06b6d4" }}>
+            <h3 className="text-sm font-black" style={{ color: "#173F5F" }}>
               🔗 توصيل {fromNode?.label} → {toNode?.label}
             </h3>
-            <p className="text-[10px] mt-0.5" style={{ color: "rgba(148,163,184,0.7)" }}>
+            <p className="text-[10px] mt-0.5" style={{ color: "rgba(31,41,55,0.55)" }}>
               اختر نوع الكابل ثم المنفذ في كل جهاز
             </p>
-          </div>
-          <button onClick={onCancel}
-            className="p-1.5 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-white/10">
+            </div>
+            <button onClick={onCancel}
+            className="p-1.5 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted">
             <X size={16} />
           </button>
         </div>
@@ -111,13 +111,12 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
                 disabled={!ok}
                 className="flex flex-col items-center gap-1 p-2.5 rounded-xl transition-all disabled:opacity-25 disabled:cursor-not-allowed"
                 style={{
-                  background: active ? `linear-gradient(135deg, ${cable.color}22, ${cable.color}11)` : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${active ? cable.color : "rgba(255,255,255,0.06)"}`,
-                  boxShadow: active ? `0 0 12px ${cable.color}33` : "none",
+                  background: active ? `${cable.color}1A` : "rgba(23,63,95,0.03)",
+                  border: `1px solid ${active ? cable.color : "#E2E8F0"}`,
                 }}
-              >
+                >
                 <span className="text-lg leading-none">{cable.icon}</span>
-                <span className="text-[10px] font-bold" style={{ color: active ? cable.color : "#cbd5e1" }}>
+                <span className="text-[10px] font-bold" style={{ color: active ? cable.color : "rgba(31,41,55,0.7)" }}>
                   {cable.label}
                 </span>
               </button>
@@ -128,7 +127,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
         {/* Incompatible warning */}
         {incompatible && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3 text-[11px] font-bold"
-            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.35)", color: "#fca5a5" }}>
+            style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
             <AlertTriangle size={13} />
             نوع الكابل «{selectedCable?.label}» غير متوافق مع {fromNode?.type} و {toNode?.type}
           </div>
@@ -154,7 +153,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
         {/* Wireless note */}
         {isWireless && (
           <div className="px-3 py-2.5 rounded-xl mb-4 text-[11px]"
-            style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.3)", color: "#6ee7b7" }}>
+            style={{ background: "rgba(46,125,91,0.08)", border: "1px solid rgba(46,125,91,0.3)", color: "#2E7D5B" }}>
             📶 اتصال لاسلكي — لا يحتاج اختيار منفذ فيزيائي
           </div>
         )}
@@ -162,8 +161,8 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
         {/* Actions */}
         <div className="flex gap-2">
           <button onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-white/10"
-            style={{ border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8" }}>
+            className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-muted"
+            style={{ border: "1px solid #E2E8F0", color: "rgba(31,41,55,0.65)" }}>
             إلغاء
           </button>
           <button
@@ -171,8 +170,8 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
             onClick={() => onConfirm({ cableType: cableId, fromPort: isWireless ? null : fromPort, toPort: isWireless ? null : toPort })}
             className="flex-1 py-2.5 rounded-xl text-xs font-black transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
-              background: canConfirm ? "linear-gradient(90deg,#06b6d4,#7c3aed)" : "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(6,182,212,0.4)",
+              background: canConfirm ? "#173F5F" : "rgba(23,63,95,0.05)",
+              border: "1px solid rgba(23,63,95,0.4)",
               color: "#fff",
             }}
           >

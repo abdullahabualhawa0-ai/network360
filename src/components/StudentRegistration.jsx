@@ -40,72 +40,72 @@ export default function StudentRegistration({ onRegistered }) {
   };
 
   const inputStyle = {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(6,182,212,0.25)",
+    background: "#F7F9FC",
+    border: "1px solid #E2E8F0",
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" dir="rtl"
-      style={{ background: "#020617" }}>
-      <div className="w-full max-w-md rounded-2xl p-6"
-        style={{ background: "rgba(10,16,36,0.98)", border: "1px solid rgba(6,182,212,0.25)" }}>
+      style={{ background: "#F7F9FC" }}>
+      <div className="w-full max-w-md rounded-2xl p-6 bg-white"
+        style={{ border: "1px solid #E2E8F0", boxShadow: "0 4px 20px rgba(23,63,95,0.08)" }}>
         <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
+            style={{ background: "#173F5F" }}>
             <KeyRound className="text-white" size={24} />
           </div>
-          <h1 className="font-black text-lg text-white">{t("loginTitle")}</h1>
-          <p className="text-xs mt-1 text-slate-400">{t("loginSubtitle")}</p>
+          <h1 className="font-black text-lg" style={{ color: "#173F5F" }}>{t("loginTitle")}</h1>
+          <p className="text-xs mt-1 text-muted-foreground">{t("loginSubtitle")}</p>
         </div>
 
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 mb-1.5">{t("schoolCode")}</label>
+            <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("schoolCode")}</label>
             <input value={schoolCode} onChange={(e) => setSchoolCode(e.target.value)}
               required placeholder="SCH2026A" dir="ltr"
-              className="w-full px-4 py-2.5 rounded-xl text-sm text-white font-mono focus:outline-none"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none"
               style={inputStyle} />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 mb-1.5">{t("studentCode")}</label>
+            <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("studentCode")}</label>
             <input value={studentCode} onChange={(e) => setStudentCode(e.target.value)}
               required placeholder="ST10025" dir="ltr"
-              className="w-full px-4 py-2.5 rounded-xl text-sm text-white font-mono focus:outline-none"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none"
               style={inputStyle} />
           </div>
 
           {error && (
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold"
-              style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.35)", color: "#fca5a5" }}>
+              style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
               <AlertTriangle size={13} /> {error}
             </div>
           )}
 
           <button type="submit" disabled={busy}
             className="w-full py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-60"
-            style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
+            style={{ background: "#173F5F" }}>
             {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : t("loginBtn")}
           </button>
         </form>
 
-        <p className="text-[10px] text-center mt-4 text-slate-500 leading-relaxed">
+        <p className="text-[10px] text-center mt-4 text-muted-foreground leading-relaxed">
           {t("loginPendingNote")}
         </p>
 
-        <div className="mt-4 pt-4 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="mt-4 pt-4 text-center" style={{ borderTop: "1px solid #E2E8F0" }}>
           <Link to="/plans" className="inline-flex items-center gap-1.5 text-xs font-black"
-            style={{ color: "#06b6d4" }}>
+            style={{ color: "#2F6690" }}>
             <UserPlus size={13} /> {t("createAccount")}
           </Link>
-          <p className="text-[10px] text-slate-500 mt-1">{t("createAccountNote")}</p>
+          <p className="text-[10px] text-muted-foreground mt-1">{t("createAccountNote")}</p>
 
           {/* التسجيل بشكل مستقل بدون مدرسة */}
-          <Link to="/plans" className="mt-4 flex items-center gap-2.5 w-full px-4 py-3 rounded-xl transition-all hover:brightness-110"
-            style={{ background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.3)" }}>
-            <User size={15} style={{ color: "#34d399" }} />
+          <Link to="/plans" className="mt-4 flex items-center gap-2.5 w-full px-4 py-3 rounded-xl transition-all hover:shadow-md"
+            style={{ background: "rgba(46,125,91,0.06)", border: "1px solid rgba(46,125,91,0.3)" }}>
+            <User size={15} style={{ color: "#2E7D5B" }} />
             <span className="text-right">
-              <span className="block text-[11px] font-black" style={{ color: "#34d399" }}>{t("personalOption")}</span>
-              <span className="block text-[9px] text-slate-500">{t("personalOptionDesc")}</span>
+              <span className="block text-[11px] font-black" style={{ color: "#2E7D5B" }}>{t("personalOption")}</span>
+              <span className="block text-[9px] text-muted-foreground">{t("personalOptionDesc")}</span>
             </span>
           </Link>
         </div>
@@ -128,30 +128,30 @@ export function AccountStatusScreen({ profile, onLogout }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" dir="rtl"
-      style={{ background: "#020617" }}>
-      <div className="w-full max-w-md rounded-2xl p-8 text-center"
+      style={{ background: "#F7F9FC" }}>
+      <div className="w-full max-w-md rounded-2xl p-8 text-center bg-white"
         style={{
-          background: "rgba(10,16,36,0.98)",
-          border: `1px solid ${isPending ? "rgba(251,191,36,0.35)" : "rgba(248,113,113,0.35)"}`,
+          border: `1px solid ${isPending ? "rgba(214,158,46,0.4)" : "rgba(201,76,76,0.4)"}`,
+          boxShadow: "0 4px 20px rgba(23,63,95,0.08)",
         }}>
         <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl"
-          style={{ background: isPending ? "rgba(251,191,36,0.12)" : "rgba(248,113,113,0.12)" }}>
+          style={{ background: isPending ? "rgba(214,158,46,0.12)" : "rgba(201,76,76,0.12)" }}>
           {isPending ? "⏳" : isRejected ? "🚫" : "⛔"}
         </div>
-        <h1 className="font-black text-lg text-white mb-1">
+        <h1 className="font-black text-lg mb-1" style={{ color: "#173F5F" }}>
           {isPending ? t("pendingTitle") : isRejected ? t("rejectedTitle") : t("errDisabled")}
         </h1>
-        <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+        <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
           {isPending
             ? `${t("pendingDesc")} (مدرسة «${schoolName}»)`
             : `${t("statusDesc")} (مدرسة «${schoolName}»)`}
         </p>
-        <div className="text-[10px] text-slate-500 mb-5">
+        <div className="text-[10px] text-muted-foreground mb-5">
           {profile.full_name} • {t("studentCodeLabel")}: {profile.student_code}
         </div>
         <button onClick={() => (onLogout || logout)()}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
-          style={{ border: "1px solid rgba(255,255,255,0.15)", color: "#94a3b8" }}>
+          style={{ border: "1px solid #E2E8F0", color: "rgba(31,41,55,0.65)" }}>
           <LogOut size={12} /> {t("logout")}
         </button>
       </div>
@@ -161,9 +161,9 @@ export function AccountStatusScreen({ profile, onLogout }) {
 
 export function FullSpinner() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center" style={{ background: "#020617" }}>
+    <div className="fixed inset-0 flex items-center justify-center" style={{ background: "#F7F9FC" }}>
       <div className="w-8 h-8 rounded-full animate-spin"
-        style={{ border: "3px solid rgba(6,182,212,0.2)", borderTopColor: "#06b6d4" }} />
+        style={{ border: "3px solid rgba(47,102,144,0.2)", borderTopColor: "#173F5F" }} />
     </div>
   );
 }

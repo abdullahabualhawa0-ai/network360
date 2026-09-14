@@ -85,8 +85,7 @@ export default function TopicPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className={`bg-gradient-to-bl ${section.color} relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-black/20" />
+      <div className="relative overflow-hidden border-b border-border" style={{ background: "#F7F9FC" }}>
         <div className="relative max-w-4xl mx-auto px-6 py-10 lg:py-14">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -94,21 +93,21 @@ export default function TopicPage() {
             transition={{ duration: 0.3 }}
           >
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-white/70 text-sm mb-4">
-              <Link to="/" className="hover:text-white transition-colors">{t("backHome")}</Link>
+            <div className="flex items-center gap-2 text-sm mb-4" style={{ color: "rgba(47,102,144,0.75)" }}>
+              <Link to="/" className="transition-colors hover:text-primary">{t("backHome")}</Link>
               <ChevronLeft size={14} />
               <span>{sectionTitle(section)}</span>
               <ChevronLeft size={14} />
-              <span className="text-white">{topicTitle(topic)}</span>
+              <span style={{ color: "#173F5F" }}>{topicTitle(topic)}</span>
             </div>
 
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#2F6690" }}>
                 <Icon className="text-white" size={20} />
               </div>
-              <span className="text-white/80 text-sm font-medium">{sectionTitle(section)}</span>
+              <span className="text-sm font-medium" style={{ color: "#2F6690" }}>{sectionTitle(section)}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white">{topicTitle(topic)}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black" style={{ color: "#173F5F" }}>{topicTitle(topic)}</h1>
           </motion.div>
         </div>
       </div>
@@ -129,7 +128,7 @@ export default function TopicPage() {
           {/* شريط الترجمة الآلية أثناء تجهيز النص */}
           {translating && (
             <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl text-[11px] font-bold"
-              style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
+              style={{ background: "rgba(47,102,144,0.07)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}>
               <Loader2 size={12} className="animate-spin" /> {t("translatingLesson")}
             </div>
           )}
@@ -213,7 +212,7 @@ export default function TopicPage() {
                 {lessonScenarios.map((sc) => (
                   <Link key={sc.id} to={`/scenario-lab?lesson=${topicId}&open=${sc.id}`}
                     className="rounded-xl p-4 transition-all hover:shadow-md"
-                    style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.25)" }}>
+                    style={{ background: "rgba(47,102,144,0.04)", border: "1px solid rgba(47,102,144,0.22)" }}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xl">{sc.icon}</span>
                       <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${sc.diffColor}`}>
@@ -223,7 +222,7 @@ export default function TopicPage() {
                     <div className="text-sm font-bold mb-1.5">{sc.title}</div>
                     <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                       <span className="flex items-center gap-1"><Clock size={11} /> {sc.time}</span>
-                      <span className="flex items-center gap-1"><Zap size={11} className="text-yellow-400" /> {sc.xp} XP</span>
+                      <span className="flex items-center gap-1"><Zap size={11} className="text-warning" /> {sc.xp} XP</span>
                     </div>
                   </Link>
                 ))}

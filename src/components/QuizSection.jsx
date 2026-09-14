@@ -65,9 +65,9 @@ export default function QuizSection({ quiz }) {
   };
 
   const getScoreInfo = () => {
-    if (score >= 80) return { label: "ممتاز! 🎉", color: "text-green-600", bg: "bg-green-50", border: "border-green-200", ring: "from-green-400 to-green-600" };
-    if (score >= 60) return { label: "جيد! استمر في التحسن", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", ring: "from-amber-400 to-amber-600" };
-    return { label: "راجع الدرس مرة أخرى", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", ring: "from-red-400 to-red-600" };
+    if (score >= 80) return { label: "ممتاز! 🎉", color: "text-success", bg: "bg-success/10", border: "border-success/25", ring: "bg-success" };
+    if (score >= 60) return { label: "جيد! استمر في التحسن", color: "text-warning", bg: "bg-warning/10", border: "border-warning/25", ring: "bg-warning" };
+    return { label: "راجع الدرس مرة أخرى", color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/25", ring: "bg-destructive" };
   };
 
   const scoreInfo = getScoreInfo();
@@ -76,7 +76,7 @@ export default function QuizSection({ quiz }) {
     <div id="quiz-section" className="mt-10 mb-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
           <BookOpen className="text-white" size={18} />
         </div>
         <div>
@@ -94,7 +94,7 @@ export default function QuizSection({ quiz }) {
             className={`mb-6 p-5 rounded-2xl border ${scoreInfo.bg} ${scoreInfo.border}`}
           >
             <div className="flex items-center gap-4">
-              <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${scoreInfo.ring} flex items-center justify-center shadow-lg`}>
+              <div className={`w-16 h-16 rounded-full ${scoreInfo.ring} flex items-center justify-center shadow-md`}>
                 <span className="text-white font-black text-xl">{score}%</span>
               </div>
               <div>
@@ -128,8 +128,8 @@ export default function QuizSection({ quiz }) {
               key={qIndex}
               className={`bg-card border rounded-2xl overflow-hidden transition-all ${
                 submitted
-                  ? isCorrect ? "border-green-300 shadow-green-100 shadow-md" 
-                  : isWrong ? "border-red-300 shadow-red-100 shadow-md" 
+                  ? isCorrect ? "border-success/40 shadow-md" 
+                  : isWrong ? "border-destructive/40 shadow-md" 
                   : "border-border opacity-70"
                   : "border-border"
               }`}
@@ -139,8 +139,8 @@ export default function QuizSection({ quiz }) {
                 <div className="flex items-start gap-3 mb-4">
                   <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                     submitted
-                      ? isCorrect ? "bg-green-100 text-green-700" 
-                      : isWrong ? "bg-red-100 text-red-700" 
+                      ? isCorrect ? "bg-success/10 text-success" 
+                      : isWrong ? "bg-destructive/10 text-destructive" 
                       : "bg-muted text-muted-foreground"
                       : "bg-primary/10 text-primary"
                   }`}>
@@ -165,9 +165,9 @@ export default function QuizSection({ quiz }) {
                         disabled={submitted}
                         className={`w-full text-right px-4 py-3 rounded-xl border text-sm transition-all flex items-center gap-3 ${
                           isCorrectOption
-                            ? "bg-green-50 border-green-400 text-green-800 font-medium"
+                            ? "bg-success/10 border-success text-success font-medium"
                             : isWrongSelected
-                            ? "bg-red-50 border-red-400 text-red-800"
+                            ? "bg-destructive/10 border-destructive text-destructive"
                             : isSelected && !submitted
                             ? "bg-primary/10 border-primary text-primary font-medium"
                             : submitted
@@ -176,8 +176,8 @@ export default function QuizSection({ quiz }) {
                         }`}
                       >
                         <span className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
-                          isCorrectOption ? "border-green-500 bg-green-500 text-white"
-                          : isWrongSelected ? "border-red-500 bg-red-500 text-white"
+                          isCorrectOption ? "border-success bg-success text-white"
+                          : isWrongSelected ? "border-destructive bg-destructive text-white"
                           : isSelected ? "border-primary bg-primary text-white"
                           : "border-border"
                         }`}>
@@ -195,7 +195,7 @@ export default function QuizSection({ quiz }) {
                     <button
                       onClick={() => toggleExplanation(qIndex)}
                       className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                        isCorrect ? "text-green-700 hover:bg-green-50" : "text-red-700 hover:bg-red-50"
+                        isCorrect ? "text-success hover:bg-success/10" : "text-destructive hover:bg-destructive/10"
                       }`}
                     >
                       {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
@@ -210,7 +210,7 @@ export default function QuizSection({ quiz }) {
                           className="overflow-hidden"
                         >
                           <div className={`mt-2 p-3 rounded-xl text-sm leading-relaxed ${
-                            isCorrect ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+                            isCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
                           }`}>
                             💡 {question.explanation}
                           </div>
@@ -237,7 +237,7 @@ export default function QuizSection({ quiz }) {
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all ${
               Object.keys(answers).length < totalQuestions
                 ? "bg-muted text-muted-foreground cursor-not-allowed"
-                : "bg-gradient-to-r from-primary to-secondary text-white hover:shadow-lg hover:shadow-primary/30 hover:scale-105"
+                : "bg-primary text-white hover:shadow-lg hover:scale-105"
             }`}
           >
             <Trophy size={16} />

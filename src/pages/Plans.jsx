@@ -105,7 +105,7 @@ export default function Plans() {
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="text-center mb-10">
           <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}>
+            style={{ background: "#173F5F" }}>
             <Sparkles className="text-white" size={24} />
           </div>
           <h1 className="font-black text-2xl mb-1">{t("plansTitle")}</h1>
@@ -113,13 +113,13 @@ export default function Plans() {
         </div>
 
         {schoolDone ? (
-          <div className="rounded-2xl p-8 text-center bg-card" style={{ border: "1px solid rgba(52,211,153,0.35)" }}>
-            <CheckCircle2 size={40} className="mx-auto mb-3" style={{ color: "#34d399" }} />
+          <div className="rounded-2xl p-8 text-center bg-card" style={{ border: "1px solid rgba(46,125,91,0.35)" }}>
+            <CheckCircle2 size={40} className="mx-auto mb-3" style={{ color: "#2E7D5B" }} />
             <h2 className="font-black text-lg mb-2">تم استلام طلب مدرستك ✓</h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
               الخطة: <b>{schoolDone.plan}</b>
               <br />
-              رمز المدرسة: <span className="font-mono" style={{ color: "#06b6d4" }}>{schoolDone.code}</span>
+              رمز المدرسة: <span className="font-mono" style={{ color: "#2F6690" }}>{schoolDone.code}</span>
               <br /><br />
               سيقوم مالك المنصة بتفعيل المدرسة وتعيينك مشرفاً عبر بريدك، عندها يمكنك إضافة طلاب مدرستك برموزهم.
             </p>
@@ -143,7 +143,7 @@ export default function Plans() {
 
         {error && (
           <div className="mt-4 flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold"
-            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.35)", color: "#fca5a5" }}>
+            style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
             <AlertTriangle size={13} /> {error}
           </div>
         )}

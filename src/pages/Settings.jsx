@@ -13,10 +13,10 @@ const LANGUAGES = [
 ];
 
 const PROFILE_STATUS = {
-  pending: { label: "بانتظار موافقة المدرسة", color: "#fbbf24" },
-  approved: { label: "حساب موثّق ✓", color: "#34d399" },
-  rejected: { label: "تم رفض الحساب", color: "#f87171" },
-  disabled: { label: "الحساب معطّل", color: "#94a3b8" },
+  pending: { label: "بانتظار موافقة المدرسة", color: "#D69E2E" },
+  approved: { label: "حساب موثّق ✓", color: "#2E7D5B" },
+  rejected: { label: "تم رفض الحساب", color: "#C94C4C" },
+  disabled: { label: "الحساب معطّل", color: "#64748B" },
 };
 
 export default function Settings() {
@@ -102,7 +102,7 @@ export default function Settings() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg,#475569,#334155)" }}>
+            style={{ background: "#173F5F" }}>
             <SettingsIcon className="text-white" size={20} />
           </div>
           <div>
@@ -113,26 +113,26 @@ export default function Settings() {
 
         {/* Account */}
         <div className="rounded-2xl p-5 mb-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-4 text-cyan-400">
+          <div className="flex items-center gap-2 mb-4" style={{ color: "#2F6690" }}>
             <User size={15} />
             <h2 className="text-sm font-black">{t("accountSection")}</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-3 text-xs">
-            <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
               <div className="text-[10px] text-muted-foreground mb-1">الاسم</div>
               <div className="font-bold">{user?.full_name || "—"}</div>
             </div>
-            <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
               <div className="text-[10px] text-muted-foreground mb-1">البريد الإلكتروني</div>
               <div className="font-bold truncate">{user?.email || "—"}</div>
             </div>
-            <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
               <div className="text-[10px] text-muted-foreground mb-1">الدور</div>
               <div className="font-bold">{user?.role === "admin" ? "معلم / مدير" : "طالب"}</div>
             </div>
-            <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
               <div className="text-[10px] text-muted-foreground mb-1">حالة الحساب</div>
-              <div className="font-bold" style={{ color: statusInfo?.color || "#34d399" }}>
+              <div className="font-bold"               style={{ color: statusInfo?.color || "#2E7D5B" }}>
                 {statusInfo?.label || "مسجّل"}
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function Settings() {
 
         {/* Language */}
         <div className="rounded-2xl p-5 mb-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-4 text-cyan-400">
+          <div className="flex items-center gap-2 mb-4" style={{ color: "#2F6690" }}>
             <GraduationCap size={15} />
             <h2 className="text-sm font-black">{t("languageSection")}</h2>
           </div>
@@ -152,12 +152,11 @@ export default function Settings() {
                 <button key={l.id} onClick={() => saveLanguage(l.id)} disabled={saving}
                   className="rounded-xl p-4 text-center transition-all disabled:opacity-60"
                   style={{
-                    background: active ? "rgba(6,182,212,0.12)" : "rgba(255,255,255,0.03)",
-                    border: `1px solid ${active ? "#06b6d4" : "rgba(255,255,255,0.07)"}`,
-                    boxShadow: active ? "0 0 14px rgba(6,182,212,0.2)" : "none",
+                    background: active ? "rgba(47,102,144,0.1)" : "rgba(23,63,95,0.03)",
+                    border: `1px solid ${active ? "#2F6690" : "#E2E8F0"}`,
                   }}>
                   <div className="text-2xl mb-1.5">{l.flag}</div>
-                  <div className="text-xs font-bold" style={{ color: active ? "#06b6d4" : "hsl(var(--foreground))" }}>
+                  <div className="text-xs font-bold" style={{ color: active ? "#173F5F" : "hsl(var(--foreground))" }}>
                     {l.native}
                   </div>
                 </button>
@@ -178,12 +177,12 @@ export default function Settings() {
 
         {/* School */}
         <div className="rounded-2xl p-5 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-4 text-cyan-400">
+          <div className="flex items-center gap-2 mb-4" style={{ color: "#2F6690" }}>
             <School size={15} />
             <h2 className="text-sm font-black">{t("schoolSection")}</h2>
           </div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between rounded-xl p-3"
-            style={{ background: "rgba(255,255,255,0.03)" }}>
+            style={{ background: "rgba(23,63,95,0.03)" }}>
             <div>
               <div className="text-xs font-bold">{schoolName}</div>
               <div className="text-[10px] text-muted-foreground">
@@ -201,7 +200,7 @@ export default function Settings() {
 
         {/* معلومات التواصل */}
         <div className="rounded-2xl p-5 mt-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-4 text-cyan-400">
+          <div className="flex items-center gap-2 mb-4" style={{ color: "#2F6690" }}>
             <Mail size={15} />
             <h2 className="text-sm font-black">{t("contactSection")}</h2>
           </div>
@@ -216,7 +215,7 @@ export default function Settings() {
             {isAdmin && (
               <button onClick={saveContactEmail} disabled={savingContact || !contactEmail.trim()}
                 className="px-4 py-2.5 rounded-xl text-xs font-black text-white disabled:opacity-50 flex items-center justify-center gap-1.5"
-                style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
+                style={{ background: "#173F5F" }}>
                 {savingContact ? <Loader2 size={12} className="animate-spin" /> : contactSaved ? <Check size={12} /> : null}
                 {savingContact ? t("saving") : contactSaved ? t("saved") : t("saveEmail")}
               </button>

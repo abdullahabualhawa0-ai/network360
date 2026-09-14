@@ -8,9 +8,9 @@ import { useAuth } from "@/lib/AuthContext";
 import { resolveStudentSchool, GENERAL_SCHOOL } from "@/lib/schoolUtils";
 
 const REQ_STATUS = {
-  pending: { label: "بانتظار الموافقة", color: "#fbbf24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.35)" },
-  approved: { label: "مسموح بالدخول", color: "#34d399", bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.35)" },
-  rejected: { label: "تم الرفض", color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)" },
+  pending: { label: "بانتظار الموافقة", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
+  approved: { label: "مسموح بالدخول", color: "#2E7D5B", bg: "rgba(46,125,91,0.1)", border: "rgba(46,125,91,0.35)" },
+  rejected: { label: "تم الرفض", color: "#C94C4C", bg: "rgba(201,76,76,0.1)", border: "rgba(201,76,76,0.35)" },
 };
 
 export default function Exams() {
@@ -75,7 +75,7 @@ export default function Exams() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg,#be123c,#0891b2)" }}>
+            style={{ background: "#173F5F" }}>
             <ClipboardList className="text-white" size={20} />
           </div>
           <div>
@@ -108,7 +108,7 @@ export default function Exams() {
                 className="rounded-2xl p-4 bg-card flex flex-col sm:flex-row sm:items-center gap-4"
                 style={{ border: "1px solid hsl(var(--border))" }}>
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)" }}>
+                  style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.2)" }}>
                   📋
                 </div>
 
@@ -123,7 +123,7 @@ export default function Exams() {
                     <span className="flex items-center gap-1"><FileQuestion size={10} /> {exam.questions?.length || 0} سؤال</span>
                     {exam.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {exam.duration_minutes} دقيقة</span>}
                     {bestResult && (
-                      <span className="flex items-center gap-1 font-bold" style={{ color: "#34d399" }}>
+                      <span className="flex items-center gap-1 font-bold" style={{ color: "#2E7D5B" }}>
                         <Trophy size={10} /> أفضل نتيجة: {bestResult.percentage}%
                         <span className="text-muted-foreground font-normal">({moment(bestResult.submission_time).format("YYYY/MM/DD")})</span>
                       </span>
@@ -135,7 +135,7 @@ export default function Exams() {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {bestResult && (
                     <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1"
-                      style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)", color: "#34d399" }}>
+                      style={{ background: "rgba(46,125,91,0.08)", border: "1px solid rgba(46,125,91,0.3)", color: "#2E7D5B" }}>
                       <CheckCircle2 size={11} /> مؤدّى
                     </span>
                   )}
@@ -143,7 +143,7 @@ export default function Exams() {
                   {!lastRequest && !bestResult && (
                     <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap disabled:opacity-60"
-                      style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
+                      style={{ background: "#173F5F" }}>
                       {requesting === exam.id ? "جاري الإرسال..." : <span className="flex items-center gap-1.5"><Send size={12} /> طلب دخول</span>}
                     </button>
                   )}
@@ -165,7 +165,7 @@ export default function Exams() {
                   {lastRequest?.status === "approved" && !bestResult && (
                     <Link to={`/exams/${exam.id}`}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap"
-                      style={{ background: "linear-gradient(90deg,#059669,#0891b2)" }}>
+                      style={{ background: "#2E7D5B" }}>
                       ابدأ الامتحان 🚀
                     </Link>
                   )}
@@ -173,7 +173,7 @@ export default function Exams() {
                   {lastRequest?.status === "approved" && bestResult && (
                     <Link to={`/exams/${exam.id}`}
                       className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap"
-                      style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.3)", color: "#06b6d4" }}>
+                      style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)", color: "#2F6690" }}>
                       إعادة التأدية
                     </Link>
                   )}

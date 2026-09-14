@@ -4,11 +4,11 @@
  */
 
 export const CONNECTION_STYLES = {
-  ethernet:    { label: "Ethernet",        color: "#06b6d4", dash: "none",  description: "كابل إيثرنت (UTP/Cat5e)" },
-  fiber:       { label: "Fiber Optic",     color: "#a78bfa", dash: "8 3",  description: "ألياف بصرية — سرعة عالية جداً" },
-  serial:      { label: "Serial",          color: "#f59e0b", dash: "4 4",  description: "اتصال تسلسلي بين راوترات" },
-  wifi:        { label: "Wi-Fi",           color: "#34d399", dash: "3 6",  description: "اتصال لاسلكي" },
-  copper:      { label: "Copper Cable",    color: "#fb923c", dash: "none",  description: "نحاسي — شبكات قصيرة المدى" },
+  ethernet:    { label: "Ethernet",        color: "#2F6690", dash: "none",  description: "كابل إيثرنت (UTP/Cat5e)" },
+  fiber:       { label: "Fiber Optic",     color: "#3A86A8", dash: "8 3",  description: "ألياف بصرية — سرعة عالية جداً" },
+  serial:      { label: "Serial",          color: "#D69E2E", dash: "4 4",  description: "اتصال تسلسلي بين راوترات" },
+  wifi:        { label: "Wi-Fi",           color: "#2E7D5B", dash: "3 6",  description: "اتصال لاسلكي" },
+  copper:      { label: "Copper Cable",    color: "#64748B", dash: "none",  description: "نحاسي — شبكات قصيرة المدى" },
 };
 
 /** Choose the best connection type for two device types */

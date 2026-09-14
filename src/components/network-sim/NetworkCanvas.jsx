@@ -52,7 +52,7 @@ export default function NetworkCanvas({
       className="flex-1 w-full h-full relative overflow-hidden select-none"
       style={{
         cursor,
-        background: dragOver ? "rgba(6,182,212,0.04)" : "#020617",
+        background: dragOver ? "rgba(47,102,144,0.05)" : "#F7F9FC",
       }}
       onDrop={handleDrop}
       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDragOver(true); }}
@@ -66,8 +66,8 @@ export default function NetworkCanvas({
       <div className="canvas-bg absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(6,182,212,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(6,182,212,0.05) 1px, transparent 1px)
+            linear-gradient(rgba(47,102,144,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(47,102,144,0.06) 1px, transparent 1px)
           `,
           backgroundSize: `${32 * zoom}px ${32 * zoom}px`,
           backgroundPosition: `${pan.x % (32 * zoom)}px ${pan.y % (32 * zoom)}px`,
@@ -76,7 +76,7 @@ export default function NetworkCanvas({
       {/* Dots at intersections */}
       <div className="canvas-bg absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: `radial-gradient(circle, rgba(6,182,212,0.1) 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle, rgba(47,102,144,0.12) 1px, transparent 1px)`,
           backgroundSize: `${32 * zoom}px ${32 * zoom}px`,
           backgroundPosition: `${pan.x % (32 * zoom)}px ${pan.y % (32 * zoom)}px`,
         }}
@@ -87,17 +87,17 @@ export default function NetworkCanvas({
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <div className="text-center opacity-20">
             <div className="text-5xl mb-3">🖧</div>
-            <p className="font-bold text-sm" style={{ color: "#06b6d4" }}>اسحب الأجهزة من الشريط الجانبي</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(6,182,212,0.6)" }}>وأفلتها هنا لبدء بناء شبكتك</p>
+            <p className="font-bold text-sm" style={{ color: "#2F6690" }}>اسحب الأجهزة من الشريط الجانبي</p>
+            <p className="text-xs mt-1" style={{ color: "rgba(47,102,144,0.6)" }}>وأفلتها هنا لبدء بناء شبكتك</p>
           </div>
         </div>
       )}
 
       {dragOver && (
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center"
-          style={{ border: "2px dashed rgba(6,182,212,0.4)" }}>
+          style={{ border: "2px dashed rgba(47,102,144,0.5)" }}>
           <div className="px-4 py-2 rounded-xl text-sm font-bold"
-            style={{ background: "rgba(6,182,212,0.12)", border: "1px solid rgba(6,182,212,0.4)", color: "#06b6d4", backdropFilter: "blur(10px)" }}>
+            style={{ background: "#FFFFFF", border: "1px solid rgba(47,102,144,0.4)", color: "#2F6690" }}>
             أفلت الجهاز هنا
           </div>
         </div>

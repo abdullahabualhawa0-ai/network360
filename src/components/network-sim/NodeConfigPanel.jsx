@@ -14,8 +14,8 @@ const DEVICE_DEFAULTS = {
 };
 
 const DEVICE_GLOW = {
-  Router: "#3B82F6", Switch: "#10B981", PC: "#6366F1", Server: "#8B5CF6",
-  Firewall: "#EF4444", AccessPoint: "#F59E0B", Cloud: "#0EA5E9", Laptop: "#64748B",
+  Router: "#173F5F", Switch: "#2E7D5B", PC: "#2F6690", Server: "#3A86A8",
+  Firewall: "#C94C4C", AccessPoint: "#D69E2E", Cloud: "#64748B", Laptop: "#2F6690",
 };
 
 export default function NodeConfigPanel({ node, onUpdate, onClose }) {
@@ -38,12 +38,12 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
   };
 
   const showIp = node.type !== "Cloud";
-  const glow = DEVICE_GLOW[node.type] || "#06b6d4";
+  const glow = DEVICE_GLOW[node.type] || "#2F6690";
 
   const inputStyle = {
-    background: "rgba(15,23,42,0.8)",
-    border: "1px solid rgba(6,182,212,0.2)",
-    color: "#e2e8f0",
+    background: "#F7F9FC",
+    border: "1px solid #E2E8F0",
+    color: "#1F2937",
     borderRadius: 8,
     padding: "6px 10px",
     fontSize: 12,
@@ -59,24 +59,23 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
       exit={{ opacity: 0, x: 20 }}
       className="absolute top-4 right-4 z-50 w-64 overflow-hidden"
       style={{
-        background: "rgba(2,6,23,0.97)",
+        background: "#FFFFFF",
         border: `1px solid rgba(${hexToRgb(glow)},0.4)`,
         borderRadius: 16,
-        backdropFilter: "blur(20px)",
-        boxShadow: `0 0 30px rgba(${hexToRgb(glow)},0.15)`,
+        boxShadow: "0 12px 32px rgba(23,63,95,0.15)",
       }}
     >
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: "1px solid rgba(6,182,212,0.1)" }}
+        style={{ borderBottom: "1px solid #E2E8F0" }}
       >
         <div className="flex items-center gap-2">
           <div
             className="w-2 h-2 rounded-full animate-pulse"
             style={{ background: glow }}
           />
-          <span className="text-white text-xs font-bold">إعدادات الجهاز</span>
+          <span className="text-xs font-bold" style={{ color: "#173F5F" }}>إعدادات الجهاز</span>
           <span
             className="text-[9px] font-bold px-1.5 py-0.5 rounded-md"
             style={{
@@ -90,7 +89,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
         </div>
         <button
           onClick={onClose}
-          className="text-slate-500 hover:text-red-400 transition-colors"
+          className="text-muted-foreground hover:text-destructive transition-colors"
         >
           <X size={14} />
         </button>
@@ -108,15 +107,15 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
             style={inputStyle}
             placeholder="Router 1"
             dir="ltr"
-            onFocus={(e) => e.target.style.borderColor = "rgba(6,182,212,0.6)"}
-            onBlur={(e) => e.target.style.borderColor = "rgba(6,182,212,0.2)"}
+            onFocus={(e) => e.target.style.borderColor = "rgba(47,102,144,0.6)"}
+            onBlur={(e) => e.target.style.borderColor = "#E2E8F0"}
           />
         </div>
 
         {showIp && (
           <>
             <div>
-              <label className="block text-[10px] font-bold mb-1" style={{ color: "rgba(6,182,212,0.7)" }}>
+              <label className="block text-[10px] font-bold mb-1" style={{ color: "#2F6690" }}>
                 عنوان IP
               </label>
               <input
@@ -130,7 +129,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold mb-1" style={{ color: "rgba(6,182,212,0.7)" }}>
+              <label className="block text-[10px] font-bold mb-1" style={{ color: "#2F6690" }}>
                 Subnet Mask
               </label>
               <input
@@ -145,7 +144,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
             </div>
             {node.type !== "Router" && node.type !== "Firewall" && (
               <div>
-                <label className="block text-[10px] font-bold mb-1" style={{ color: "rgba(6,182,212,0.7)" }}>
+                <label className="block text-[10px] font-bold mb-1" style={{ color: "#2F6690" }}>
                   Default Gateway
                 </label>
                 <input
@@ -169,10 +168,9 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
           onClick={handleSave}
           className="w-full flex items-center justify-center gap-2 text-xs font-bold py-2 rounded-xl transition-all hover:scale-105"
           style={{
-            background: `linear-gradient(135deg, rgba(${hexToRgb(glow)},0.3), rgba(6,182,212,0.3))`,
-            border: `1px solid rgba(${hexToRgb(glow)},0.5)`,
+            background: "#173F5F",
+            border: "1px solid #173F5F",
             color: "white",
-            boxShadow: `0 0 15px rgba(${hexToRgb(glow)},0.2)`,
           }}
         >
           <Save size={13} />
