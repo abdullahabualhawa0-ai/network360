@@ -1,11 +1,15 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './components/Layout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import TopicPage from './pages/TopicPage';
@@ -25,7 +29,7 @@ import Plans from './pages/Plans.jsx';
 import ExamManager from './pages/admin/ExamManager';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -36,39 +40,35 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
-  }
-
-  // Render the main app
+  // Render the main app — all app routes are gated by ProtectedRoute;
+  // unauthenticated users are sent to /login
   return (
     <>
     <ScrollToTop />
     <Routes>
-      <Route path="/plans" element={<Plans />} />
-      <Route element={<RegistrationGate><Layout /></RegistrationGate>}>
-        <Route path="/" element={<Home />} />
-        <Route path="/topic/:sectionId/:topicId" element={<TopicPage />} />
-        <Route path="/network-simulator" element={<NetworkSimulator />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/admin/students" element={<AdminStudentsReport />} />
-        <Route path="/admin/exams" element={<ExamManager />} />
-        <Route path="/scenario-lab" element={<ScenarioLab />} />
-        <Route path="/lab-history" element={<LabHistory />} />
-        <Route path="/exams" element={<Exams />} />
-        <Route path="/exams/:examId" element={<TakeExam />} />
-        <Route path="/admin/exam-results" element={<ExamResults />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/admin/schools" element={<SchoolsManager />} />
-        <Route path="/admin/school-students" element={<SchoolStudents />} />
-        <Route path="*" element={<PageNotFound />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/plans" element={<Plans />} />
+        <Route element={<RegistrationGate><Layout /></RegistrationGate>}>
+          <Route path="/" element={<Home />} />
+          <Route path="/topic/:sectionId/:topicId" element={<TopicPage />} />
+          <Route path="/network-simulator" element={<NetworkSimulator />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin/students" element={<AdminStudentsReport />} />
+          <Route path="/admin/exams" element={<ExamManager />} />
+          <Route path="/scenario-lab" element={<ScenarioLab />} />
+          <Route path="/lab-history" element={<LabHistory />} />
+          <Route path="/exams" element={<Exams />} />
+          <Route path="/exams/:examId" element={<TakeExam />} />
+          <Route path="/admin/exam-results" element={<ExamResults />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/admin/schools" element={<SchoolsManager />} />
+          <Route path="/admin/school-students" element={<SchoolStudents />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Route>
       </Route>
     </Routes>
     </>
