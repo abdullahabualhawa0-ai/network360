@@ -24,7 +24,8 @@ import ExamResults from './pages/admin/ExamResults.jsx';
 import Settings from './pages/Settings.jsx';
 import SchoolsManager from './pages/admin/SchoolsManager.jsx';
 import SchoolStudents from './pages/admin/SchoolStudents.jsx';
-import RegistrationGate from './components/RegistrationGate';
+import StudentGuard from '@/components/StudentGuard';
+import StudentLogin from './pages/StudentLogin';
 import Plans from './pages/Plans.jsx';
 import ExamManager from './pages/admin/ExamManager';
 

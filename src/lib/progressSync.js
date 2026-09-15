@@ -1,9 +1,9 @@
 /**
  * progressSync.js
- * Syncs student progress from localStorage to the StudentProgress entity (for admin visibility).
- * Only syncs when the current user has role === "student".
+ * يزامن تقدم الطالب من localStorage إلى كيان StudentProgress (لرؤية الإدارة).
+ * يستخدم نظام جلسة الطالب (studentApi) بدلاً من Base44 Authentication.
  */
-import { base44 } from "@/api/base44Client";
+import { studentApi, getStudentSession } from "@/lib/studentSession";
 import courseData from "./courseData";
 import quizData from "./quizData";
 
@@ -16,8 +16,8 @@ function loadLocal(key) {
 
 export async function syncProgressToServer() {
   try {
-    const user = await base44.auth.me();
-    if (!user || user.role !== "student") return;
+    const session = getStudentSession();
+    if (!session) return; // ليس طالباً مسجلاً في جلسة
 
     const topicProgress = loadLocal(PROGRESS_KEY);
     const quizResults = loadLocal(QUIZ_KEY);
@@ -30,8 +30,8 @@ export async function syncProgressToServer() {
       : 0;
 
     const payload = {
-      student_email: user.email,
-      student_name: user.full_name || user.email,
+      student_email: session.student_code, // معرّف بديل (الرمز فريد لكل طالب)
+      student_name: session.student_name || session.student_code,
       topic_progress: topicProgress,
       quiz_results: quizResults,
       total_topics_visited: visitedTopics,
@@ -40,15 +40,18 @@ export async function syncProgressToServer() {
       last_synced_at: new Date().toISOString(),
     };
 
-    // Check if record already exists for this student
-    const existing = await base44.entities.StudentProgress.filter({ student_email: user.email });
+    // البحث عن سجل موجود (studentApi يحقن student_id تلقائياً)
+    const existing = await studentApi("filter", "StudentProgress", { query: {} });
     if (existing && existing.length > 0) {
-      await base44.entities.StudentProgress.update(existing[0].id, payload);
+      await studentApi("update", "StudentProgress", {
+        id: existing[0].id,
+        data: payload,
+      });
     } else {
-      await base44.entities.StudentProgress.create(payload);
+      await studentApi("create", "StudentProgress", { data: payload });
     }
   } catch (e) {
-    // Silently fail — don't disrupt the student experience
+    // فشل المزامنة لا يعطل تجربة الطالب
     console.warn("Progress sync failed:", e);
   }
 }
