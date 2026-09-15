@@ -8,9 +8,7 @@ import { t, useLang } from "@/lib/i18n";
 export default function Home() {
   useLang();
   const totalTopics = courseData.reduce((sum, s) => sum + s.topics.length, 0);
-   <p className="mb-10 text-xl" style={{ color: "rgba(31,41,55,0.55)" }} dir="rtl">
-              EDUPRO+ 
-            </p>
+
   return (
     <div className="min-h-screen">
       {/* Hero — خلفية فاتحة هادئة بدون تدرجات قوية */}
@@ -80,7 +78,9 @@ export default function Home() {
             <p className="text-xs mb-10" style={{ color: "rgba(31,41,55,0.55)" }} dir="rtl">
               عمل الطلاب: عبد الله أبو الهوى ، امير دراويش 
             </p>
-            
+               <p className="mb-10 text-xl" style={{ color: "rgba(31,41,55,0.55)" }} dir="rtl">
+              EDUPRO+ 
+            </p>
           </motion.div>
         </div>
       </div>
