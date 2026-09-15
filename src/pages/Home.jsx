@@ -76,7 +76,10 @@ export default function Home() {
               {t("homeHeroDesc")}
             </p>
             <p className="text-xs mb-10" style={{ color: "rgba(31,41,55,0.55)" }} dir="rtl">
-              عمل الطلاب: عبد الله أبو الهوى ، امير دراويش —
+              عمل الطلاب: عبد الله أبو الهوى ، امير دراويش 
+            </p>
+               <p className="text-xs mb-10" style={{ color: "rgba(31,41,55,0.55)" }} dir="rtl">
+              EDUPRO+ 
             </p>
           </motion.div>
         </div>
