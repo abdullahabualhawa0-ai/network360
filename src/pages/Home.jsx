@@ -78,7 +78,7 @@ export default function Home() {
             <p className="text-xs mb-10" style={{ color: "rgba(31,41,55,0.55)" }} dir="rtl">
               عمل الطلاب: عبد الله أبو الهوى ، امير دراويش 
             </p>
-               <p className="text-xs mb-10" style={{ color: "rgba(31,41,55,0.55)" }} dir="rtl">
+               <p className="mb-10 text-xl" style={{ color: "rgba(31,41,55,0.55)" }} dir="rtl">
               EDUPRO+ 
             </p>
           </motion.div>
@@ -94,7 +94,7 @@ export default function Home() {
           
           <Link to="/network-simulator">
             <div className="rounded-2xl p-6 transition-all group cursor-pointer bg-white hover:shadow-lg"
-              style={{ border: "1px solid #E2E8F0" }}>
+            style={{ border: "1px solid #E2E8F0" }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#173F5F" }}>
