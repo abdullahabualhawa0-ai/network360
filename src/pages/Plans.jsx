@@ -100,6 +100,14 @@ export default function Plans() {
         expected_students: survey.expectedStudents,
       });
       setSchoolDone({ code, plan: PLANS[planId].label });
+      // إشعار مالك المنصة بطلب تسجيل مدرسة جديد
+      base44.functions.invoke("notifyOwnerRegistration", {
+        schoolName: (survey.schoolName || schoolForm.name || "").trim(),
+        schoolCode: code,
+        adminName: survey.adminName || survey.fullName || "",
+        adminEmail: survey.email || schoolForm.email.trim() || user?.email || "",
+        planLabel: PLANS[planId].label,
+      }).catch(() => {});
     } catch {
       setError(t("errRegisterSchool"));
     } finally {
@@ -138,21 +146,33 @@ export default function Plans() {
             onSubmit={(data) => setSurvey(data)}
           />
         ) : (
-          // الخطوة 2: اختيار الخطة بعد تعبئة الاستبيان
-          <>
-            <PersonalPlans
-              isStudent={user?.role === "student"}
-              hasProfile={hasProfile}
-              busy={busy}
-              onSelect={startPersonal}
-            />
-            <SchoolPlans
-              busy={busy}
-              form={{ name: survey.schoolName || "", email: survey.email || "" }}
-              setForm={setSchoolForm}
-              onSelect={submitSchool}
-            />
-          </>
+          // الخطوة 2: عرض خطة واحدة فقط حسب نوع التسجيل المختار في الاستبيان
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-bold text-muted-foreground">
+                {survey.regType === "school" ? t("schoolPlanSection") : t("personalPlanSection")}
+              </span>
+              <button onClick={() => setSurvey(null)}
+                className="text-[11px] font-bold hover:underline" style={{ color: "#2F6690" }}>
+                {t("back")} ←
+              </button>
+            </div>
+            {survey.regType === "school" ? (
+              <SchoolPlans
+                busy={busy}
+                form={{ name: survey.schoolName || "", email: survey.email || "" }}
+                setForm={setSchoolForm}
+                onSelect={submitSchool}
+              />
+            ) : (
+              <PersonalPlans
+                isStudent={user?.role === "student"}
+                hasProfile={hasProfile}
+                busy={busy}
+                onSelect={startPersonal}
+              />
+            )}
+          </div>
         )}
 
         {error && (

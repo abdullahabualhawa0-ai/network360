@@ -364,6 +364,21 @@ const T = {
   adminLoginLink: { ar: "دخول الإدارة / المالك", en: "Admin / Owner login", he: "כניסת מנהל / בעלים" },
   adminLoginNote: { ar: "لإدارة المدارس والطلاب والامتحانات", en: "Manage schools, students and exams", he: "ניהול בתי ספר, תלמידים ובחינות" },
   errUnexpected: { ar: "حدث خطأ غير متوقع. حاول مرة أخرى.", en: "An unexpected error occurred. Try again.", he: "אירעה שגיאה בלתי צפויה. נסו שוב." },
+
+  /* ─── امتحانات الأستاذ ─── */
+  teacherExamsTitle: { ar: "إدارة الامتحانات", en: "Exam Management", he: "ניהול בחינות" },
+  teacherExamsPageDesc: { ar: "أنشئ وأدر امتحانات مدرستك مع توليد أسئلة بالذكاء الاصطناعي", en: "Create and manage your school exams with AI-generated questions", he: "צרו ונהלו בחינות עם שאלות שנוצרות ב-AI" },
+  teacherNewExam: { ar: "امتحان جديد", en: "New Exam", he: "בחינה חדשה" },
+  teacherAiExamNote: { ar: "اختر درساً ثم اضغط «توليد الأسئلة» لإنشاء 5 أسئلة تلقائياً من محتوى الدرس", en: "Select a lesson then click Generate to auto-create 5 questions from the lesson", he: "בחרו שיעור ולחצו על יצירה להפקת 5 שאלות אוטומטית" },
+  teacherTotalExams: { ar: "إجمالي الامتحانات", en: "Total Exams", he: "סך בחינות" },
+  teacherPublished: { ar: "منشورة", en: "Published", he: "פורסמו" },
+  teacherDrafts: { ar: "مسودات", en: "Drafts", he: "טיוטות" },
+  teacherNoExams: { ar: "لا توجد امتحانات بعد", en: "No exams yet", he: "אין בחינות עדיין" },
+  teacherNoExamsDesc: { ar: "ابدأ بإنشاء أول امتحان لطلابك", en: "Start by creating your first exam", he: "התחילו ביצירת הבחינה הראשונה" },
+  teacherPublishedBadge: { ar: "منشور ✓", en: "Published ✓", he: "פורסם ✓" },
+  teacherDraftBadge: { ar: "مسودة", en: "Draft", he: "טיוטה" },
+  teacherEdit: { ar: "تعديل", en: "Edit", he: "עריכה" },
+  teacherConfirmDelete: { ar: "هل أنت متأكد من حذف هذا الامتحان؟", en: "Are you sure you want to delete this exam?", he: "האם למחוק בחינה זו?" },
 };
 
 export function getLang() {

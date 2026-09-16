@@ -55,7 +55,7 @@ export async function teacherApi(action, entity, payload = {}) {
   const session = getTeacherSession();
   if (!session) throw new Error("No teacher session");
   try {
-    const res = await base44.functions.invoke("studentApi", {
+    const res = await base44.functions.invoke("teacherApi", {
       session,
       action,
       entity,

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Plus, Trash2, Check, X, Loader2, RefreshCw, UserPlus, KeyRound, Ban,
+  FileSpreadsheet, AlertCircle,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -26,6 +27,9 @@ export default function StudentsManager({ school, onBack }) {
   const [form, setForm] = useState({ name: "", code: "", email: "" });
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState(null);
+  const fileRef = useRef(null);
 
   const load = () =>
     base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 200)
@@ -79,6 +83,80 @@ export default function StudentsManager({ school, onBack }) {
     load();
   };
 
+  const importExcel = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setImporting(true);
+    setImportMsg(null);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            students: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  full_name: { type: "string" },
+                  student_code: { type: "string" },
+                  email: { type: "string" },
+                },
+                required: ["full_name", "student_code"],
+              },
+            },
+          },
+          required: ["students"],
+        },
+      });
+      const students = result?.output?.students || [];
+      if (!students.length) {
+        setImportMsg({ type: "error", text: "لم يتم العثور على بيانات طلاب في الملف" });
+        setImporting(false);
+        return;
+      }
+      // فحص الحد والفرادة قبل الإنشاء
+      const existing = await base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 500);
+      const existingCodes = new Set((existing || []).map((s) => s.student_code));
+      const limit = school.student_limit || 0;
+      const toCreate = [];
+      for (const s of students) {
+        const code = String(s.student_code || "").trim();
+        const name = String(s.full_name || "").trim();
+        if (!code || !name) continue;
+        if (existingCodes.has(code)) continue;
+        if (limit > 0 && (existing || []).length + toCreate.length >= limit) break;
+        existingCodes.add(code);
+        toCreate.push({
+          school_id: school.id,
+          student_code: code,
+          full_name: name,
+          email: String(s.email || "").trim() || null,
+          status: "pending",
+          user_id: UNCLAIMED,
+        });
+      }
+      if (!toCreate.length) {
+        setImportMsg({ type: "error", text: "كل الأكواد موجودة مسبقاً أو بلغت الحد الأقصى" });
+        setImporting(false);
+        return;
+      }
+      await base44.entities.StudentProfile.bulkCreate(toCreate);
+      base44.entities.School.update(school.id, {
+        current_student_count: (existing || []).length + toCreate.length,
+      }).catch(() => {});
+      setImportMsg({ type: "success", text: `تم استيراد ${toCreate.length} طالب بنجاح` });
+      load();
+    } catch (err) {
+      setImportMsg({ type: "error", text: "تعذر استيراد الملف — تأكد من صيغة Excel (أعمدة: الاسم، الرمز، البريد)" });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const deleteStudent = async (s) => {
     if (!confirm(`حذف الطالب "${s.full_name}" (${s.student_code})؟`)) return;
     await base44.entities.StudentProfile.delete(s.id);
@@ -123,8 +201,24 @@ export default function StudentsManager({ school, onBack }) {
             style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
             <UserPlus size={13} /> إضافة طالب
           </button>
+          <button onClick={() => fileRef.current?.click()} disabled={importing}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-60"
+            style={{ border: "1px solid rgba(46,125,91,0.4)", color: "#2E7D5B", background: "rgba(46,125,91,0.06)" }}>
+            {importing ? <Loader2 size={13} className="animate-spin" /> : <FileSpreadsheet size={13} />}
+            {importing ? "جاري الاستيراد..." : "استيراد من Excel"}
+          </button>
+          <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={importExcel} className="hidden" />
         </div>
       </div>
+
+      {importMsg && (
+        <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold"
+          style={importMsg.type === "success"
+            ? { background: "rgba(46,125,91,0.08)", border: "1px solid rgba(46,125,91,0.35)", color: "#2E7D5B" }
+            : { background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
+          {importMsg.type === "success" ? <Check size={13} /> : <AlertCircle size={13} />} {importMsg.text}
+        </div>
+      )}
 
       {/* Add form */}
       {showForm && (
