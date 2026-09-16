@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, Mail } from "lucide-react";
+import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, Mail, LogOut } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { getSchoolName } from "@/lib/schoolUtils";
+import { studentApi, useStudentSession, clearStudentSession } from "@/lib/studentSession";
 import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang } from "@/lib/i18n";
 
 const LANGUAGES = [
@@ -20,64 +21,71 @@ const PROFILE_STATUS = {
 };
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user } = useAuth(); // للمدير/المعلم (Base44) فقط
+  const session = useStudentSession(); // لجلسة الطالب
+  const navigate = useNavigate();
   useLang();
+  const isStudent = !!session;
+  const isAdmin = user?.role === "admin";
+
   const [lang, setLang] = useState(getSavedLang);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [profile, setProfile] = useState(null);
   const [schoolName, setSchoolName] = useState("عام");
 
-  // ── إصلاح مشكلة تغيّر اللغة تلقائياً عند فتح الإعدادات ──
-  // السبب الجذري كان: إعادة تطبيق user.preferred_language / profile.preferred_language
-  // عند كل فتح للصفحة، فتتجاوز القيمة القديمة اختيار المستخدم الأحدث.
-  // الإصلاح: اللغة لا تتغير إلا باختيار المستخدم صراحةً (saveLanguage).
-  // المصدر الموثوق: localStorage (app-language) + مزامنة الحساب عند الاختيار فقط.
+  // ── جلب ملف الطالب واسم مدرسته عبر جلسة الطالب (بدون Base44 Authentication) ──
   useEffect(() => {
-    if (!user) return;
+    if (!isStudent) return;
     (async () => {
-      const profiles = await base44.entities.StudentProfile.filter({ user_id: user.id }).catch(() => []);
-      const p = profiles?.[0] || null;
-      setProfile(p);
-      if (p?.school_id) {
-        const name = await getSchoolName(p.school_id);
-        setSchoolName(name);
-      }
+      try {
+        const p = await studentApi("get", "StudentProfile", { id: session.student_id });
+        setProfile(p);
+        const school = await studentApi("get", "School", { id: session.school_id });
+        if (school?.name) setSchoolName(school.name);
+      } catch { /* عرض الحد الأدنى من البيانات */ }
     })();
-  }, [user?.id]);
+  }, [isStudent, session?.student_id]);
 
-  // تطبيق اتجاه الواجهة + حفظ التفضيل ليعمل تعدد اللغات في كامل الواجهة
+  // اللغة لا تتغير إلا باختيار المستخدم صراحةً (المصدر الموثوق: localStorage)
   useEffect(() => {
     applyI18nLang(lang);
   }, [lang]);
 
   const saveLanguage = async (newLang) => {
-    if (!user) return;
     setLang(newLang);
     setSaving(true);
     setSaved(false);
-    // حفظ على حساب المستخدم
-    await base44.auth.updateMe({ preferred_language: newLang }).catch(() => {});
-    // حفظ على ملف الطالب إن وجد
-    if (profile?.id) {
-      await base44.entities.StudentProfile.update(profile.id, { preferred_language: newLang }).catch(() => {});
+    if (isStudent && profile?.id) {
+      // حفظ على ملف الطالب عبر جلسة الطالب
+      await studentApi("update", "StudentProfile", {
+        id: profile.id,
+        data: { preferred_language: newLang },
+      }).catch(() => {});
+    } else if (user) {
+      // مدير/معلم — عبر حساب Base44
+      await base44.auth.updateMe({ preferred_language: newLang }).catch(() => {});
     }
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
 
-  // معلومات التواصل — بريد الدعم قابل للتعديل من المالك فقط (SystemSetting)
-  const isAdmin = user?.role === "admin";
+  // معلومات التواصل — للطالب قراءة فقط عبر studentApi، وللمالك تعديل مباشر
   const [contactEmail, setContactEmail] = useState("");
   const [savingContact, setSavingContact] = useState(false);
   const [contactSaved, setContactSaved] = useState(false);
 
   useEffect(() => {
-    base44.entities.SystemSetting.filter({ key: "contact_email" })
-      .then((rows) => setContactEmail(rows?.[0]?.value || ""))
-      .catch(() => {});
-  }, []);
+    (async () => {
+      try {
+        const rows = isStudent
+          ? await studentApi("filter", "SystemSetting", { query: { key: "contact_email" } })
+          : await base44.entities.SystemSetting.filter({ key: "contact_email" });
+        setContactEmail(rows?.[0]?.value || "");
+      } catch { /* القيمة الافتراضية */ }
+    })();
+  }, [isStudent]);
 
   const saveContactEmail = async () => {
     const v = contactEmail.trim();
@@ -94,7 +102,21 @@ export default function Settings() {
     setSavingContact(false);
   };
 
+  const studentLogout = () => {
+    clearStudentSession();
+    navigate("/student-login", { replace: true });
+  };
+
   const statusInfo = profile ? (PROFILE_STATUS[profile.status] || PROFILE_STATUS.pending) : null;
+  const displayName = isStudent
+    ? (profile?.full_name || session.student_name || session.student_code)
+    : (user?.full_name || "—");
+  const displayId = isStudent
+    ? (profile?.email || session.student_code || "—")
+    : (user?.email || "—");
+  const roleLabel = isStudent
+    ? "طالب"
+    : (user?.role === "admin" ? "معلم / مدير" : user ? "مستخدم" : "—");
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
@@ -120,20 +142,20 @@ export default function Settings() {
           <div className="grid sm:grid-cols-2 gap-3 text-xs">
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
               <div className="text-[10px] text-muted-foreground mb-1">الاسم</div>
-              <div className="font-bold">{user?.full_name || "—"}</div>
+              <div className="font-bold">{displayName}</div>
             </div>
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
-              <div className="text-[10px] text-muted-foreground mb-1">البريد الإلكتروني</div>
-              <div className="font-bold truncate">{user?.email || "—"}</div>
+              <div className="text-[10px] text-muted-foreground mb-1">{isStudent ? "رمز الطالب" : "البريد الإلكتروني"}</div>
+              <div className="font-bold truncate" dir="ltr">{displayId}</div>
             </div>
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
               <div className="text-[10px] text-muted-foreground mb-1">الدور</div>
-              <div className="font-bold">{user?.role === "admin" ? "معلم / مدير" : "طالب"}</div>
+              <div className="font-bold">{roleLabel}</div>
             </div>
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
               <div className="text-[10px] text-muted-foreground mb-1">حالة الحساب</div>
-              <div className="font-bold"               style={{ color: statusInfo?.color || "#2E7D5B" }}>
-                {statusInfo?.label || "مسجّل"}
+              <div className="font-bold" style={{ color: statusInfo?.color || "#2E7D5B" }}>
+                {isStudent ? (statusInfo?.label || "حساب موثّق ✓") : "مسجّل"}
               </div>
             </div>
           </div>
@@ -170,7 +192,7 @@ export default function Settings() {
             {saving ? (
               <span className="flex items-center gap-1 text-muted-foreground"><Loader2 size={10} className="animate-spin" /> جاري الحفظ...</span>
             ) : saved ? (
-              <span className="flex items-center gap-1 text-green-400"><Check size={10} /> تم الحفظ</span>
+              <span className="flex items-center gap-1" style={{ color: "#2E7D5B" }}><Check size={10} /> تم الحفظ</span>
             ) : null}
           </div>
         </div>
@@ -186,7 +208,9 @@ export default function Settings() {
             <div>
               <div className="text-xs font-bold">{schoolName}</div>
               <div className="text-[10px] text-muted-foreground">
-                {profile ? "بياناتك (التقدم، النتائج، السيناريوهات) مرتبطة بهذه المدرسة فقط" : "لم يتم إلحاقك بمدرسة بعد — بياناتك على النطاق العام"}
+                {isStudent
+                  ? "بياناتك (التقدم، النتائج، السيناريوهات) مرتبطة بهذه المدرسة فقط"
+                  : "بياناتك على النطاق العام"}
               </div>
             </div>
             {statusInfo && (
@@ -225,6 +249,15 @@ export default function Settings() {
             <p className="text-[10px] text-muted-foreground mt-2">{t("adminOnlyNote")}</p>
           )}
         </div>
+
+        {/* تسجيل خروج الطالب */}
+        {isStudent && (
+          <button onClick={studentLogout}
+            className="w-full mt-4 py-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all"
+            style={{ border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C", background: "rgba(201,76,76,0.05)" }}>
+            <LogOut size={14} /> تسجيل الخروج
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Circle, ChevronDown, ChevronUp, Trophy, X, Lightbulb, Save } from "lucide-react";
-import { useAuth } from "@/lib/AuthContext";
+import { useStudentSession } from "@/lib/studentSession";
 import {
-  resolveSchoolId, ensureLabRecord, loadTaskStatuses,
+  ensureLabRecord, loadTaskStatuses,
   syncLabCounters, markTaskCompleted,
 } from "@/lib/labTracking";
 
@@ -12,11 +12,10 @@ const safe = (p) => p.catch((e) => console.warn("تخطي حفظ تقدم الس
 export default function ScenarioPanel({ scenario, nodes, connections, onClose, onComplete }) {
   const [showHints, setShowHints] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const { user } = useAuth();
+  const session = useStudentSession();
 
   // تتبع المهام — سجل محاولة + سجل مستقل لكل مهمة
   const labRef = useRef(null);
-  const schoolRef = useRef("general");
   const savedRef = useRef(new Set()); // فهارس المهام المحفوظة كمنجزة
   const [savedDone, setSavedDone] = useState(new Set());
   const [trackingReady, setTrackingReady] = useState(false);
@@ -33,13 +32,12 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
     labRef.current = null;
     savedRef.current = new Set();
     setSavedDone(new Set());
-    if (!user || !scenario?.eval) return undefined;
+    if (!session || !scenario?.eval) return undefined;
 
     const init = async () => {
       const total = (scenario.eval([], [])?.details || []).length;
-      const schoolId = await resolveSchoolId(user);
       if (cancelled) return;
-      const lab = await ensureLabRecord(user, schoolId, scenario, total);
+      const lab = await ensureLabRecord(scenario, total);
       if (cancelled) return;
       const statuses = await loadTaskStatuses(lab.id);
       if (cancelled) return;
@@ -50,14 +48,13 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
       await syncLabCounters(lab, done.size);
       if (cancelled) return;
       labRef.current = lab;
-      schoolRef.current = schoolId;
       savedRef.current = done;
       setSavedDone(new Set(done));
       setTrackingReady(true);
     };
     safe(init());
     return () => { cancelled = true; };
-  }, [scenario, user]);
+  }, [scenario, session?.student_id]);
 
   // عند إنجاز مهمة جديدة (تحقق مباشر) → حفظها بشكل مستقل
   useEffect(() => {
@@ -71,7 +68,7 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
       for (const t of newly) {
         savedRef.current.add(t.i);
         await markTaskCompleted({
-          lab: labRef.current, user, schoolId: schoolRef.current,
+          lab: labRef.current,
           scenario, taskIndex: t.i, taskLabel: t.label,
         });
         setSavedDone(new Set(savedRef.current));

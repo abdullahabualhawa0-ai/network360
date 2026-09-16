@@ -47,30 +47,43 @@ const AuthenticatedApp = () => {
     <>
     <ScrollToTop />
     <Routes>
+      {/* صفحات المصادقة للإدارة (Base44) */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+
+      {/* دخول الطالب — الرموز فقط، لا Base44 Authentication */}
+      <Route path="/student-login" element={<StudentLogin />} />
+
+      {/* مسارات الإدارة — تتطلب Base44 Authentication */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/plans" element={<Plans />} />
-        <Route element={<RegistrationGate><Layout /></RegistrationGate>}>
+        <Route element={<Layout />}>
+          <Route path="/admin/schools" element={<SchoolsManager />} />
+          <Route path="/admin/school-students" element={<SchoolStudents />} />
+          <Route path="/admin/students" element={<AdminStudentsReport />} />
+          <Route path="/admin/exams" element={<ExamManager />} />
+          <Route path="/admin/exam-results" element={<ExamResults />} />
+        </Route>
+      </Route>
+
+      {/* مسارات الطالب — جلسة الطالب (StudentGuard)، بدون Base44 Authentication */}
+      <Route element={<StudentGuard />}>
+        <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/topic/:sectionId/:topicId" element={<TopicPage />} />
           <Route path="/network-simulator" element={<NetworkSimulator />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/admin/students" element={<AdminStudentsReport />} />
-          <Route path="/admin/exams" element={<ExamManager />} />
           <Route path="/scenario-lab" element={<ScenarioLab />} />
           <Route path="/lab-history" element={<LabHistory />} />
           <Route path="/exams" element={<Exams />} />
           <Route path="/exams/:examId" element={<TakeExam />} />
-          <Route path="/admin/exam-results" element={<ExamResults />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/admin/schools" element={<SchoolsManager />} />
-          <Route path="/admin/school-students" element={<SchoolStudents />} />
-          <Route path="*" element={<PageNotFound />} />
         </Route>
       </Route>
+
+      <Route path="*" element={<PageNotFound />} />
     </Routes>
     </>
   );

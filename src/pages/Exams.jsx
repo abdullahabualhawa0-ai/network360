@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ClipboardList, Clock, Loader2, Send, CheckCircle2, Trophy, Ban, FileQuestion } from "lucide-react";
 import moment from "moment";
-import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
-import { resolveStudentSchool, GENERAL_SCHOOL } from "@/lib/schoolUtils";
+import { studentApi, useStudentSession } from "@/lib/studentSession";
+import { GENERAL_SCHOOL } from "@/lib/schoolUtils";
 
 const REQ_STATUS = {
   pending: { label: "بانتظار الموافقة", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
@@ -14,7 +13,7 @@ const REQ_STATUS = {
 };
 
 export default function Exams() {
-  const { user } = useAuth();
+  const session = useStudentSession();
   const [loading, setLoading] = useState(true);
   const [exams, setExams] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -23,21 +22,24 @@ export default function Exams() {
   const [requesting, setRequesting] = useState(null); // exam id قيد الطلب
 
   useEffect(() => {
-    if (!user) return;
     (async () => {
-      const sid = await resolveStudentSchool(user);
-      setSchoolId(sid);
-      const [ex, rq, rs] = await Promise.all([
-        base44.entities.Exam.filter({ status: "published" }, "-created_date", 100),
-        base44.entities.ExamAccessRequest.filter({ student_id: user.id }),
-        base44.entities.ExamResult.filter({ student_id: user.id }, "-submission_time", 100),
-      ]);
-      setExams(ex || []);
-      setRequests(rq || []);
-      setResults(rs || []);
+      try {
+        const sid = session?.school_id || GENERAL_SCHOOL;
+        setSchoolId(sid);
+        const [ex, rq, rs] = await Promise.all([
+          studentApi("filter", "Exam", { query: {}, sort: "-created_date", limit: 100 }),
+          studentApi("filter", "ExamAccessRequest", { query: {} }),
+          studentApi("filter", "ExamResult", { query: {}, sort: "-submission_time", limit: 100 }),
+        ]);
+        setExams(ex || []);
+        setRequests(rq || []);
+        setResults(rs || []);
+      } catch {
+        setExams([]);
+      }
       setLoading(false);
     })();
-  }, [user?.id]);
+  }, [session?.student_id]);
 
   // عزل المدارس: الطالب يرى امتحانات مدرسته أو العامة فقط
   const visibleExams = exams.filter(
@@ -46,16 +48,16 @@ export default function Exams() {
 
   const requestAccess = async (exam) => {
     setRequesting(exam.id);
-    await base44.entities.ExamAccessRequest.create({
-      student_id: user.id,
-      student_name: user.full_name,
-      student_email: user.email,
-      school_id: schoolId,
-      exam_id: exam.id,
-      exam_title: exam.title,
-      status: "pending",
+    await studentApi("create", "ExamAccessRequest", {
+      data: {
+        student_name: session?.student_name || session?.student_code,
+        student_email: session?.student_code,
+        exam_id: exam.id,
+        exam_title: exam.title,
+        status: "pending",
+      },
     });
-    const rq = await base44.entities.ExamAccessRequest.filter({ student_id: user.id });
+    const rq = await studentApi("filter", "ExamAccessRequest", { query: {} });
     setRequests(rq || []);
     setRequesting(null);
   };

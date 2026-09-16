@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { History, Trophy, Zap, FlaskConical, RefreshCw, CheckCircle2, Circle, Loader2 } from "lucide-react";
 import moment from "moment";
-import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
+import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { SCENARIOS, getLessonInfo } from "@/lib/scenarios";
 import { t, useLang } from "@/lib/i18n";
 import { topicTitleById } from "@/lib/courseI18n";
@@ -22,22 +21,25 @@ function formatDate(d) {
 }
 
 export default function LabHistory() {
-  const { user } = useAuth();
+  const session = useStudentSession();
   useLang();
   const [records, setRecords] = useState(null); // null = جاري التحميل
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
-    if (!user) return;
     setRefreshing(true);
-    const rows = await base44.entities.LabHistory.filter(
-      { student_id: user.id }, "-last_activity_at", 100
-    );
-    setRecords(rows || []);
+    try {
+      const rows = await studentApi("filter", "LabHistory", {
+        query: {}, sort: "-last_activity_at", limit: 100,
+      });
+      setRecords(rows || []);
+    } catch {
+      setRecords([]);
+    }
     setRefreshing(false);
   };
 
-  useEffect(() => { load(); }, [user?.id]);
+  useEffect(() => { load(); }, [session?.student_id]);
 
   const completedCount = records?.filter((r) => r.status === "completed").length || 0;
   const totalXp = records?.reduce((a, r) => a + (r.xp_earned || 0), 0) || 0;

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Loader2, Send, CheckCircle2, AlertTriangle, Copy } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { t, useLang } from "@/lib/i18n";
 
 // البريد الافتراضي — يُستبدل تلقائياً بقيمة الإعدادات → معلومات التواصل (SystemSetting)
@@ -14,16 +15,22 @@ const CONTACT_EMAIL = "edupro.education09@gmail.com";
  */
 export default function ContactUsButton() {
   const { user } = useAuth();
+  const session = useStudentSession();
   useLang();
   const [contactEmail, setContactEmail] = useState(CONTACT_EMAIL);
   const [open, setOpen] = useState(false);
 
   // بريد التواصل قابل للتعديل من: الإعدادات → معلومات التواصل
   useEffect(() => {
-    base44.entities.SystemSetting.filter({ key: "contact_email" })
-      .then((rows) => { if (rows?.[0]?.value) setContactEmail(rows[0].value); })
-      .catch(() => {});
-  }, []);
+    (async () => {
+      try {
+        const rows = session
+          ? await studentApi("filter", "SystemSetting", { query: { key: "contact_email" } })
+          : await base44.entities.SystemSetting.filter({ key: "contact_email" });
+        if (rows?.[0]?.value) setContactEmail(rows[0].value);
+      } catch { /* البريد الافتراضي */ }
+    })();
+  }, [session?.student_id]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -58,8 +65,8 @@ export default function ContactUsButton() {
     try {
       await base44.integrations.Core.SendEmail({
         to: contactEmail,
-        subject: `ملاحظة عن التطبيق — ${user?.full_name || user?.email || "مستخدم"}`,
-        body: `المرسل: ${user?.full_name || "—"} (${user?.email || "بدون بريد"})\n\nالملاحظة:\n${text}`
+        subject: `ملاحظة عن التطبيق — ${user?.full_name || user?.email || session?.student_name || session?.student_code || "مستخدم"}`,
+        body: `المرسل: ${user?.full_name || session?.student_name || "—"} (${user?.email || session?.student_code || "بدون بريد"})\n\nالملاحظة:\n${text}`
       });
       setSent(true);
       setMessage("");

@@ -10,8 +10,8 @@ import {
   SCENARIOS, SORTED_SCENARIOS, TOTAL_SCENARIOS,
   DIFF_LABEL_KEYS, getScenarioById, getLessonInfo,
 } from "../lib/scenarios";
-import { useAuth } from "@/lib/AuthContext";
-import { resolveSchoolId, ensureLabRecord, markTaskCompleted } from "../lib/labTracking";
+import { useStudentSession, studentApi } from "@/lib/studentSession";
+import { ensureLabRecord, markTaskCompleted } from "../lib/labTracking";
 import { t, useLang } from "@/lib/i18n";
 import { topicTitleById } from "@/lib/courseI18n";
 
@@ -34,7 +34,7 @@ export default function ScenarioLab() {
   const [dbMap, setDbMap] = useState({}); // scenario_id → { score, status, tasks... }
   const [dbReady, setDbReady] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const session = useStudentSession();
   useLang();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -43,13 +43,12 @@ export default function ScenarioLab() {
 
   // مزامنة التقدم من قاعدة البيانات — سجل فردي لكل طالب (سجل واحد لكل سيناريو)
   useEffect(() => {
-    if (!user) return;
+    if (!session) return;
     (async () => {
       try {
-        const schoolId = await resolveSchoolId(user);
-        const rows = await base44.entities.LabHistory.filter(
-          { student_id: user.id, school_id: schoolId }, "-updated_date", 200
-        );
+        const rows = await studentApi("filter", "LabHistory", {
+          query: {}, sort: "-updated_date", limit: 200,
+        });
         const map = {};
         for (const r of rows || []) {
           map[r.scenario_id] = {
@@ -64,14 +63,13 @@ export default function ScenarioLab() {
       } catch { /* يبقى العرض المحلي حتى تكتمل المزامنة */ }
       finally { setDbReady(true); }
     })();
-  }, [user?.id]);
+  }, [session?.student_id]);
 
   // إنشاء سجل المحاولة (in_progress) بمجرد فتح السيناريو
   const startLab = async (scenario) => {
-    if (!user || !scenario) return;
+    if (!session || !scenario) return;
     try {
-      const schoolId = await resolveSchoolId(user);
-      await ensureLabRecord(user, schoolId, scenario, scenario.tasks?.length || 0);
+      await ensureLabRecord(scenario, scenario.tasks?.length || 0);
     } catch { /* بدون تتبع سحابي هذه المرة */ }
   };
 
@@ -93,27 +91,29 @@ export default function ScenarioLab() {
 
   // تتبع فردي لكل مهمة: تُعلَّم المهام المنجزة واحدة واحدة (بلا تكرار) وتتحدّث العدادات تلقائياً
   const persistEvaluation = async (scenario, res) => {
-    if (!user) return;
+    if (!session) return;
     try {
-      const schoolId = await resolveSchoolId(user);
       const details = res.details || [];
-      let lab = await ensureLabRecord(user, schoolId, scenario, details.length);
+      let lab = await ensureLabRecord(scenario, details.length);
       for (let i = 0; i < details.length; i++) {
         if (details[i].ok) {
           lab = await markTaskCompleted({
-            lab, user, schoolId, scenario,
+            lab, scenario,
             taskIndex: i, taskLabel: details[i].label,
           });
         }
       }
       if (res.passed) {
         const now = new Date().toISOString();
-        await base44.entities.LabHistory.update(lab.id, {
-          status: "completed",
-          score: typeof res.score === "number" ? res.score : lab.score,
-          xp_earned: scenario.xp || lab.xp_earned || 0,
-          completed_at: lab.completed_at || now,
-          last_activity_at: now,
+        await studentApi("update", "LabHistory", {
+          id: lab.id,
+          data: {
+            status: "completed",
+            score: typeof res.score === "number" ? res.score : lab.score,
+            xp_earned: scenario.xp || lab.xp_earned || 0,
+            completed_at: lab.completed_at || now,
+            last_activity_at: now,
+          },
         });
       }
       // تحديث الخريطة المحلية — المكتمل يختفي من القائمة النشطة فوراً

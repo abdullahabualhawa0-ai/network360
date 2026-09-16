@@ -2,9 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock, Loader2, AlertTriangle, Send, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
-import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
-import { resolveStudentSchool } from "@/lib/schoolUtils";
+import { studentApi, useStudentSession } from "@/lib/studentSession";
 
 const norm = (s) => (s || "").toString().trim().replace(/\s+/g, " ").toLowerCase();
 
@@ -16,7 +14,7 @@ function fmtTime(s) {
 
 export default function TakeExam() {
   const { examId } = useParams();
-  const { user } = useAuth();
+  const session = useStudentSession();
   const [exam, setExam] = useState(null);
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -31,22 +29,21 @@ export default function TakeExam() {
   const startedAtRef = useRef(new Date());
 
   useEffect(() => {
-    if (!user || !examId) return;
+    if (!examId) return;
     (async () => {
-      const ex = await base44.entities.Exam.get(examId).catch(() => null);
-      const sid = await resolveStudentSchool(user);
-      setSchoolId(sid);
+      const ex = await studentApi("get", "Exam", { id: examId }).catch(() => null);
+      setSchoolId(session?.school_id || "general");
       if (!ex || ex.status !== "published") { setLoading(false); return; }
-      const reqs = await base44.entities.ExamAccessRequest.filter({
-        student_id: user.id, exam_id: examId,
-      });
+      const reqs = await studentApi("filter", "ExamAccessRequest", {
+        query: { exam_id: examId },
+      }).catch(() => []);
       const ok = (reqs || []).some((r) => r.status === "approved");
       setExam(ex);
       setAllowed(ok);
       if (ok) setSecondsLeft((ex.duration_minutes || 30) * 60);
       setLoading(false);
     })();
-  }, [user?.id, examId]);
+  }, [session?.student_id, examId]);
 
   const setAnswer = (i, val) => {
     answersRef.current = { ...answersRef.current, [i]: val };
@@ -77,17 +74,20 @@ export default function TakeExam() {
     const pct = total ? Math.round((correct / total) * 100) : 0;
     const now = new Date().toISOString();
 
-    await base44.entities.ExamResult.create({
-      student_id: user.id, student_name: user.full_name, student_email: user.email,
-      school_id: schoolId, exam_id: exam.id, exam_title: exam.title,
-      score: pct, percentage: pct, total_questions: total,
-      correct_answers: correct, wrong_answers: total - correct,
-      answers: review,
-      start_time: startedAtRef.current.toISOString(),
-      submission_time: now, status: "submitted",
+    await studentApi("create", "ExamResult", {
+      data: {
+        student_name: session?.student_name || session?.student_code,
+        student_email: session?.student_code,
+        exam_id: exam.id, exam_title: exam.title,
+        score: pct, percentage: pct, total_questions: total,
+        correct_answers: correct, wrong_answers: total - correct,
+        answers: review,
+        start_time: startedAtRef.current.toISOString(),
+        submission_time: now, status: "submitted",
+      },
     });
     setResult({ pct, correct, total, review });
-  }, [exam, user, schoolId]);
+  }, [exam, session, schoolId]);
 
   // مؤقت تنازلي مع تسليم تلقائي
   useEffect(() => {
