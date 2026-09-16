@@ -330,6 +330,40 @@ const T = {
   authErrRegister: { ar: "فشل التسجيل", en: "Registration failed", he: "ההרשמה נכשלה" },
   authErrInvalidCode: { ar: "رمز تحقق غير صحيح", en: "Invalid verification code", he: "קוד אימות שגוי" },
   authErrResend: { ar: "تعذرت إعادة إرسال الرمز", en: "Failed to resend code", he: "שליחת הקוד מחדש נכשלה" },
+
+  /* ─── تبويبات الدخول الموحّد (طالب / أستاذ / إنشاء حساب) ─── */
+  loginTabStudent: { ar: "طالب", en: "Student", he: "תלמיד" },
+  loginTabTeacher: { ar: "أستاذ", en: "Teacher", he: "מורה" },
+  teacherCode: { ar: "رمز الأستاذ", en: "Teacher Code", he: "קוד מורה" },
+  teacherCodePlaceholder: { ar: "TCH-1025", en: "TCH-1025", he: "TCH-1025" },
+  loginTeacherSubtitle: {
+    ar: "أدخل رمز المدرسة ورمز الأستاذ للدخول إلى لوحة الأستاذ",
+    en: "Enter your School Code and Teacher Code to access the teacher dashboard",
+    he: "הזינו את קוד בית הספר וקוד המורה כדי להיכנס ללוח המורה",
+  },
+  errTeacherCode: { ar: "رمز الأستاذ غير صحيح.", en: "Invalid teacher code.", he: "קוד המורה שגוי." },
+  createAccountTab: { ar: "إنشاء حساب", en: "Create Account", he: "יצירת חשבון" },
+  createAccountPrompt: {
+    ar: "اختر خطة الاشتراك المناسبة — شخصية أو مدرسية — وابدأ خلال دقائق",
+    en: "Choose a subscription plan — personal or school — and start in minutes",
+    he: "בחרו תוכנית מנוי — אישית או בית ספרית — והתחילו תוך דקות",
+  },
+  goPlans: { ar: "عرض الخطط والأسعار", en: "View plans & pricing", he: "צפייה בתוכניות ומחירים" },
+
+  /* ─── لوحة الأستاذ ─── */
+  teacherDashboardTitle: { ar: "لوحة الأستاذ", en: "Teacher Dashboard", he: "לוח המורה" },
+  teacherRole: { ar: "أستاذ", en: "Teacher", he: "מורה" },
+  teacherSchoolLabel: { ar: "المدرسة", en: "School", he: "בית הספר" },
+  teacherExams: { ar: "الامتحانات", en: "Exams", he: "בחינות" },
+  teacherExamsDesc: { ar: "إنشاء وإدارة الامتحانات الخاصة بمادتك", en: "Create and manage exams for your subject", he: "יצירה וניהול בחינות למקצוע שלך" },
+  teacherStudents: { ar: "طلابي", en: "My Students", he: "התלמידים שלי" },
+  teacherStudentsDesc: { ar: "عرض الطلاب المرتبطين بمدرستك", en: "View students linked to your school", he: "צפייה בתלמידים של בית הספר שלך" },
+  teacherResults: { ar: "النتائج", en: "Results", he: "תוצאות" },
+  teacherResultsDesc: { ar: "متابعة نتائج طلابك في الامتحانات", en: "Track your students' exam results", he: "מעקב אחר תוצאות התלמידים שלך" },
+  settingsLogout: { ar: "تسجيل الخروج", en: "Logout", he: "התנתקות" },
+  adminLoginLink: { ar: "دخول الإدارة / المالك", en: "Admin / Owner login", he: "כניסת מנהל / בעלים" },
+  adminLoginNote: { ar: "لإدارة المدارس والطلاب والامتحانات", en: "Manage schools, students and exams", he: "ניהול בתי ספר, תלמידים ובחינות" },
+  errUnexpected: { ar: "حدث خطأ غير متوقع. حاول مرة أخرى.", en: "An unexpected error occurred. Try again.", he: "אירעה שגיאה בלתי צפויה. נסו שוב." },
 };
 
 export function getLang() {

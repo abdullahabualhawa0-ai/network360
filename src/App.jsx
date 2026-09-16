@@ -26,6 +26,8 @@ import SchoolsManager from './pages/admin/SchoolsManager.jsx';
 import SchoolStudents from './pages/admin/SchoolStudents.jsx';
 import StudentGuard from '@/components/StudentGuard';
 import StudentLogin from './pages/StudentLogin';
+import TeacherDashboard from './pages/TeacherDashboard';
+import TeacherGuard from '@/components/TeacherGuard';
 import Plans from './pages/Plans.jsx';
 import ExamManager from './pages/admin/ExamManager';
 
@@ -81,6 +83,11 @@ const AuthenticatedApp = () => {
           <Route path="/exams/:examId" element={<TakeExam />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
+      </Route>
+
+      {/* مسارات الأستاذ — جلسة الأستاذ (TeacherGuard)، بدون Base44 Authentication */}
+      <Route element={<TeacherGuard />}>
+        <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
