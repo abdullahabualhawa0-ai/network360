@@ -210,6 +210,126 @@ const T = {
   navPrev: { ar: "السابق", en: "Previous", he: "הקודם" },
   navNext: { ar: "التالي", en: "Next", he: "הבא" },
   translatingLesson: { ar: "جارٍ ترجمة الدرس آلياً — للحظات فقط...", en: "Translating this lesson automatically — just a moment...", he: "מתרגם את השיעור אוטומטית — רק רגע..." },
+
+  /* ─── تواصل معنا (النسخة المبسطة) ─── */
+  contactInfoMsg: {
+    ar: "إذا كانت لديك ملاحظة أو اقتراح، يمكنك إرساله عبر البريد الإلكتروني الموجود أدناه.",
+    en: "If you have a comment or suggestion, you can send it via the email below.",
+    he: "אם יש לכם הערה או הצעה, תוכלו לשלוח אותה לאימייל שלמטה.",
+  },
+  copyEmailBtn: { ar: "نسخ البريد", en: "Copy Email", he: "העתק אימייל" },
+
+  /* ─── الصفحة الرئيسية — تذييل ─── */
+  homeCredits: { ar: "عمل الطلاب: عبد الله أبو الهوى ، امير دراويش", en: "Student work: Abdullah Abu Alhawa, Amir Darawish", he: "עבודת תלמידים: עבדאללה אבו אלהווא, אמיר דראוויש" },
+  homeBrand: { ar: "EDUPRO+", en: "EDUPRO+", he: "EDUPRO+" },
+  newBadge: { ar: "جديد", en: "New", he: "חדש" },
+
+  /* ─── دخول الطالب — روابط الإدارة ─── */
+  adminLoginLink: { ar: "دخول الإدارة / المعلمين", en: "Admin / Teacher login", he: "כניסת הנהלה / מורים" },
+  adminLoginNote: { ar: "لإدارة المدارس والطلاب والامتحانات", en: "To manage schools, students and exams", he: "לניהול בתי ספר, תלמידים ובחינות" },
+
+  /* ─── الاستبيان عند التسجيل ─── */
+  surveyTitle: { ar: "المعلومات الأساسية", en: "Basic Information", he: "פרטים בסיסיים" },
+  surveySubtitle: { ar: "يجب تعبئة هذه المعلومات قبل إكمال التسجيل", en: "Please fill in this information before completing registration", he: "יש למלא פרטים אלו לפני השלמת ההרשמה" },
+  surveyFullName: { ar: "الاسم الكامل", en: "Full Name", he: "שם מלא" },
+  surveyEmail: { ar: "البريد الإلكتروني", en: "Email", he: "אימייל" },
+  surveyPhone: { ar: "رقم الهاتف", en: "Phone Number", he: "מספר טלפון" },
+  surveyCountry: { ar: "الدولة / البلد", en: "Country", he: "מדינה" },
+  surveyRegType: { ar: "نوع التسجيل", en: "Registration Type", he: "סוג הרשמה" },
+  surveyTypeIndividual: { ar: "فردي", en: "Individual", he: "אישי" },
+  surveyTypeSchool: { ar: "مدرسة", en: "School", he: "בית ספר" },
+  surveySchoolName: { ar: "اسم المدرسة", en: "School Name", he: "שם בית הספר" },
+  surveyAdminName: { ar: "اسم المسؤول", en: "Admin Name", he: "שם המנהל" },
+  surveyExpectedStudents: { ar: "عدد الطلاب المتوقع", en: "Expected number of students", he: "מספר תלמידים צפוי" },
+  surveyContinue: { ar: "متابعة", en: "Continue", he: "המשך" },
+  surveyRequired: { ar: "هذا الحقل مطلوب", en: "This field is required", he: "שדה זה נדרש" },
+  errSurveyRequired: { ar: "يرجى تعبئة جميع الحقول المطلوبة", en: "Please fill in all required fields", he: "נא למלא את כל השדות הנדרשים" },
+
+  /* ─── الخطط — النصوص المتبقية ─── */
+  schoolReceivedTitle: { ar: "تم استلام طلب مدرستك ✓", en: "Your school request was received ✓", he: "בקשת בית הספר שלכם התקבלה ✓" },
+  schoolReceivedPlan: { ar: "الخطة", en: "Plan", he: "תוכנית" },
+  schoolReceivedCode: { ar: "رمز المدرسة", en: "School Code", he: "קוד בית הספר" },
+  schoolReceivedNote: {
+    ar: "سيقوم مالك المنصة بتفعيل المدرسة وتعيينك مشرفاً عبر بريدك، عندها يمكنك إضافة طلاب مدرستك برموزهم.",
+    en: "The platform owner will activate the school and assign you as supervisor via your email. Then you can add your school's students with their codes.",
+    he: "בעל הפלטפורמה יפעיל את בית הספר וימנה אתכם למנהל באמצעות האימייל. לאחר מכן תוכלו להוסיף את תלמידי בית הספר עם הקודים שלהם.",
+  },
+  errCreateAccount: { ar: "تعذر إنشاء الحساب — حاول مجدداً", en: "Could not create the account — try again", he: "לא ניתן ליצור את החשבון — נסו שוב" },
+  errRegisterSchool: { ar: "تعذر تسجيل المدرسة — حاول مجدداً", en: "Could not register the school — try again", he: "לא ניתן לרשום את בית הספר — נסו שוב" },
+  errSchoolName: { ar: "أدخل اسم المدرسة أولاً", en: "Enter the school name first", he: "הזינו את שם בית הספר תחילה" },
+  personalFeature1: { ar: "الوصول الكامل للدروس والمختبرات", en: "Full access to lessons and labs", he: "גישה מלאה לשיעורים ולמעבדות" },
+  personalFeature2: { ar: "تتبع التقدم الشخصي", en: "Personal progress tracking", he: "מעקב התקדמות אישי" },
+  alreadyHaveAccount: { ar: "لديك حساب بالفعل", en: "You already have an account", he: "כבר יש לכם חשבון" },
+  studentsOnly: { ar: "للطلاب فقط", en: "For students only", he: "לתלמידים בלבד" },
+  personalStudentNote: { ar: "الخطة الشخصية متاحة عند الدخول بحساب طالب", en: "The personal plan is available when logged in as a student", he: "התוכנית האישית זמינה בכניסה כתלמיד" },
+  schoolNameLabel: { ar: "اسم المدرسة", en: "School Name", he: "שם בית הספר" },
+  schoolAdminEmailLabel: { ar: "بريد مشرف المدرسة", en: "School Admin Email", he: "אימייל מנהל בית הספר" },
+  studentsCountSuffix: { ar: "طالب", en: "students", he: "תלמידים" },
+
+  /* ─── الامتحانات ─── */
+  examsTitle: { ar: "الامتحانات", en: "Exams", he: "בחינות" },
+  examsSubtitle: { ar: "اطلب دخولاً للامتحان، وبعد موافقة المعلم ابدأ التأدية", en: "Request access to an exam — once the teacher approves, you can start", he: "בקשו גישה לבחינה — לאחר אישור המורה תוכלו להתחיל" },
+  noExamsTitle: { ar: "لا توجد امتحانات متاحة حالياً", en: "No exams available right now", he: "אין בחינות זמינות כעת" },
+  noExamsDesc: { ar: "سيتعين عليك الانتظار حتى ينشر المعلم امتحاناً جديد", en: "Please wait until a teacher publishes a new exam", he: "יש להמתין עד שהמורה יפרסם בחינה חדשה" },
+  questionsCount: { ar: "سؤال", en: "questions", he: "שאלות" },
+  minutesCount: { ar: "دقيقة", en: "min", he: "דקות" },
+  requestAccess: { ar: "طلب دخول", en: "Request access", he: "בקשת גישה" },
+  sendingLabel: { ar: "جاري الإرسال...", en: "Sending...", he: "שולח..." },
+  accessPending: { ar: "بانتظار الموافقة", en: "Awaiting approval", he: "ממתין לאישור" },
+  accessRejected: { ar: "تم الرفض", en: "Rejected", he: "נדחה" },
+  bestResultLabel: { ar: "أفضل نتيجة", en: "Best result", he: "התוצאה הטובה ביותר" },
+  performedLabel: { ar: "مؤدّى", en: "Done", he: "בוצע" },
+  retakeLabel: { ar: "إعادة التأدية", en: "Retake", he: "ביצוע חוזר" },
+  startExam: { ar: "ابدأ الامتحان", en: "Start exam", he: "התחל בחינה" },
+
+  /* ─── الإعدادات — نصوص متبقية ─── */
+  settingsStudentCode: { ar: "رمز الطالب", en: "Student Code", he: "קוד תלמיד" },
+  settingsAdminEmail: { ar: "البريد الإلكتروني", en: "Email", he: "אימייל" },
+  settingsRoleUser: { ar: "مستخدم", en: "User", he: "משתמש" },
+  settingsRegistered: { ar: "مسجّل", en: "Registered", he: "רשום" },
+  settingsVerified: { ar: "حساب موثّق ✓", en: "Verified account ✓", he: "חשבון מאושר ✓" },
+  settingsLogout: { ar: "تسجيل الخروج", en: "Logout", he: "התנתקות" },
+  settingsSchoolLinkedNote: { ar: "بياناتك (التقدم، النتائج، السيناريوهات) مرتبطة بهذه المدرسة فقط", en: "Your data is linked to this school only", he: "הנתונים שלכם מקושרים לבית הספר הזה בלבד" },
+  settingsSchoolGeneralNote: { ar: "بياناتك على النطاق العام", en: "Your data is on the general scope", he: "הנתונים בטווח הכללי" },
+  settingsStatusPending: { ar: "بانتظار موافقة المدرسة", en: "Awaiting school approval", he: "ממתין לאישור בית הספר" },
+  settingsStatusApproved: { ar: "حساب موثّق ✓", en: "Verified account ✓", he: "חשבון מאושר ✓" },
+  settingsStatusRejected: { ar: "تم رفض الحساب", en: "Account rejected", he: "החשבון נדחה" },
+  settingsStatusDisabled: { ar: "الحساب معطّل", en: "Account disabled", he: "החשבון מושבת" },
+
+  /* ─── صفحة الدرس — تذييل ─── */
+  lessonRelated: { ar: "الدرس المرتبط", en: "Related lesson", he: "שיעור קשור" },
+
+  /* ─── تسجيل Base44 (Register/Login) ─── */
+  authWelcomeBack: { ar: "مرحباً بعودتك", en: "Welcome back", he: "ברוכים השבים" },
+  authLoginSubtitle: { ar: "سجّل الدخول إلى حسابك", en: "Log in to your account", he: "התחברו לחשבון שלכם" },
+  authNoAccount: { ar: "ليس لديك حساب؟", en: "Don't have an account?", he: "אין לכם חשבון?" },
+  authCreateOne: { ar: "أنشئ واحداً", en: "Create one", he: "צרו אחד" },
+  authContinueGoogle: { ar: "المتابعة عبر Google", en: "Continue with Google", he: "המשך עם Google" },
+  authOr: { ar: "أو", en: "or", he: "או" },
+  authEmail: { ar: "البريد الإلكتروني", en: "Email", he: "אימייל" },
+  authPassword: { ar: "كلمة المرور", en: "Password", he: "סיסמה" },
+  authConfirmPassword: { ar: "تأكيد كلمة المرور", en: "Confirm Password", he: "אישור סיסמה" },
+  authForgotPassword: { ar: "نسيت كلمة المرور؟", en: "Forgot password?", he: "שכחתם סיסמה?" },
+  authLoginBtn: { ar: "تسجيل الدخول", en: "Log in", he: "התחברות" },
+  authLoggingIn: { ar: "جاري تسجيل الدخول...", en: "Logging in...", he: "מתחבר..." },
+  authCreateAccountTitle: { ar: "أنشئ حسابك", en: "Create your account", he: "צרו את החשבון שלכם" },
+  authCreateAccountSubtitle: { ar: "سجّل للبدء", en: "Sign up to get started", he: "הירשמו כדי להתחיל" },
+  authAlreadyHaveAccount: { ar: "لديك حساب بالفعل؟", en: "Already have an account?", he: "כבר יש לכם חשבון?" },
+  authCreatingAccount: { ar: "جاري إنشاء الحساب...", en: "Creating account...", he: "יוצר חשבון..." },
+  authCreateAccountBtn: { ar: "إنشاء حساب", en: "Create account", he: "יצירת חשבון" },
+  authVerifyTitle: { ar: "تحقق من بريدك", en: "Verify your email", he: "אמתו את האימייל" },
+  authVerifySubtitle: { ar: "أرسلنا رمزاً إلى", en: "We sent a code to", he: "שלחנו קוד אל" },
+  authVerifyBtn: { ar: "تحقق", en: "Verify", he: "אמת" },
+  authVerifying: { ar: "جاري التحقق...", en: "Verifying...", he: "מאמת..." },
+  authNoCode: { ar: "لم يصلك الرمز؟", en: "Didn't receive the code?", he: "לא קיבלתם את הקוד?" },
+  authResend: { ar: "إعادة إرسال", en: "Resend", he: "שלח שוב" },
+  authCodeSent: { ar: "تم إرسال الرمز", en: "Code sent", he: "הקוד נשלח" },
+  authCodeSentDesc: { ar: "تحقق من بريدك الإلكتروني للحصول على الرمز الجديد.", en: "Check your email for the new code.", he: "בדקו את האימייל לקבלת הקוד החדש." },
+  authErrPasswordMismatch: { ar: "كلمتا المرور غير متطابقتين", en: "Passwords do not match", he: "הסיסמאות אינן תואמות" },
+  authErrInvalid: { ar: "بريد إلكتروني أو كلمة مرور غير صحيحة", en: "Invalid email or password", he: "אימייל או סיסמה שגויים" },
+  authErrRegister: { ar: "فشل التسجيل", en: "Registration failed", he: "ההרשמה נכשלה" },
+  authErrInvalidCode: { ar: "رمز تحقق غير صحيح", en: "Invalid verification code", he: "קוד אימות שגוי" },
+  authErrResend: { ar: "تعذرت إعادة إرسال الرمز", en: "Failed to resend code", he: "שליחת הקוד מחדש נכשלה" },
 };
 
 export function getLang() {
@@ -236,6 +356,17 @@ export function useLang() {
     return () => window.removeEventListener("app-lang-change", onChange);
   }, []);
   return lang;
+}
+
+/** اتجاه التخطيط الحالي (rtl/ltr) كقيمة غير تفاعلية — للاستخدام داخل JSX */
+export function dir() {
+  return LANG_DIR[getLang()] || "rtl";
+}
+
+/** Hook يعيد اتجاه التخطيط الحالي ويعيد الرسم عند تغيير اللغة */
+export function useDir() {
+  const lang = useLang();
+  return LANG_DIR[lang] || "rtl";
 }
 
 // تطبيق الاتجاه المحفوظ عند أول تحميل

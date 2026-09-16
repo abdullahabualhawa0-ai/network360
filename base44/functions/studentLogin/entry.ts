@@ -49,13 +49,17 @@ export default async function(req) {
       return Response.json({ error: "رمز المدرسة أو رمز الطالب غير صحيح." }, { status: 403 });
     }
 
-    // 4) إنشاء جلسة الطالب
+    // 4) إنشاء جلسة الطالب — مع علم is_personal لتمييز الطالب الفردي عن طالب المدرسة
+    // الطالب الفردي = خطة اشتراك شخصية (personal_*) → لا يرى الامتحانات
+    const isPersonal = typeof school.subscription_plan === "string"
+      && school.subscription_plan.startsWith("personal_");
     const session = {
       student_id: student.id,
       school_id: school.id,
       student_code: student.student_code,
       student_name: student.full_name || studentCode.trim(),
       preferred_language: student.preferred_language || "ar",
+      is_personal: isPersonal,
       login_at: new Date().toISOString(),
     };
 

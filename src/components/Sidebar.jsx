@@ -1,24 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag,
-  ChevronDown, BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText, History, ClipboardList, FileCheck, Settings, School, GraduationCap } from
+  BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical, FileText, History, ClipboardList, FileCheck, Settings, School, GraduationCap } from
 "lucide-react";
-import courseData from "../lib/courseData";
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { useStudentSession } from "@/lib/studentSession";
 import { t, useLang } from "@/lib/i18n";
-import { sectionTitle, topicTitle } from "@/lib/courseI18n";
-
-const iconMap = { Network, Globe, Shield, Server, Radio, Cpu, Route, Tag };
 
 export default function Sidebar({ onClose }) {
   const location = useLocation();
-  const [expandedSections, setExpandedSections] = useState({});
   const { user } = useAuth();
+  const session = useStudentSession();
   useLang();
   const isSuperAdmin = user?.role === "admin";
   const isSchoolAdmin = user?.role === "school_admin";
   const isAdmin = isSuperAdmin || isSchoolAdmin;
+  // الطالب الفردي (خطة شخصية بدون مدرسة فعلية) لا يرى الامتحانات
+  const isPersonalStudent = !!session?.is_personal;
+  const showExams = isAdmin || (session && !isPersonalStudent);
 
   const toggleSection = (id) => {
     setExpandedSections((prev) => ({ ...prev, [id]: !prev[id] }));
