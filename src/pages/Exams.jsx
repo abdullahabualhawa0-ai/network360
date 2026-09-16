@@ -1,27 +1,31 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ClipboardList, Clock, Loader2, Send, CheckCircle2, Trophy, Ban, FileQuestion } from "lucide-react";
 import moment from "moment";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { GENERAL_SCHOOL } from "@/lib/schoolUtils";
+import { t, useLang, useDir } from "@/lib/i18n";
 
 const REQ_STATUS = {
-  pending: { label: "بانتظار الموافقة", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
-  approved: { label: "مسموح بالدخول", color: "#2E7D5B", bg: "rgba(46,125,91,0.1)", border: "rgba(46,125,91,0.35)" },
-  rejected: { label: "تم الرفض", color: "#C94C4C", bg: "rgba(201,76,76,0.1)", border: "rgba(201,76,76,0.35)" },
+  pending: { key: "accessPending", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
+  approved: { label: "", color: "#2E7D5B", bg: "rgba(46,125,91,0.1)", border: "rgba(46,125,91,0.35)" },
+  rejected: { key: "accessRejected", color: "#C94C4C", bg: "rgba(201,76,76,0.1)", border: "rgba(201,76,76,0.35)" },
 };
 
 export default function Exams() {
   const session = useStudentSession();
+  useLang();
+  const direction = useDir();
   const [loading, setLoading] = useState(true);
   const [exams, setExams] = useState([]);
   const [requests, setRequests] = useState([]);
   const [results, setResults] = useState([]);
   const [schoolId, setSchoolId] = useState(GENERAL_SCHOOL);
-  const [requesting, setRequesting] = useState(null); // exam id قيد الطلب
+  const [requesting, setRequesting] = useState(null);
 
   useEffect(() => {
+    if (session?.is_personal) return; // الطالب الفردي لا يحتاج لتحميل الامتحانات
     (async () => {
       try {
         const sid = session?.school_id || GENERAL_SCHOOL;
@@ -39,7 +43,10 @@ export default function Exams() {
       }
       setLoading(false);
     })();
-  }, [session?.student_id]);
+  }, [session?.student_id, session?.is_personal]);
+
+  // الطالب الفردي (خطة شخصية) لا يصل للامتحانات — إعادة توجيه للرئيسية
+  if (session?.is_personal) return <Navigate to="/" replace />;
 
   // عزل المدارس: الطالب يرى امتحانات مدرسته أو العامة فقط
   const visibleExams = exams.filter(
@@ -66,13 +73,13 @@ export default function Exams() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background">
         <Loader2 size={32} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
-        <p className="text-xs text-muted-foreground">جاري تحميل الامتحانات...</p>
+        <p className="text-xs text-muted-foreground">{t("loading")}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground" dir={direction}>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -81,8 +88,8 @@ export default function Exams() {
             <ClipboardList className="text-white" size={20} />
           </div>
           <div>
-            <h1 className="font-black text-xl">الامتحانات</h1>
-            <p className="text-xs text-muted-foreground">اطلب دخولاً للامتحان، وبعد موافقة المعلم ابدأ التأدية</p>
+            <h1 className="font-black text-xl">{t("examsTitle")}</h1>
+            <p className="text-xs text-muted-foreground">{t("examsSubtitle")}</p>
           </div>
         </div>
 
@@ -90,8 +97,8 @@ export default function Exams() {
         {visibleExams.length === 0 && (
           <div className="rounded-2xl p-10 text-center bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
             <FileQuestion size={44} className="mx-auto mb-4 opacity-40" style={{ color: "hsl(var(--primary))" }} />
-            <h2 className="font-black text-lg mb-1">لا توجد امتحانات متاحة حالياً</h2>
-            <p className="text-xs text-muted-foreground">سيتعين عليك الانتظار حتى ينشر المعلم امتحاناً جديد</p>
+            <h2 className="font-black text-lg mb-1">{t("noExamsTitle")}</h2>
+            <p className="text-xs text-muted-foreground">{t("noExamsDesc")}</p>
           </div>
         )}
 
@@ -122,11 +129,11 @@ export default function Exams() {
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
-                    <span className="flex items-center gap-1"><FileQuestion size={10} /> {exam.questions?.length || 0} سؤال</span>
-                    {exam.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {exam.duration_minutes} دقيقة</span>}
+                    <span className="flex items-center gap-1"><FileQuestion size={10} /> {exam.questions?.length || 0} {t("questionsCount")}</span>
+                    {exam.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {exam.duration_minutes} {t("minutesCount")}</span>}
                     {bestResult && (
                       <span className="flex items-center gap-1 font-bold" style={{ color: "#2E7D5B" }}>
-                        <Trophy size={10} /> أفضل نتيجة: {bestResult.percentage}%
+                        <Trophy size={10} /> {t("bestResultLabel")}: {bestResult.percentage}%
                         <span className="text-muted-foreground font-normal">({moment(bestResult.submission_time).format("YYYY/MM/DD")})</span>
                       </span>
                     )}
@@ -138,7 +145,7 @@ export default function Exams() {
                   {bestResult && (
                     <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1"
                       style={{ background: "rgba(46,125,91,0.08)", border: "1px solid rgba(46,125,91,0.3)", color: "#2E7D5B" }}>
-                      <CheckCircle2 size={11} /> مؤدّى
+                      <CheckCircle2 size={11} /> {t("performedLabel")}
                     </span>
                   )}
 
@@ -146,21 +153,21 @@ export default function Exams() {
                     <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap disabled:opacity-60"
                       style={{ background: "#173F5F" }}>
-                      {requesting === exam.id ? "جاري الإرسال..." : <span className="flex items-center gap-1.5"><Send size={12} /> طلب دخول</span>}
+                      {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestAccess")}</span>}
                     </button>
                   )}
 
                   {lastRequest?.status === "pending" && (
                     <span className="px-3 py-2 rounded-xl text-[10px] font-bold"
                       style={{ background: REQ_STATUS.pending.bg, border: `1px solid ${REQ_STATUS.pending.border}`, color: REQ_STATUS.pending.color }}>
-                      {REQ_STATUS.pending.label} ⏳
+                      {t("accessPending")} ⏳
                     </span>
                   )}
 
                   {lastRequest?.status === "rejected" && (
                     <span className="px-3 py-2 rounded-xl text-[10px] font-bold flex items-center gap-1"
                       style={{ background: REQ_STATUS.rejected.bg, border: `1px solid ${REQ_STATUS.rejected.border}`, color: REQ_STATUS.rejected.color }}>
-                      <Ban size={11} /> تم الرفض
+                      <Ban size={11} /> {t("accessRejected")}
                     </span>
                   )}
 
@@ -168,7 +175,7 @@ export default function Exams() {
                     <Link to={`/exams/${exam.id}`}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap"
                       style={{ background: "#2E7D5B" }}>
-                      ابدأ الامتحان 🚀
+                      {t("startExam")} 🚀
                     </Link>
                   )}
 
@@ -176,7 +183,7 @@ export default function Exams() {
                     <Link to={`/exams/${exam.id}`}
                       className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap"
                       style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)", color: "#2F6690" }}>
-                      إعادة التأدية
+                      {t("retakeLabel")}
                     </Link>
                   )}
                 </div>

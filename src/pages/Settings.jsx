@@ -5,7 +5,7 @@ import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, 
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { studentApi, useStudentSession, clearStudentSession } from "@/lib/studentSession";
-import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang } from "@/lib/i18n";
+import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang, useDir } from "@/lib/i18n";
 
 const LANGUAGES = [
   { id: "ar", label: "العربية", native: "العربية", flag: "🇸🇦", dir: "rtl" },
@@ -14,10 +14,10 @@ const LANGUAGES = [
 ];
 
 const PROFILE_STATUS = {
-  pending: { label: "بانتظار موافقة المدرسة", color: "#D69E2E" },
-  approved: { label: "حساب موثّق ✓", color: "#2E7D5B" },
-  rejected: { label: "تم رفض الحساب", color: "#C94C4C" },
-  disabled: { label: "الحساب معطّل", color: "#64748B" },
+  pending: { key: "settingsStatusPending", color: "#D69E2E" },
+  approved: { key: "settingsStatusApproved", color: "#2E7D5B" },
+  rejected: { key: "settingsStatusRejected", color: "#C94C4C" },
+  disabled: { key: "settingsStatusDisabled", color: "#64748B" },
 };
 
 export default function Settings() {
@@ -25,6 +25,7 @@ export default function Settings() {
   const session = useStudentSession(); // لجلسة الطالب
   const navigate = useNavigate();
   useLang();
+  const direction = useDir();
   const isStudent = !!session;
   const isAdmin = user?.role === "admin";
 
@@ -32,7 +33,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [profile, setProfile] = useState(null);
-  const [schoolName, setSchoolName] = useState("عام");
+  const [schoolName, setSchoolName] = useState(t("schoolGeneral"));
 
   // ── جلب ملف الطالب واسم مدرسته عبر جلسة الطالب (بدون Base44 Authentication) ──
   useEffect(() => {
@@ -115,11 +116,11 @@ export default function Settings() {
     ? (profile?.email || session.student_code || "—")
     : (user?.email || "—");
   const roleLabel = isStudent
-    ? "طالب"
-    : (user?.role === "admin" ? "معلم / مدير" : user ? "مستخدم" : "—");
+    ? t("roleStudent")
+    : (user?.role === "admin" ? t("roleAdmin") : user ? t("settingsRoleUser") : "—");
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground" dir={direction}>
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -141,21 +142,21 @@ export default function Settings() {
           </div>
           <div className="grid sm:grid-cols-2 gap-3 text-xs">
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
-              <div className="text-[10px] text-muted-foreground mb-1">الاسم</div>
+              <div className="text-[10px] text-muted-foreground mb-1">{t("nameLabel")}</div>
               <div className="font-bold">{displayName}</div>
             </div>
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
-              <div className="text-[10px] text-muted-foreground mb-1">{isStudent ? "رمز الطالب" : "البريد الإلكتروني"}</div>
+              <div className="text-[10px] text-muted-foreground mb-1">{isStudent ? t("settingsStudentCode") : t("settingsAdminEmail")}</div>
               <div className="font-bold truncate" dir="ltr">{displayId}</div>
             </div>
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
-              <div className="text-[10px] text-muted-foreground mb-1">الدور</div>
+              <div className="text-[10px] text-muted-foreground mb-1">{t("roleLabel")}</div>
               <div className="font-bold">{roleLabel}</div>
             </div>
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
-              <div className="text-[10px] text-muted-foreground mb-1">حالة الحساب</div>
+              <div className="text-[10px] text-muted-foreground mb-1">{t("statusLabel")}</div>
               <div className="font-bold" style={{ color: statusInfo?.color || "#2E7D5B" }}>
-                {isStudent ? (statusInfo?.label || "حساب موثّق ✓") : "مسجّل"}
+                {isStudent ? (statusInfo ? t(statusInfo.key) : t("settingsStatusApproved")) : t("settingsRegistered")}
               </div>
             </div>
           </div>
@@ -187,12 +188,12 @@ export default function Settings() {
           </div>
           <div className="flex items-center justify-between mt-3 text-[10px]">
             <span className="text-muted-foreground">
-              يتم حفظ تفضيلك تلقائياً وتحديث اتجاه الواجهة
+              {t("langNote")}
             </span>
             {saving ? (
-              <span className="flex items-center gap-1 text-muted-foreground"><Loader2 size={10} className="animate-spin" /> جاري الحفظ...</span>
+              <span className="flex items-center gap-1 text-muted-foreground"><Loader2 size={10} className="animate-spin" /> {t("saving")}</span>
             ) : saved ? (
-              <span className="flex items-center gap-1" style={{ color: "#2E7D5B" }}><Check size={10} /> تم الحفظ</span>
+              <span className="flex items-center gap-1" style={{ color: "#2E7D5B" }}><Check size={10} /> {t("saved")}</span>
             ) : null}
           </div>
         </div>
@@ -209,14 +210,14 @@ export default function Settings() {
               <div className="text-xs font-bold">{schoolName}</div>
               <div className="text-[10px] text-muted-foreground">
                 {isStudent
-                  ? "بياناتك (التقدم، النتائج، السيناريوهات) مرتبطة بهذه المدرسة فقط"
-                  : "بياناتك على النطاق العام"}
+                  ? t("settingsSchoolLinkedNote")
+                  : t("settingsSchoolGeneralNote")}
               </div>
             </div>
             {statusInfo && (
               <span className="text-[10px] font-bold px-2.5 py-1 rounded-full"
                 style={{ background: `color-mix(in srgb, ${statusInfo.color} 12%, transparent)`, color: statusInfo.color }}>
-                {statusInfo.label}
+                {t(statusInfo.key)}
               </span>
             )}
           </motion.div>

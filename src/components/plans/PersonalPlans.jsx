@@ -1,13 +1,14 @@
 import { PLANS } from "@/lib/plans";
 import { Loader2 } from "lucide-react";
-import { t, useLang } from "@/lib/i18n";
+import { t, useLang, useDir } from "@/lib/i18n";
 
-/** بطاقتا الخطة الشخصية — شهري 50₪ / سنوي 400₪ مع عرض "ادفع 8 أشهر والباقي مجانًا" */
+/** بطاقتا الخطة الشخصية — شهري 50₪ / سنوي 400₪ */
 export default function PersonalPlans({ isStudent, hasProfile, busy, onSelect }) {
   useLang();
+  const direction = useDir();
   const plans = [PLANS.personal_monthly, PLANS.personal_annual];
   return (
-    <section className="mb-10">
+    <section className="mb-10" dir={direction}>
       <h2 className="font-black text-base mb-1">{t("personalPlanSection")}</h2>
       <p className="text-[11px] text-muted-foreground mb-4">{t("personalPlanDesc")}</p>
       <div className="grid sm:grid-cols-2 gap-4">
@@ -23,23 +24,23 @@ export default function PersonalPlans({ isStudent, hasProfile, busy, onSelect })
               </div>
             )}
             <ul className="text-[11px] text-muted-foreground space-y-1 mb-4">
-              <li>• الوصول الكامل للدروس والمختبرات والامتحانات</li>
-              <li>• تتبع التقدم الشخصي</li>
+              <li>• {t("personalFeature1")}</li>
+              <li>• {t("personalFeature2")}</li>
             </ul>
             <button onClick={() => onSelect(p.id)}
               disabled={!isStudent || hasProfile || busy !== null}
               className="w-full py-2.5 rounded-xl text-xs font-black text-white transition-all disabled:opacity-50"
               style={{ background: "#173F5F" }}>
               {busy === p.id ? <Loader2 size={13} className="animate-spin mx-auto" />
-                : hasProfile ? "لديك حساب بالفعل"
-                : !isStudent ? "للطلاب فقط"
-                : "اختيار هذه الخطة"}
+                : hasProfile ? t("alreadyHaveAccount")
+                : !isStudent ? t("studentsOnly")
+                : t("choosePlan")}
             </button>
           </div>
         ))}
       </div>
       {!isStudent && (
-        <p className="text-[10px] text-muted-foreground mt-2">الخطة الشخصية متاحة عند الدخول بحساب طالب</p>
+        <p className="text-[10px] text-muted-foreground mt-2">{t("personalStudentNote")}</p>
       )}
     </section>
   );

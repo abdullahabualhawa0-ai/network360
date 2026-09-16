@@ -4,21 +4,22 @@ import { useAuth } from "@/lib/AuthContext";
 import { PLANS, randomCode } from "@/lib/plans";
 import PersonalPlans from "@/components/plans/PersonalPlans";
 import SchoolPlans from "@/components/plans/SchoolPlans";
+import RegistrationSurvey from "@/components/RegistrationSurvey";
 import { Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
-import { t, useLang } from "@/lib/i18n";
+import { t, useLang, useDir } from "@/lib/i18n";
 
 /**
  * صفحة اختيار الخطة — "إنشاء حساب جديد"
- * لا يُنشأ الحساب قبل اختيار الخطة:
- * - الخطة الشخصية → حساب طالب شخصي فوري
- * - الخطة المدرسية → تسجيل المدرسة (بانتظار تفعيل المالك وتعيين المشرف)
+ * يجب تعبئة استبيان المعلومات الأساسية قبل إكمال التسجيل/الاشتراك.
  */
 export default function Plans() {
   const { user } = useAuth();
   useLang();
+  const direction = useDir();
   const [busy, setBusy] = useState(null);
   const [hasProfile, setHasProfile] = useState(false);
   const [schoolDone, setSchoolDone] = useState(null);
+  const [survey, setSurvey] = useState(null); // بيانات الاستبيان — null = لم يُعبّأ بعد
   const [schoolForm, setSchoolForm] = useState({ name: "", email: user?.email || "" });
   const [error, setError] = useState(null);
 
@@ -37,12 +38,13 @@ export default function Plans() {
 
   // الخطة الشخصية → إنشاء مدرسة شخصية (طالب واحد) + ملف طالب معتمد فورًا
   const startPersonal = async (planId) => {
+    if (!survey) return;
     setBusy(planId);
     setError(null);
     try {
       const code = await uniqueCode("P");
       const school = await base44.entities.School.create({
-        name: `${user.full_name || "حساب"} — شخصي`,
+        name: `${survey.fullName || user?.full_name || "حساب"} — شخصي`,
         code,
         is_active: true,
         created_by_id: user.id,
@@ -58,50 +60,55 @@ export default function Plans() {
       await base44.entities.StudentProfile.create({
         school_id: school.id,
         student_code: sCode,
-        full_name: user.full_name || "طالب",
-        email: user.email,
+        full_name: survey.fullName || user?.full_name || "طالب",
+        email: survey.email || user?.email,
         status: "approved",
         user_id: user.id,
         approved_by: "self",
         approved_at: new Date().toISOString(),
+        phone: survey.phone,
+        country: survey.country,
       });
-      // مستخدم مستقل (Personal) — لا يحتاج School Code، ونوع الحساب يُفصل عن مستخدم المدرسة
       await base44.auth.updateMe({ school_id: school.id, account_type: "personal" }).catch(() => {});
       window.location.href = "/";
     } catch {
-      setError("تعذر إنشاء الحساب — حاول مجدداً");
+      setError(t("errCreateAccount"));
       setBusy(null);
     }
   };
 
   // الخطة المدرسية → تسجيل مدرسة جديدة برمز فريد (بانتظار تفعيل المالك)
   const submitSchool = async (planId) => {
-    if (!schoolForm.name.trim()) { setError("أدخل اسم المدرسة أولاً"); return; }
+    if (!survey) return;
     setBusy(planId);
     setError(null);
     try {
       const code = await uniqueCode("SCH");
       await base44.entities.School.create({
-        name: schoolForm.name.trim(),
+        name: (survey.schoolName || schoolForm.name || "").trim(),
         code,
-        admin_email: schoolForm.email.trim() || user?.email || null,
+        admin_email: survey.email || schoolForm.email.trim() || user?.email || null,
         is_active: false,
         created_by_id: user?.id,
         subscription_plan: planId,
         student_limit: PLANS[planId].student_limit,
         current_student_count: 0,
         subscription_status: "pending",
+        admin_name: survey.adminName,
+        contact_phone: survey.phone,
+        country: survey.country,
+        expected_students: survey.expectedStudents,
       });
       setSchoolDone({ code, plan: PLANS[planId].label });
     } catch {
-      setError("تعذر تسجيل المدرسة — حاول مجدداً");
+      setError(t("errRegisterSchool"));
     } finally {
       setBusy(null);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground" dir={direction}>
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="text-center mb-10">
           <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
@@ -115,16 +122,23 @@ export default function Plans() {
         {schoolDone ? (
           <div className="rounded-2xl p-8 text-center bg-card" style={{ border: "1px solid rgba(46,125,91,0.35)" }}>
             <CheckCircle2 size={40} className="mx-auto mb-3" style={{ color: "#2E7D5B" }} />
-            <h2 className="font-black text-lg mb-2">تم استلام طلب مدرستك ✓</h2>
+            <h2 className="font-black text-lg mb-2">{t("schoolReceivedTitle")}</h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              الخطة: <b>{schoolDone.plan}</b>
+              {t("schoolReceivedPlan")}: <b>{schoolDone.plan}</b>
               <br />
-              رمز المدرسة: <span className="font-mono" style={{ color: "#2F6690" }}>{schoolDone.code}</span>
+              {t("schoolReceivedCode")}: <span className="font-mono" style={{ color: "#2F6690" }}>{schoolDone.code}</span>
               <br /><br />
-              سيقوم مالك المنصة بتفعيل المدرسة وتعيينك مشرفاً عبر بريدك، عندها يمكنك إضافة طلاب مدرستك برموزهم.
+              {t("schoolReceivedNote")}
             </p>
           </div>
+        ) : !survey ? (
+          // الخطوة 1: استبيان المعلومات الأساسية — إلزامي قبل اختيار الخطة
+          <RegistrationSurvey
+            initialType="individual"
+            onSubmit={(data) => setSurvey(data)}
+          />
         ) : (
+          // الخطوة 2: اختيار الخطة بعد تعبئة الاستبيان
           <>
             <PersonalPlans
               isStudent={user?.role === "student"}
@@ -134,7 +148,7 @@ export default function Plans() {
             />
             <SchoolPlans
               busy={busy}
-              form={schoolForm}
+              form={{ name: survey.schoolName || "", email: survey.email || "" }}
               setForm={setSchoolForm}
               onSelect={submitSchool}
             />
