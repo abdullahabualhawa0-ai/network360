@@ -167,7 +167,6 @@ export default function Plans() {
             ) : (
               <PersonalPlans
                 isStudent={user?.role === "student"}
-                hasProfile={hasProfile}
                 busy={busy}
                 onSelect={startPersonal}
               />

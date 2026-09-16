@@ -59,9 +59,11 @@ const AuthenticatedApp = () => {
       {/* دخول الطالب — الرموز فقط، لا Base44 Authentication */}
       <Route path="/student-login" element={<StudentLogin />} />
 
+      {/* صفحة الخطط — متاحة بدون تسجيل دخول */}
+      <Route path="/plans" element={<Plans />} />
+
       {/* مسارات الإدارة — تتطلب Base44 Authentication */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/plans" element={<Plans />} />
         <Route element={<Layout />}>
           <Route path="/admin/schools" element={<SchoolsManager />} />
           <Route path="/admin/school-students" element={<SchoolStudents />} />
