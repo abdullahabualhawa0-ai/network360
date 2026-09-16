@@ -30,6 +30,10 @@ window.localStorage = {
   }
 };
 window.location = { href: "http://localhost/", pathname: "/", search: "", hash: "" };
+window.history = { replaceState: () => {
+}, pushState: () => {
+}, back: () => {
+}, state: {} };
 window.addEventListener = () => {
 };
 window.removeEventListener = () => {
@@ -3711,7 +3715,6 @@ function Login() {
     }
   );
 }
-د;
 const InputOTP = React.forwardRef(({ className, containerClassName, ...props }, ref) => /* @__PURE__ */ jsx(
   OTPInput,
   {
