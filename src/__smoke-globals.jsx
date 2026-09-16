@@ -8,6 +8,7 @@ window.localStorage = {
   removeItem(k) { delete this.store[k]; },
 };
 window.location = { href: "http://localhost/", pathname: "/", search: "", hash: "" };
+window.history = { replaceState: () => {}, pushState: () => {}, back: () => {}, state: {} };
 window.addEventListener = () => {};
 window.removeEventListener = () => {};
 window.dispatchEvent = () => {};
