@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { KeyRound, Loader2, AlertTriangle, ShieldCheck, GraduationCap, UserPlus, BookOpen } from "lucide-react";
+import { KeyRound, Loader2, AlertTriangle, GraduationCap, UserPlus, BookOpen } from "lucide-react";
 import { studentLogin, setStudentSession } from "@/lib/studentSession";
 import { teacherLogin, setTeacherSession } from "@/lib/teacherSession";
 import { t, useLang, useDir } from "@/lib/i18n";
@@ -143,13 +143,6 @@ export default function StudentLogin() {
           </div>
         )}
 
-        {/* دخول الإدارة / المالك عبر Base44 */}
-        <div className="mt-4 pt-4 text-center" style={{ borderTop: "1px solid #E2E8F0" }}>
-          <Link to="/login" className="inline-flex items-center gap-1.5 text-xs font-bold" style={{ color: "#2F6690" }}>
-            <ShieldCheck size={13} /> {t("adminLoginLink")}
-          </Link>
-          <p className="text-[10px] text-muted-foreground mt-1">{t("adminLoginNote")}</p>
-        </div>
       </div>
     </div>
   );
