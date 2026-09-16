@@ -1,11 +1,13 @@
 import { PLANS } from "@/lib/plans";
-import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, LogIn } from "lucide-react";
 import { t, useLang, useDir } from "@/lib/i18n";
 
 /** بطاقتا الخطة الشخصية — شهري 50₪ / سنوي 400₪ */
 export default function PersonalPlans({ isStudent, hasProfile, busy, onSelect }) {
   useLang();
   const direction = useDir();
+  const navigate = useNavigate();
   const plans = [PLANS.personal_monthly, PLANS.personal_annual];
   return (
     <section className="mb-10" dir={direction}>
@@ -27,15 +29,22 @@ export default function PersonalPlans({ isStudent, hasProfile, busy, onSelect })
               <li>• {t("personalFeature1")}</li>
               <li>• {t("personalFeature2")}</li>
             </ul>
-            <button onClick={() => onSelect(p.id)}
-              disabled={!isStudent || hasProfile || busy !== null}
-              className="w-full py-2.5 rounded-xl text-xs font-black text-white transition-all disabled:opacity-50"
-              style={{ background: "#173F5F" }}>
-              {busy === p.id ? <Loader2 size={13} className="animate-spin mx-auto" />
-                : hasProfile ? t("alreadyHaveAccount")
-                : !isStudent ? t("studentsOnly")
-                : t("choosePlan")}
-            </button>
+            {hasProfile ? (
+              <button onClick={() => navigate("/student-login")}
+                className="w-full py-2.5 rounded-xl text-xs font-black text-white transition-all flex items-center justify-center gap-1.5"
+                style={{ background: "#2F6690" }}>
+                <LogIn size={13} /> {t("loginBtn")}
+              </button>
+            ) : (
+              <button onClick={() => onSelect(p.id)}
+                disabled={!isStudent || busy !== null}
+                className="w-full py-2.5 rounded-xl text-xs font-black text-white transition-all disabled:opacity-50"
+                style={{ background: "#173F5F" }}>
+                {busy === p.id ? <Loader2 size={13} className="animate-spin mx-auto" />
+                  : !isStudent ? t("studentsOnly")
+                  : t("choosePlan")}
+              </button>
+            )}
           </div>
         ))}
       </div>
