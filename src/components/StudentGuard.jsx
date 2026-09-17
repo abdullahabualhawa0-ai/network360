@@ -23,9 +23,13 @@ export default function StudentGuard() {
   // طالب بجلسة صالحة
   if (session) return <Outlet />;
 
-  // مدير/معلم مسجّل عبر Base44 — يُسمح له بمراجعة الدروس
-  const isAdmin = isAuthenticated && (user?.role === "admin" || user?.role === "school_admin");
-  if (isAdmin) return <Outlet />;
+  // المالك (Owner) عبر Base44 — يُوجّه مباشرة للوحة الإدارة دون صفحة الدخول
+  if (isAuthenticated && user?.role === "admin") {
+    return <Navigate to="/admin/schools" replace />;
+  }
+
+  // مشرف المدرسة (school_admin) مسجّل عبر Base44 — يُسمح له بمراجعة الدروس
+  if (isAuthenticated && user?.role === "school_admin") return <Outlet />;
 
   // لا جلسة ولا مدير → صفحة دخول الطالب
   return <Navigate to="/student-login" replace />;
