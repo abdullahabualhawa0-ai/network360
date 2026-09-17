@@ -39,7 +39,7 @@ export default function RegistrationRequests() {
     if (!isLoadingAuth && isOwner) load();
   }, [isLoadingAuth, isOwner]);
 
-  const notifyUser = async (req, accepted, schoolCode) => {
+  const notifyUser = async (req, accepted, schoolCode, adminCode) => {
     const isSchool = req.request_type === "school";
     const subject = accepted
       ? (isSchool ? "✅ تم قبول طلب تسجيل مدرستك" : "✅ تم قبول طلب تسجيلك")
@@ -52,7 +52,9 @@ export default function RegistrationRequests() {
           <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;">
             <p style="margin: 0 0 12px; font-size: 14px;">مرحباً ${req.full_name || ""}،</p>
             <p style="margin: 0 0 12px; font-size: 14px;">تم قبول طلب تسجيلك${isSchool ? ` للمدرسة «${req.school_name || ""}»` : ""}.</p>
-            ${isSchool && schoolCode ? `<p style="margin: 0 0 12px; font-size: 14px;">رمز المدرسة: <b dir="ltr">${schoolCode}</b></p>` : ""}
+            ${isSchool && schoolCode ? `<p style="margin: 0 0 8px; font-size: 14px;">رمز المدرسة: <b dir="ltr">${schoolCode}</b></p>` : ""}
+            ${isSchool && adminCode ? `<p style="margin: 0 0 8px; font-size: 14px;">رمز المشرف: <b dir="ltr">${adminCode}</b></p>` : ""}
+            ${isSchool && adminCode ? `<p style="margin: 0 0 12px; font-size: 13px; color: #2F6690;">لقد تم تعيينك مشرفاً لهذه المدرسة. ادخل عبر رمز المدرسة ورمز المشرف من صفحة الدخول.</p>` : ""}
             <p style="margin: 0; font-size: 12px; color: #64748B;">سيتم التواصل معك قريباً بالخطوات التالية.</p>
           </div>
         </div>`
@@ -120,23 +122,38 @@ export default function RegistrationRequests() {
     setActivateMsg(null);
     try {
       let schoolCode = null;
+      let schoolId = null;
+      let adminCode = null;
       if (req.request_type === "school" && req.status !== "accepted") {
         schoolCode = `SCH-${Date.now().toString().slice(-6)}`;
         const dup = await base44.entities.School.filter({ code: schoolCode });
         if (dup && dup.length > 0) throw new Error("Code collision");
-        await base44.entities.School.create({
-          name: req.school_name, code: schoolCode, is_active: true, created_by_id: user.id,
+        adminCode = generateAdminCode();
+        const school = await base44.entities.School.create({
+          name: req.school_name, code: schoolCode, admin_code: adminCode, is_active: true, created_by_id: user.id,
           subscription_plan: "school_50", student_limit: req.expected_students || 50,
           teacher_limit: req.expected_teachers || 0, current_student_count: 0,
           subscription_status: "active", admin_name: req.full_name, admin_email: req.email,
           contact_phone: req.phone, country: req.country, expected_students: req.expected_students,
         });
+        schoolId = school.id;
+
+        // تعيين صاحب الطلب كمشرف المدرسة تلقائياً
+        let users = await base44.entities.User.filter({ email: req.email });
+        if (!users || users.length === 0) {
+          // لا يوجد حساب → دعوة المستخدم ثم تعيينه مشرفاً
+          try { await base44.users.inviteUser(req.email, "user"); } catch (e) { console.log("invite failed:", e?.message); }
+          users = await base44.entities.User.filter({ email: req.email });
+        }
+        if (users && users.length > 0) {
+          await base44.entities.User.update(users[0].id, { role: "school_admin", school_id: schoolId });
+        }
       }
       await base44.entities.RegistrationRequest.update(req.id, {
         status: "accepted",
         notes: schoolCode ? `School activated: ${schoolCode}` : "Accepted",
       });
-      const emailed = await notifyUser(req, true, schoolCode);
+      const emailed = await notifyUser(req, true, schoolCode, adminCode);
       // حذف الطلب نهائياً بعد القبول — المدرسة أصبحت في صفحة المدارس
       await base44.entities.RegistrationRequest.delete(req.id);
       setActivateMsg({ id: req.id, ok: true, text: emailed ? t("reqAcceptedMsg") : t("reqNotifyErr") });
@@ -299,4 +316,11 @@ export default function RegistrationRequests() {
       </div>
     </div>
   );
+}
+
+function generateAdminCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "ADM-";
+  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
 }
