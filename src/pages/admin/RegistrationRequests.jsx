@@ -137,6 +137,8 @@ export default function RegistrationRequests() {
         notes: schoolCode ? `School activated: ${schoolCode}` : "Accepted",
       });
       const emailed = await notifyUser(req, true, schoolCode);
+      // حذف الطلب نهائياً بعد القبول — المدرسة أصبحت في صفحة المدارس
+      await base44.entities.RegistrationRequest.delete(req.id);
       setActivateMsg({ id: req.id, ok: true, text: emailed ? t("reqAcceptedMsg") : t("reqNotifyErr") });
       load();
     } catch (err) {
@@ -150,8 +152,9 @@ export default function RegistrationRequests() {
     setActivating(req.id);
     setActivateMsg(null);
     try {
-      await base44.entities.RegistrationRequest.update(req.id, { status: "rejected", notes: "Rejected" });
       const emailed = await notifyUser(req, false);
+      // حذف الطلب نهائياً بعد الرفض
+      await base44.entities.RegistrationRequest.delete(req.id);
       setActivateMsg({ id: req.id, ok: emailed, text: emailed ? t("reqRejectedMsg") : t("reqNotifyErr") });
       load();
     } catch (err) {
