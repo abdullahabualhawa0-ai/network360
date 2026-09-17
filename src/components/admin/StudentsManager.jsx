@@ -63,7 +63,7 @@ export default function StudentsManager({ school, onBack }) {
       student_code: code,
       full_name: form.name.trim(),
       email: form.email.trim() || null,
-      status: "pending",
+      status: "approved",
       user_id: UNCLAIMED,
     });
     // مزامنة عداد الطلاب على سجل المدرسة (تنجح للمالك، وتُتجاهل بهدوء لغيره)
@@ -135,7 +135,7 @@ export default function StudentsManager({ school, onBack }) {
           student_code: code,
           full_name: name,
           email: String(s.email || "").trim() || null,
-          status: "pending",
+          status: "approved",
           user_id: UNCLAIMED,
         });
       }
