@@ -462,6 +462,11 @@ const T = {
   reqNoRequestsDesc: { ar: "ستظهر طلبات التسجيل الجديدة هنا تلقائياً", en: "New registration requests will appear here", he: "בקשות רישום חדשות יופיעו כאן" },
   reqActivateSchool: { ar: "تفعيل كمدرسة", en: "Activate as School", he: "הפעל כבית ספר" },
   reqActivated: { ar: "تم تفعيل المدرسة ✓", en: "School activated ✓", he: "בית הספר הופעל ✓" },
+  reqAccept: { ar: "قبول", en: "Accept", he: "אישור" },
+  reqReject: { ar: "رفض", en: "Reject", he: "דחייה" },
+  reqAcceptedMsg: { ar: "تم قبول الطلب وإرسال إشعار للمستخدم ✓", en: "Request accepted — user notified ✓", he: "הבקשה אושרה — המשתמש קיבל הודעה ✓" },
+  reqRejectedMsg: { ar: "تم رفض الطلب وإرسال إشعار للمستخدم", en: "Request rejected — user notified", he: "הבקשה נדחתה — המשתמש קיבל הודעה" },
+  reqNotifyErr: { ar: "تم تحديث الحالة لكن تعذر إرسال البريد", en: "Status updated but email failed to send", he: "הסטטוס עודכן אך שליחת האימייל נכשלה" },
 
   /* ─── زر تغيير اللغة ─── */
   langSwitcher: { ar: "اللغة", en: "Language", he: "שפה" },

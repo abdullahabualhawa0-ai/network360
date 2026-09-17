@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ClipboardList, Loader2, RefreshCw, Mail, Phone, User, School as SchoolIcon,
-  Check, X, AlertCircle,
+  Check, X, AlertCircle, CheckCircle2, XCircle,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -39,6 +39,42 @@ export default function RegistrationRequests() {
     if (!isLoadingAuth && isOwner) load();
   }, [isLoadingAuth, isOwner]);
 
+  const notifyUser = async (req, accepted, schoolCode) => {
+    const isSchool = req.request_type === "school";
+    const subject = accepted
+      ? (isSchool ? "✅ تم قبول طلب تسجيل مدرستك" : "✅ تم قبول طلب تسجيلك")
+      : (isSchool ? "❌ تم رفض طلب تسجيل مدرستك" : "❌ تم رفض طلب تسجيلك");
+    const html = accepted
+      ? `<div dir="rtl" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #F7F9FC; border-radius: 16px;">
+          <div style="background: #2E7D5B; color: #fff; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 18px;">تم قبول طلبك ✓</h2>
+          </div>
+          <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;">
+            <p style="margin: 0 0 12px; font-size: 14px;">مرحباً ${req.full_name || ""}،</p>
+            <p style="margin: 0 0 12px; font-size: 14px;">تم قبول طلب تسجيلك${isSchool ? ` للمدرسة «${req.school_name || ""}»` : ""}.</p>
+            ${isSchool && schoolCode ? `<p style="margin: 0 0 12px; font-size: 14px;">رمز المدرسة: <b dir="ltr">${schoolCode}</b></p>` : ""}
+            <p style="margin: 0; font-size: 12px; color: #64748B;">سيتم التواصل معك قريباً بالخطوات التالية.</p>
+          </div>
+        </div>`
+      : `<div dir="rtl" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #F7F9FC; border-radius: 16px;">
+          <div style="background: #C94C4C; color: #fff; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 18px;">تم رفض طلبك</h2>
+          </div>
+          <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;">
+            <p style="margin: 0 0 12px; font-size: 14px;">مرحباً ${req.full_name || ""}،</p>
+            <p style="margin: 0 0 12px; font-size: 14px;">نأسف لإبلاغك بأنه تم رفض طلب تسجيلك${isSchool ? ` للمدرسة «${req.school_name || ""}»` : ""}.</p>
+            <p style="margin: 0; font-size: 12px; color: #64748B;">لأي استفسار يمكنك التواصل معنا.</p>
+          </div>
+        </div>`;
+    try {
+      await base44.integrations.Core.SendEmail({ to: req.email, subject, html });
+      return true;
+    } catch (e) {
+      console.log("SendEmail failed:", e?.message);
+      return false;
+    }
+  };
+
   const changeStatus = async (req, status) => {
     await base44.entities.RegistrationRequest.update(req.id, { status });
     load();
@@ -69,7 +105,54 @@ export default function RegistrationRequests() {
         expected_students: req.expected_students,
       });
       await base44.entities.RegistrationRequest.update(req.id, { status: "accepted", notes: `School activated: ${school.code}` });
+      await notifyUser(req, true, school.code);
       setActivateMsg({ id: req.id, ok: true, text: `${t("reqActivated")} (${school.code})` });
+      load();
+    } catch (err) {
+      setActivateMsg({ id: req.id, ok: false, text: err?.message || "Error" });
+    } finally {
+      setActivating(null);
+    }
+  };
+
+  const acceptRequest = async (req) => {
+    setActivating(req.id);
+    setActivateMsg(null);
+    try {
+      let schoolCode = null;
+      if (req.request_type === "school" && req.status !== "accepted") {
+        schoolCode = `SCH-${Date.now().toString().slice(-6)}`;
+        const dup = await base44.entities.School.filter({ code: schoolCode });
+        if (dup && dup.length > 0) throw new Error("Code collision");
+        await base44.entities.School.create({
+          name: req.school_name, code: schoolCode, is_active: true, created_by_id: user.id,
+          subscription_plan: "school_50", student_limit: req.expected_students || 50,
+          teacher_limit: req.expected_teachers || 0, current_student_count: 0,
+          subscription_status: "active", admin_name: req.full_name, admin_email: req.email,
+          contact_phone: req.phone, country: req.country, expected_students: req.expected_students,
+        });
+      }
+      await base44.entities.RegistrationRequest.update(req.id, {
+        status: "accepted",
+        notes: schoolCode ? `School activated: ${schoolCode}` : "Accepted",
+      });
+      const emailed = await notifyUser(req, true, schoolCode);
+      setActivateMsg({ id: req.id, ok: true, text: emailed ? t("reqAcceptedMsg") : t("reqNotifyErr") });
+      load();
+    } catch (err) {
+      setActivateMsg({ id: req.id, ok: false, text: err?.message || "Error" });
+    } finally {
+      setActivating(null);
+    }
+  };
+
+  const rejectRequest = async (req) => {
+    setActivating(req.id);
+    setActivateMsg(null);
+    try {
+      await base44.entities.RegistrationRequest.update(req.id, { status: "rejected", notes: "Rejected" });
+      const emailed = await notifyUser(req, false);
+      setActivateMsg({ id: req.id, ok: emailed, text: emailed ? t("reqRejectedMsg") : t("reqNotifyErr") });
       load();
     } catch (err) {
       setActivateMsg({ id: req.id, ok: false, text: err?.message || "Error" });
@@ -184,23 +267,20 @@ export default function RegistrationRequests() {
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex flex-col gap-1.5 flex-shrink-0">
-                      <select value={req.status} onChange={(e) => changeStatus(req, e.target.value)}
-                        className="px-2 py-1.5 rounded-xl text-[10px] font-bold focus:outline-none"
-                        style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
-                        {STATUSES.map((s) => (
-                          <option key={s} value={s} className="bg-card">{t(STATUS_UI[s].label)}</option>
-                        ))}
-                      </select>
-                      {isSchool && req.status !== "accepted" && (
-                        <button onClick={() => activateSchool(req)} disabled={activating === req.id}
-                          className="flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white disabled:opacity-60"
-                          style={{ background: "#2E7D5B" }}>
-                          {activating === req.id ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
-                          {t("reqActivateSchool")}
-                        </button>
-                      )}
+                    {/* Actions — قبول / رفض فقط */}
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <button onClick={() => acceptRequest(req)} disabled={activating === req.id || req.status === "accepted"}
+                        className="flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white disabled:opacity-50"
+                        style={{ background: req.status === "accepted" ? "#2E7D5B" : "#173F5F" }}>
+                        {activating === req.id ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle2 size={11} />}
+                        {t("reqAccept")}
+                      </button>
+                      <button onClick={() => rejectRequest(req)} disabled={activating === req.id || req.status === "rejected"}
+                        className="flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white disabled:opacity-50"
+                        style={{ background: req.status === "rejected" ? "#C94C4C" : "#C94C4C" }}>
+                        {activating === req.id ? <Loader2 size={10} className="animate-spin" /> : <XCircle size={11} />}
+                        {t("reqReject")}
+                      </button>
                     </div>
                   </div>
                   {activateMsg?.id === req.id && (
