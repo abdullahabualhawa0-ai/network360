@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { KeyRound, Loader2, AlertTriangle, GraduationCap, UserPlus, BookOpen, Shield } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { studentLogin, setStudentSession } from "@/lib/studentSession";
 import { teacherLogin, setTeacherSession } from "@/lib/teacherSession";
 import { schoolAdminLogin, setSchoolAdminSession } from "@/lib/schoolAdminSession";
@@ -33,6 +34,27 @@ export default function StudentLogin() {
 
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+
+  // المالك (Base44 auth) لا يرى صفحة دخول الطلاب — يُوجّه للوحة الإدارة
+  const [checking, setChecking] = useState(true);
+  useEffect(() => {
+    base44.auth.isAuthenticated().then((authed) => {
+      if (authed) {
+        base44.auth.me().then((u) => {
+          if (u?.role === "admin") navigate("/admin/schools", { replace: true });
+          else setChecking(false);
+        }).catch(() => setChecking(false));
+      } else setChecking(false);
+    });
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#F7F9FC" }}>
+        <div className="w-8 h-8 rounded-full animate-spin" style={{ border: "3px solid rgba(47,102,144,0.2)", borderTopColor: "#173F5F" }} />
+      </div>
+    );
+  }
 
   // inputStyle moved to module scope (see LoginField below)
 
