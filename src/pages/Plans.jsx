@@ -19,7 +19,7 @@ export default function Plans() {
   const [error, setError] = useState(null);
 
   // نموذج فردي
-  const [indForm, setIndForm] = useState({ fullName: "", email: "", phone: "", country: "", expectedUsers: "" });
+  const [indForm, setIndForm] = useState({ fullName: "", email: "", phone: "", country: "" });
   // نموذج مدرسي
   const [schForm, setSchForm] = useState({
     schoolName: "", fullName: "", email: "", phone: "", country: "",
@@ -44,7 +44,6 @@ export default function Plans() {
         email: indForm.email.trim(),
         phone: indForm.phone.trim(),
         country: indForm.country.trim(),
-        expected_users: Number(indForm.expectedUsers) || null,
         status: "new",
       });
       base44.functions.invoke("notifyOwnerRegistration", {
@@ -53,7 +52,6 @@ export default function Plans() {
         email: indForm.email.trim(),
         phone: indForm.phone.trim(),
         country: indForm.country.trim(),
-        expectedUsers: indForm.expectedUsers || null,
       }).catch(() => {});
       setStep("done");
     } catch {
@@ -153,9 +151,6 @@ export default function Plans() {
                 <Field label={`${t("regEmail")} *`} type="email" dir="ltr" value={indForm.email} onChange={(v) => setIndForm({ ...indForm, email: v })} required />
                 <Field label={`${t("regPhone")} *`} dir="ltr" value={indForm.phone} onChange={(v) => setIndForm({ ...indForm, phone: v })} required />
                 <Field label={`${t("regCountry")} *`} value={indForm.country} onChange={(v) => setIndForm({ ...indForm, country: v })} required />
-                <div className="sm:col-span-2">
-                  <Field label={t("regExpectedUsers")} type="number" min="1" value={indForm.expectedUsers} onChange={(v) => setIndForm({ ...indForm, expectedUsers: v })} />
-                </div>
                 <ErrorRow error={error} />
                 <div className="sm:col-span-2">
                   <button type="submit" disabled={busy}
