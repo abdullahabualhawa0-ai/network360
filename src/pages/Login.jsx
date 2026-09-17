@@ -48,7 +48,7 @@ export default function Login() {
           <>
             {t("authNoAccount")}{" "}
             <Link
-              to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")}
+              to={"/admin-register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")}
               className="text-primary font-medium hover:underline"
             >
               {t("authCreateOne")}

@@ -52,20 +52,21 @@ const AuthenticatedApp = () => {
     <>
     <ScrollToTop />
     <Routes>
-      {/* صفحات المصادقة للإدارة (Base44) */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-
-      {/* دخول الطالب — الرموز فقط، لا Base44 Authentication */}
+      {/* دخول الطالب — الرموز فقط، لا Base44 Authentication — الصفحة الرئيسية للدخول */}
+      <Route path="/login" element={<StudentLogin />} />
       <Route path="/student-login" element={<StudentLogin />} />
+
+      {/* صفحات المصادقة للإدارة (Base44) — منفصلة عن دخول الطالب */}
+      <Route path="/admin-login" element={<Login />} />
+      <Route path="/admin-register" element={<Register />} />
+      <Route path="/admin-forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* صفحة الخطط — متاحة بدون تسجيل دخول */}
       <Route path="/plans" element={<Plans />} />
 
       {/* مسارات الإدارة — تتطلب Base44 Authentication */}
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/admin-login" replace />} />}>
         <Route element={<Layout />}>
           <Route path="/admin/schools" element={<SchoolsManager />} />
           <Route path="/admin/school-students" element={<SchoolStudents />} />
