@@ -26,9 +26,8 @@ export default function Plans() {
     expectedStudents: "", expectedTeachers: "",
   });
 
-  const inputStyle = { background: "#F7F9FC", border: "1px solid #E2E8F0" };
-  const labelCls = "block text-[11px] font-bold text-muted-foreground mb-1.5";
-  const inputCls = "w-full px-4 py-2.5 rounded-xl text-sm text-foreground focus:outline-none";
+  // styles moved to module scope (see Field below) to avoid re-creating the
+  // component on every render, which was causing inputs to lose focus.
 
   const submitIndividual = async (e) => {
     e.preventDefault();
@@ -104,14 +103,6 @@ export default function Plans() {
       setBusy(false);
     }
   };
-
-  const Field = ({ label, value, onChange, ...props }) => (
-    <div>
-      <label className={labelCls}>{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)}
-        className={inputCls} style={inputStyle} {...props} />
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir={direction}>
@@ -229,6 +220,20 @@ export default function Plans() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+const _inputStyle = { background: "#F7F9FC", border: "1px solid #E2E8F0" };
+const _labelCls = "block text-[11px] font-bold text-muted-foreground mb-1.5";
+const _inputCls = "w-full px-4 py-2.5 rounded-xl text-sm text-foreground focus:outline-none";
+
+function Field({ label, value, onChange, ...props }) {
+  return (
+    <div>
+      <label className={_labelCls}>{label}</label>
+      <input value={value} onChange={(e) => onChange(e.target.value)}
+        className={_inputCls} style={_inputStyle} {...props} />
     </div>
   );
 }

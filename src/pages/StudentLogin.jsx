@@ -34,7 +34,7 @@ export default function StudentLogin() {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const inputStyle = { background: "#F7F9FC", border: "1px solid #E2E8F0" };
+  // inputStyle moved to module scope (see LoginField below)
 
   const submitStudent = async (e) => {
     e.preventDefault();
@@ -81,30 +81,6 @@ export default function StudentLogin() {
     }
   };
 
-  const TabButton = ({ id, icon: Icon, label }) => {
-    const active = tab === id;
-    return (
-      <button type="button" onClick={() => { setTab(id); setError(null); }}
-        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all"
-        style={{
-          background: active ? "#173F5F" : "transparent",
-          color: active ? "#fff" : "hsl(var(--muted-foreground))",
-        }}>
-        <Icon size={13} /> {label}
-      </button>
-    );
-  };
-
-  const Field = ({ value, onChange, label, placeholder }) => (
-    <div>
-      <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)}
-        required placeholder={placeholder} dir="ltr"
-        className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none"
-        style={inputStyle} />
-    </div>
-  );
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4" dir={direction}
       style={{ background: "#F7F9FC" }}>
@@ -133,17 +109,17 @@ export default function StudentLogin() {
         {/* Tabs — تُخفى عند تفعيل دخول المشرف */}
         {!showAdminLogin && (
         <div className="flex gap-1 p-1 rounded-xl mb-4" style={{ background: "rgba(23,63,95,0.05)" }}>
-          <TabButton id="student" icon={KeyRound} label={t("loginTabStudent")} />
-          <TabButton id="teacher" icon={GraduationCap} label={t("loginTabTeacher")} />
-          <TabButton id="create" icon={UserPlus} label={t("createAccountTab")} />
+          <TabButton id="student" active={tab === "student"} icon={KeyRound} label={t("loginTabStudent")} onClick={() => { setTab("student"); setError(null); }} />
+          <TabButton id="teacher" active={tab === "teacher"} icon={GraduationCap} label={t("loginTabTeacher")} onClick={() => { setTab("teacher"); setError(null); }} />
+          <TabButton id="create" active={tab === "create"} icon={UserPlus} label={t("createAccountTab")} onClick={() => { setTab("create"); setError(null); }} />
         </div>
         )}
 
         {/* Admin login — يظهر بدلاً من التبويبات عند تفعيله */}
         {showAdminLogin && (
           <form onSubmit={submitAdmin} className="space-y-3">
-            <Field value={aSchoolCode} onChange={setASchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
-            <Field value={aAdminCode} onChange={setAAdminCode} label={t("adminCode")} placeholder={t("adminCodePlaceholder")} />
+            <LoginField value={aSchoolCode} onChange={setASchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
+            <LoginField value={aAdminCode} onChange={setAAdminCode} label={t("adminCode")} placeholder={t("adminCodePlaceholder")} />
             {error && <ErrorBox text={error} />}
             <SubmitButton busy={busy} />
             <p className="text-[10px] text-center text-muted-foreground leading-relaxed">{t("loginAdminSubtitle")}</p>
@@ -153,8 +129,8 @@ export default function StudentLogin() {
         {/* Student tab */}
         {tab === "student" && !showAdminLogin && (
           <form onSubmit={submitStudent} className="space-y-3">
-            <Field value={sSchoolCode} onChange={setSSchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
-            <Field value={sStudentCode} onChange={setSStudentCode} label={t("studentCode")} placeholder="ST10025" />
+            <LoginField value={sSchoolCode} onChange={setSSchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
+            <LoginField value={sStudentCode} onChange={setSStudentCode} label={t("studentCode")} placeholder="ST10025" />
             {error && <ErrorBox text={error} />}
             <SubmitButton busy={busy} />
             <p className="text-[10px] text-center text-muted-foreground leading-relaxed">{t("loginPendingNote")}</p>
@@ -164,8 +140,8 @@ export default function StudentLogin() {
         {/* Teacher tab */}
         {tab === "teacher" && !showAdminLogin && (
           <form onSubmit={submitTeacher} className="space-y-3">
-            <Field value={tSchoolCode} onChange={setTSchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
-            <Field value={tTeacherCode} onChange={setTTeacherCode} label={t("teacherCode")} placeholder={t("teacherCodePlaceholder")} />
+            <LoginField value={tSchoolCode} onChange={setTSchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
+            <LoginField value={tTeacherCode} onChange={setTTeacherCode} label={t("teacherCode")} placeholder={t("teacherCodePlaceholder")} />
             {error && <ErrorBox text={error} />}
             <SubmitButton busy={busy} />
             <p className="text-[10px] text-center text-muted-foreground leading-relaxed">{t("loginTeacherSubtitle")}</p>
@@ -207,6 +183,33 @@ function SubmitButton({ busy }) {
       className="w-full py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-60"
       style={{ background: "#173F5F" }}>
       {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : t("loginBtn")}
+    </button>
+  );
+}
+
+const _inputStyle = { background: "#F7F9FC", border: "1px solid #E2E8F0" };
+
+function LoginField({ value, onChange, label, placeholder }) {
+  return (
+    <div>
+      <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{label}</label>
+      <input value={value} onChange={(e) => onChange(e.target.value)}
+        required placeholder={placeholder} dir="ltr"
+        className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none"
+        style={_inputStyle} />
+    </div>
+  );
+}
+
+function TabButton({ id, active, icon: Icon, label, onClick }) {
+  return (
+    <button type="button" onClick={onClick}
+      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all"
+      style={{
+        background: active ? "#173F5F" : "transparent",
+        color: active ? "#fff" : "hsl(var(--muted-foreground))",
+      }}>
+      <Icon size={13} /> {label}
     </button>
   );
 }
