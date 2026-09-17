@@ -8,7 +8,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import StudentsManager from "../../components/admin/StudentsManager";
-import { PLANS, SCHOOL_TIERS, planLabel } from "@/lib/plans";
+import { planLabel } from "@/lib/plans";
 
 /**
  * شاشة المدارس — Super Admin فقط (role = admin)
@@ -53,12 +53,12 @@ export default function SchoolsManager() {
       admin_code: generateAdminCode(),
       is_active: true,
       created_by_id: user.id,
-      subscription_plan: form.plan,
-      student_limit: PLANS[form.plan]?.student_limit || 50,
+      subscription_plan: form.plan.trim() || "school_50",
+      student_limit: 50,
       current_student_count: 0,
       subscription_status: "active",
     });
-    setForm({ name: "", code: "" });
+    setForm({ name: "", code: "", plan: "" });
     setShowForm(false);
     setBusy(false);
     load();
@@ -69,11 +69,10 @@ export default function SchoolsManager() {
     load();
   };
 
-  const changePlan = async (s, planId) => {
-    await base44.entities.School.update(s.id, {
-      subscription_plan: planId,
-      student_limit: PLANS[planId]?.student_limit || 50,
-    });
+  const changePlan = async (s, plan) => {
+    const value = (plan || "").trim();
+    if (!value) return;
+    await base44.entities.School.update(s.id, { subscription_plan: value });
     load();
   };
 
@@ -167,15 +166,10 @@ export default function SchoolsManager() {
             </div>
             <div>
               <label className="block text-[10px] font-bold text-muted-foreground mb-1">خطة الاشتراك *</label>
-              <select value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
-                style={{ border: "1px solid hsl(var(--border))" }}>
-                {SCHOOL_TIERS.map((id) => (
-                  <option key={id} value={id} className="bg-card">
-                    {PLANS[id].label} — {PLANS[id].price}
-                  </option>
-                ))}
-              </select>
+              <input value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })}
+                placeholder="مثال: school_50 أو أي خطة" dir="ltr"
+                className="w-full px-3 py-2 rounded-xl text-xs font-mono bg-transparent focus:outline-none"
+                style={{ border: "1px solid hsl(var(--border))" }} />
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={busy}
@@ -254,14 +248,18 @@ export default function SchoolsManager() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <select value={s.subscription_plan || "school_50"} onChange={(e) => changePlan(s, e.target.value)}
-                      title="تغيير خطة الاشتراك"
-                      className="px-2 py-1.5 rounded-xl text-[10px] font-bold bg-transparent focus:outline-none"
-                      style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
-                      {SCHOOL_TIERS.map((id) => (
-                        <option key={id} value={id} className="bg-card">{PLANS[id].label}</option>
-                      ))}
-                    </select>
+                    <input
+                      key={s.id + (s.subscription_plan || "")}
+                      defaultValue={s.subscription_plan || ""}
+                      placeholder="خطة الاشتراك"
+                      dir="ltr"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); changePlan(s, e.target.value); e.target.blur(); }
+                      }}
+                      onBlur={(e) => { if (e.target.value.trim() !== (s.subscription_plan || "")) changePlan(s, e.target.value); }}
+                      title="تعديل خطة الاشتراك (Enter للحفظ)"
+                      className="px-2 py-1.5 rounded-xl text-[10px] font-bold font-mono bg-transparent focus:outline-none w-28"
+                      style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }} />
                     <button onClick={() => { setSelectedSchool(s); setView("students"); }}
                       className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold"
                       style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.3)", color: "#06b6d4" }}>
