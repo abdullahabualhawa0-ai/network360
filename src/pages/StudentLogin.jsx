@@ -143,14 +143,6 @@ export default function StudentLogin() {
           </div>
         )}
 
-        {/* رابط دخول الإدارة — في الأسفل، صغير وغير بارز */}
-        <div className="mt-5 pt-4 border-t" style={{ borderColor: "#E2E8F0" }}>
-          <Link to="/admin-login"
-            className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors flex items-center justify-center gap-1">
-            {t("adminLoginLink")}
-          </Link>
-        </div>
-
       </div>
     </div>
   );
