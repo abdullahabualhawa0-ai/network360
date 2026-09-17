@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import Layout from './components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminGuard from '@/components/AdminGuard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -65,8 +66,8 @@ const AuthenticatedApp = () => {
       {/* صفحة الخطط — متاحة بدون تسجيل دخول */}
       <Route path="/plans" element={<Plans />} />
 
-      {/* مسارات الإدارة — تتطلب Base44 Authentication */}
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/admin-login" replace />} />}>
+      {/* مسارات الإدارة — المالك (Base44) أو مشرف المدرسة (جلسة الرمز) */}
+      <Route element={<AdminGuard />}>
         <Route element={<Layout />}>
           <Route path="/admin/schools" element={<SchoolsManager />} />
           <Route path="/admin/school-students" element={<SchoolStudents />} />

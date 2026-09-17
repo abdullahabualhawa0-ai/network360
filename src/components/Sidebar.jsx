@@ -2,19 +2,22 @@ import { Link, useLocation } from "react-router-dom";
 import {
   BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical,
   FileText, History, ClipboardList, FileCheck, Settings, School, GraduationCap,
-  UserCog,
+  UserCog, LogOut,
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useStudentSession } from "@/lib/studentSession";
+import { useSchoolAdminSession } from "@/lib/schoolAdminSession";
+import { clearSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang } from "@/lib/i18n";
 
 export default function Sidebar({ onClose }) {
   const location = useLocation();
   const { user } = useAuth();
   const session = useStudentSession();
+  const schoolAdminSession = useSchoolAdminSession();
   useLang();
   const isSuperAdmin = user?.role === "admin";
-  const isSchoolAdmin = user?.role === "school_admin";
+  const isSchoolAdmin = user?.role === "school_admin" || !!schoolAdminSession;
   const isAdmin = isSuperAdmin || isSchoolAdmin;
   // الطالب الفردي (خطة شخصية بدون مدرسة فعلية) لا يرى الامتحانات
   const isPersonalStudent = !!session?.is_personal;
@@ -78,6 +81,17 @@ export default function Sidebar({ onClose }) {
       </div>
 
       <div className="flex-1" />
+
+      {/* تسجيل خروج المشرف (جلسة الرمز) */}
+      {schoolAdminSession && (
+        <div className="p-3" style={{ borderTop: "1px solid hsl(var(--sidebar-border))" }}>
+          <button onClick={() => { clearSchoolAdminSession(); window.location.href = "/login"; }}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all"
+            style={{ background: "rgba(201,76,76,0.06)", border: "1px solid rgba(201,76,76,0.2)", color: "#C94C4C" }}>
+            <LogOut size={14} /> {t("logout")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

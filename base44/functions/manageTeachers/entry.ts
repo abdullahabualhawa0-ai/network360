@@ -9,24 +9,37 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
-    if (user.role !== "school_admin" && user.role !== "admin") {
-      return Response.json({ error: "Forbidden — school admin only" }, { status: 403 });
-    }
-
     const svc = base44.asServiceRole;
     const body = await req.json();
-    const { action, data = {}, id } = body;
+    const { action, data = {}, id, session } = body;
 
-    // تحديد school_id: school_admin يستخدم مدرسته، admin يحدد من البيانات
+    // تحديد school_id: عبر جلسة مشرف المدرسة (رمز) أو عبر Base44 auth
     let schoolId;
-    if (user.role === "school_admin") {
-      schoolId = user.data?.school_id || user.school_id;
-      if (!schoolId) return Response.json({ error: "No school assigned" }, { status: 403 });
+    if (session?.school_id && session?.admin_code) {
+      // جلسة مشرف المدرسة بالرمز — تحقق من صحتها
+      const schools = await svc.entities.School.filter({
+        id: session.school_id,
+        admin_code: session.admin_code,
+        is_active: true,
+      });
+      if (!schools || schools.length === 0) {
+        return Response.json({ error: "Invalid session" }, { status: 401 });
+      }
+      schoolId = session.school_id;
     } else {
-      schoolId = data.school_id;
-      if (!schoolId) return Response.json({ error: "school_id required" }, { status: 400 });
+      // مصادقة Base44 (المالك أو مشرف مدرسة قديم)
+      const user = await base44.auth.me();
+      if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+      if (user.role !== "school_admin" && user.role !== "admin") {
+        return Response.json({ error: "Forbidden — school admin only" }, { status: 403 });
+      }
+      if (user.role === "school_admin") {
+        schoolId = user.data?.school_id || user.school_id;
+        if (!schoolId) return Response.json({ error: "No school assigned" }, { status: 403 });
+      } else {
+        schoolId = data.school_id;
+        if (!schoolId) return Response.json({ error: "school_id required" }, { status: 400 });
+      }
     }
 
     // جلب المدرسة لقراءة teacher_limit

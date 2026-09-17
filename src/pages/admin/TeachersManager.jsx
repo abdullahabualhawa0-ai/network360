@@ -6,7 +6,8 @@ import {
   Pencil, X, AlertCircle, KeyRound,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
+import { useAdminAuth } from "@/lib/useAdminAuth";
+import { getSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang, useDir } from "@/lib/i18n";
 
 /**
@@ -15,7 +16,7 @@ import { t, useLang, useDir } from "@/lib/i18n";
  * الحد الأقصى (teacher_limit) يُفرض من الـBackend عبر manageTeachers.
  */
 export default function TeachersManager() {
-  const { user, isLoadingAuth } = useAuth();
+  const { isLoading, role } = useAdminAuth();
   useLang();
   const direction = useDir();
   const [teachers, setTeachers] = useState(null);
@@ -26,12 +27,14 @@ export default function TeachersManager() {
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const isSchoolAdmin = user?.role === "school_admin" || user?.role === "admin";
+  const isSchoolAdmin = role === "school_admin" || role === "admin";
+
+  const session = getSchoolAdminSession();
 
   const load = async () => {
     if (!isSchoolAdmin) return;
     try {
-      const res = await base44.functions.invoke("manageTeachers", { action: "list" });
+      const res = await base44.functions.invoke("manageTeachers", { action: "list", session });
       setTeachers(res.data?.teachers || []);
       setTeacherLimit(res.data?.teacher_limit || 0);
     } catch {
@@ -40,8 +43,8 @@ export default function TeachersManager() {
   };
 
   useEffect(() => {
-    if (!isLoadingAuth && isSchoolAdmin) load();
-  }, [isLoadingAuth, isSchoolAdmin]);
+    if (!isLoading && isSchoolAdmin) load();
+  }, [isLoading, isSchoolAdmin]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -53,6 +56,7 @@ export default function TeachersManager() {
         await base44.functions.invoke("manageTeachers", {
           action: "update",
           id: editId,
+          session,
           data: {
             full_name: form.full_name.trim(),
             email: form.email.trim(),
@@ -63,6 +67,7 @@ export default function TeachersManager() {
       } else {
         await base44.functions.invoke("manageTeachers", {
           action: "create",
+          session,
           data: {
             full_name: form.full_name.trim(),
             email: form.email.trim(),
@@ -85,7 +90,7 @@ export default function TeachersManager() {
 
   const toggleStatus = async (id) => {
     try {
-      await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id });
+      await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id, session });
       load();
     } catch (err) {
       alert(err?.data?.error || err?.message);
@@ -95,7 +100,7 @@ export default function TeachersManager() {
   const deleteTeacher = async (t) => {
     if (!confirm(t("teacherConfirmDelete"))) return;
     try {
-      await base44.functions.invoke("manageTeachers", { action: "delete", id: t.id });
+      await base44.functions.invoke("manageTeachers", { action: "delete", id: t.id, session });
       load();
     } catch (err) {
       alert(err?.data?.error || err?.message);
@@ -114,7 +119,7 @@ export default function TeachersManager() {
     setShowForm(true);
   };
 
-  if (isLoadingAuth) {
+  if (isLoading) {
     return (
       <div className="py-24 flex justify-center">
         <Loader2 size={28} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />

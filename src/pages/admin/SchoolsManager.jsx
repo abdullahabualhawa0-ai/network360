@@ -50,6 +50,7 @@ export default function SchoolsManager() {
     await base44.entities.School.create({
       name: form.name.trim(),
       code,
+      admin_code: generateAdminCode(),
       is_active: true,
       created_by_id: user.id,
       subscription_plan: form.plan,
@@ -225,6 +226,13 @@ export default function SchoolsManager() {
                       </span>
                     </div>
                     <div className="text-[10px] text-muted-foreground font-mono mb-1" dir="ltr">school_id: {s.id}</div>
+                    {s.admin_code && (
+                      <div className="text-[10px] font-mono mb-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg"
+                        style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}
+                        dir="ltr">
+                        <ShieldCheck size={9} /> Admin Code: {s.admin_code}
+                      </div>
+                    )}
                     <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
                       <span className="px-2 py-0.5 rounded-full font-bold"
                         style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", color: "#a78bfa" }}>
@@ -305,4 +313,11 @@ function FullSpinner() {
       <Loader2 size={28} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
     </div>
   );
+}
+
+function generateAdminCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "ADM-";
+  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
 }

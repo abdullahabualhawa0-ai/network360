@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
-import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
+import { useAdminAuth } from "@/lib/useAdminAuth";
+import { adminGet } from "@/lib/adminData";
 import StudentsManager from "../../components/admin/StudentsManager";
 
 /**
@@ -10,19 +10,19 @@ import StudentsManager from "../../components/admin/StudentsManager";
  * يرى ويدير طلاب مدرسته فقط (مفروض عبر RLS على مستوى قاعدة البيانات).
  */
 export default function SchoolStudents() {
-  const { user, isLoadingAuth } = useAuth();
-  const [school, setSchool] = useState(undefined); // undefined = جاري التحميل
+  const { isLoading, role, school_id } = useAdminAuth();
+  const [school, setSchool] = useState(undefined);
 
-  const isSchoolAdmin = user?.role === "school_admin";
+  const isSchoolAdmin = role === "school_admin";
 
   useEffect(() => {
-    if (isLoadingAuth || !isSchoolAdmin) { setSchool(null); return; }
-    base44.entities.School.get(user.school_id)
+    if (isLoading || !isSchoolAdmin) { setSchool(null); return; }
+    adminGet("School", school_id)
       .then(setSchool)
       .catch(() => setSchool(null));
-  }, [isLoadingAuth, isSchoolAdmin, user?.school_id]);
+  }, [isLoading, isSchoolAdmin, school_id]);
 
-  if (isLoadingAuth || school === undefined) {
+  if (isLoading || school === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 rounded-full animate-spin"

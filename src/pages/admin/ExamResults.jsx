@@ -6,31 +6,29 @@ import {
   Trophy, Users, Percent, Inbox, RefreshCw,
 } from "lucide-react";
 import moment from "moment";
-import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
-import { resolveAdminSchool, GENERAL_SCHOOL } from "@/lib/schoolUtils";
+import { useAdminAuth } from "@/lib/useAdminAuth";
+import { adminFilter, adminUpdate } from "@/lib/adminData";
 
 const REQ_PENDING = { color: "#fbbf24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.35)" };
 
 export default function ExamResults() {
-  const { user, isLoadingAuth } = useAuth();
+  const { isLoading, role, school_id } = useAdminAuth();
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("results"); // results | requests
   const [results, setResults] = useState([]);
   const [pending, setPending] = useState([]);
-  const [schoolId, setSchoolId] = useState(GENERAL_SCHOOL);
+  const [schoolId, setSchoolId] = useState("general");
   const [processing, setProcessing] = useState(null);
 
-  const isAdmin = user?.role === "admin" || user?.role === "school_admin";
+  const isAdmin = role === "admin" || role === "school_admin";
 
   const load = async () => {
     if (!isAdmin) { setLoading(false); return; }
-    const sid = (await resolveAdminSchool(user)) || GENERAL_SCHOOL;
+    const sid = school_id || "general";
     setSchoolId(sid);
-    // عزل المدارس: نتائج وطلبات مدرسة المعلم فقط
     const [rs, reqs] = await Promise.all([
-      base44.entities.ExamResult.filter({ school_id: sid }, "-submission_time", 200),
-      base44.entities.ExamAccessRequest.filter({ school_id: sid, status: "pending" }, "-created_date", 100),
+      adminFilter("ExamResult", { school_id: sid }, "-submission_time", 200),
+      adminFilter("ExamAccessRequest", { school_id: sid, status: "pending" }, "-created_date", 100),
     ]);
     setResults(rs || []);
     setPending(reqs || []);
@@ -38,23 +36,22 @@ export default function ExamResults() {
   };
 
   useEffect(() => {
-    if (isLoadingAuth) return;
+    if (isLoading) return;
     load();
-  }, [isLoadingAuth, isAdmin]);
+  }, [isLoading, isAdmin]);
 
   const reviewRequest = async (req, status) => {
     setProcessing(req.id);
-    await base44.entities.ExamAccessRequest.update(req.id, {
+    await adminUpdate("ExamAccessRequest", req.id, {
       status,
-      reviewed_by: user.email,
       reviewed_at: new Date().toISOString(),
     });
-    const reqs = await base44.entities.ExamAccessRequest.filter({ school_id: schoolId, status: "pending" }, "-created_date", 100);
+    const reqs = await adminFilter("ExamAccessRequest", { school_id: schoolId, status: "pending" }, "-created_date", 100);
     setPending(reqs || []);
     setProcessing(null);
   };
 
-  if (isLoadingAuth || loading) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background">
         <Loader2 size={32} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />

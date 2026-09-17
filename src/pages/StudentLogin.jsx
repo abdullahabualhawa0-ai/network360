@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { KeyRound, Loader2, AlertTriangle, GraduationCap, UserPlus, BookOpen } from "lucide-react";
+import { KeyRound, Loader2, AlertTriangle, GraduationCap, UserPlus, BookOpen, Shield } from "lucide-react";
 import { studentLogin, setStudentSession } from "@/lib/studentSession";
 import { teacherLogin, setTeacherSession } from "@/lib/teacherSession";
+import { schoolAdminLogin, setSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang, useDir } from "@/lib/i18n";
 
 /**
@@ -25,6 +26,10 @@ export default function StudentLogin() {
   // حقول الأستاذ
   const [tSchoolCode, setTSchoolCode] = useState("");
   const [tTeacherCode, setTTeacherCode] = useState("");
+  // حقول المشرف
+  const [aSchoolCode, setASchoolCode] = useState("");
+  const [aAdminCode, setAAdminCode] = useState("");
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -61,6 +66,21 @@ export default function StudentLogin() {
     }
   };
 
+  const submitAdmin = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const session = await schoolAdminLogin(aSchoolCode, aAdminCode);
+      setSchoolAdminSession(session);
+      navigate("/admin/school-students", { replace: true });
+    } catch (err) {
+      setError(err?.data?.error || err?.message || t("errUnexpected"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const TabButton = ({ id, icon: Icon, label }) => {
     const active = tab === id;
     return (
@@ -90,24 +110,48 @@ export default function StudentLogin() {
       style={{ background: "#F7F9FC" }}>
       <div className="w-full max-w-md rounded-2xl p-6 bg-white"
         style={{ border: "1px solid #E2E8F0", boxShadow: "0 4px 20px rgba(23,63,95,0.08)" }}>
-        {/* Header */}
+        {/* Header — مع رابط دخول المشرف جنب اسم المنصة */}
         <div className="text-center mb-5">
           <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: "#173F5F" }}>
             <BookOpen className="text-white" size={24} />
           </div>
-          <h1 className="font-black text-lg" style={{ color: "#173F5F" }}>{t("appName")}</h1>
-          <p className="text-xs mt-1 text-muted-foreground">{t("loginSubtitle")}</p>
+          <div className="flex items-center justify-center gap-2">
+            <h1 className="font-black text-lg" style={{ color: "#173F5F" }}>{t("appName")}</h1>
+            <button type="button" onClick={() => { setShowAdminLogin(!showAdminLogin); setTab("student"); setError(null); }}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all"
+              style={{
+                background: showAdminLogin ? "#173F5F" : "rgba(23,63,95,0.06)",
+                color: showAdminLogin ? "#fff" : "hsl(var(--muted-foreground))",
+                border: "1px solid rgba(23,63,95,0.15)",
+              }}>
+              <Shield size={10} /> {t("adminLoginLink")}
+            </button>
+          </div>
+          <p className="text-xs mt-1 text-muted-foreground">{showAdminLogin ? t("loginAdminSubtitle") : t("loginSubtitle")}</p>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs — تُخفى عند تفعيل دخول المشرف */}
+        {!showAdminLogin && (
         <div className="flex gap-1 p-1 rounded-xl mb-4" style={{ background: "rgba(23,63,95,0.05)" }}>
           <TabButton id="student" icon={KeyRound} label={t("loginTabStudent")} />
           <TabButton id="teacher" icon={GraduationCap} label={t("loginTabTeacher")} />
           <TabButton id="create" icon={UserPlus} label={t("createAccountTab")} />
         </div>
+        )}
+
+        {/* Admin login — يظهر بدلاً من التبويبات عند تفعيله */}
+        {showAdminLogin && (
+          <form onSubmit={submitAdmin} className="space-y-3">
+            <Field value={aSchoolCode} onChange={setASchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
+            <Field value={aAdminCode} onChange={setAAdminCode} label={t("adminCode")} placeholder={t("adminCodePlaceholder")} />
+            {error && <ErrorBox text={error} />}
+            <SubmitButton busy={busy} />
+            <p className="text-[10px] text-center text-muted-foreground leading-relaxed">{t("loginAdminSubtitle")}</p>
+          </form>
+        )}
 
         {/* Student tab */}
-        {tab === "student" && (
+        {tab === "student" && !showAdminLogin && (
           <form onSubmit={submitStudent} className="space-y-3">
             <Field value={sSchoolCode} onChange={setSSchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
             <Field value={sStudentCode} onChange={setSStudentCode} label={t("studentCode")} placeholder="ST10025" />
@@ -118,7 +162,7 @@ export default function StudentLogin() {
         )}
 
         {/* Teacher tab */}
-        {tab === "teacher" && (
+        {tab === "teacher" && !showAdminLogin && (
           <form onSubmit={submitTeacher} className="space-y-3">
             <Field value={tSchoolCode} onChange={setTSchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
             <Field value={tTeacherCode} onChange={setTTeacherCode} label={t("teacherCode")} placeholder={t("teacherCodePlaceholder")} />
@@ -129,7 +173,7 @@ export default function StudentLogin() {
         )}
 
         {/* Create account tab */}
-        {tab === "create" && (
+        {tab === "create" && !showAdminLogin && (
           <div className="space-y-4">
             <div className="rounded-xl p-4 text-center" style={{ background: "rgba(47,102,144,0.06)", border: "1px solid rgba(47,102,144,0.2)" }}>
               <UserPlus size={22} className="mx-auto mb-2" style={{ color: "#2F6690" }} />

@@ -5,15 +5,14 @@ import {
   Plus, ChevronLeft, FileText, Eye, Trash2,
   Pencil, AlertCircle, BookOpen, Clock, Loader2,
 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
-import { resolveAdminSchool } from "@/lib/schoolUtils";
+import { useAdminAuth } from "@/lib/useAdminAuth";
+import { adminList, adminDelete, adminUpdate, adminCreate } from "@/lib/adminData";
 import { t, useLang, useDir } from "@/lib/i18n";
 import ExamEditor from "../../components/exams/ExamEditor";
 import ExamPreview from "../../components/exams/ExamPreview";
 
 export default function ExamManager() {
-  const { user, isLoadingAuth } = useAuth();
+  const { isLoading, role, school_id } = useAdminAuth();
   useLang();
   const direction = useDir();
   const [exams, setExams] = useState([]);
@@ -22,28 +21,28 @@ export default function ExamManager() {
   const [selectedExam, setSelectedExam] = useState(null);
   const [adminSchoolId, setAdminSchoolId] = useState("general");
 
-  const isAdmin = user?.role === "admin" || user?.role === "school_admin";
+  const isAdmin = role === "admin" || role === "school_admin";
 
   useEffect(() => {
-    if (isLoadingAuth) return;
+    if (isLoading) return;
     if (!isAdmin) { setLoading(false); return; }
-    resolveAdminSchool(user).then((sid) => setAdminSchoolId(sid || "general"));
-    base44.entities.Exam.list("-created_date", 100)
-      .then((rows) => setExams(user?.school_id ? (rows || []).filter((e) => e.school_id === user.school_id) : (rows || [])))
+    setAdminSchoolId(school_id || "general");
+    adminList("Exam", "-created_date", 100)
+      .then((rows) => setExams(rows || []))
       .finally(() => setLoading(false));
-  }, [isAdmin, isLoadingAuth]);
+  }, [isAdmin, isLoading, school_id]);
 
   const refreshExams = () =>
-    base44.entities.Exam.list("-created_date", 100)
-      .then((rows) => setExams(user?.school_id ? (rows || []).filter((e) => e.school_id === user.school_id) : (rows || [])));
+    adminList("Exam", "-created_date", 100)
+      .then((rows) => setExams(rows || []));
 
   const deleteExam = async (id) => {
     if (!confirm(t("teacherConfirmDelete"))) return;
-    await base44.entities.Exam.delete(id);
+    await adminDelete("Exam", id);
     setExams((prev) => prev.filter((e) => e.id !== id));
   };
 
-  if (isLoadingAuth || loading) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -78,7 +77,7 @@ export default function ExamManager() {
       <ExamEditor
         exam={selectedExam}
         onSave={async (data) => {
-          await base44.entities.Exam.update(selectedExam.id, data);
+          await adminUpdate("Exam", selectedExam.id, data);
           await refreshExams();
           setView("list");
           setSelectedExam(null);
@@ -94,7 +93,7 @@ export default function ExamManager() {
       <ExamEditor
         exam={null}
         onSave={async (data) => {
-          await base44.entities.Exam.create({ ...data, school_id: adminSchoolId });
+          await adminCreate("Exam", { ...data, school_id: adminSchoolId });
           await refreshExams();
           setView("list");
         }}

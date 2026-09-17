@@ -350,6 +350,17 @@ const T = {
   },
   goPlans: { ar: "عرض الخطط والأسعار", en: "View plans & pricing", he: "צפייה בתוכניות ומחירים" },
 
+  /* ─── دخول مشرف المدرسة (بالرمز) ─── */
+  adminLoginLink: { ar: "دخول المشرف", en: "Admin Login", he: "כניסת מנהל" },
+  adminCode: { ar: "رمز المشرف", en: "Admin Code", he: "קוד מנהל" },
+  adminCodePlaceholder: { ar: "ADM-7X3K9", en: "ADM-7X3K9", he: "ADM-7X3K9" },
+  loginAdminSubtitle: {
+    ar: "أدخل رمز المدرسة ورمز المشرف للدخول إلى لوحة الإدارة",
+    en: "Enter School Code and Admin Code to access the admin dashboard",
+    he: "הזינו קוד בית הספר וקוד מנהל לכניסה ללוח הניהול",
+  },
+  errAdminCode: { ar: "رمز المدرسة أو رمز المشرف غير صحيح.", en: "Invalid school or admin code.", he: "קוד בית הספר או קוד מנהל שגוי." },
+
   /* ─── لوحة الأستاذ ─── */
   teacherDashboardTitle: { ar: "لوحة الأستاذ", en: "Teacher Dashboard", he: "לוח המורה" },
   teacherRole: { ar: "أستاذ", en: "Teacher", he: "מורה" },
@@ -361,7 +372,6 @@ const T = {
   teacherResults: { ar: "النتائج", en: "Results", he: "תוצאות" },
   teacherResultsDesc: { ar: "متابعة نتائج طلابك في الامتحانات", en: "Track your students' exam results", he: "מעקב אחר תוצאות התלמידים שלך" },
   settingsLogout: { ar: "تسجيل الخروج", en: "Logout", he: "התנתקות" },
-  adminLoginLink: { ar: "دخول الإدارة / المالك", en: "Admin / Owner login", he: "כניסת מנהל / בעלים" },
   adminLoginNote: { ar: "لإدارة المدارس والطلاب والامتحانات", en: "Manage schools, students and exams", he: "ניהול בתי ספר, תלמידים ובחינות" },
   errUnexpected: { ar: "حدث خطأ غير متوقع. حاول مرة أخرى.", en: "An unexpected error occurred. Try again.", he: "אירעה שגיאה בלתי צפויה. נסו שוב." },
 
