@@ -12,7 +12,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-background font-main">
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3"
+      <div className="md:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3"
         style={{
           background: "rgba(255,255,255,0.97)",
           backdropFilter: "blur(20px)",
@@ -38,24 +38,24 @@ export default function Layout() {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40"
+          className="md:hidden fixed inset-0 z-40"
           style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed top-0 right-0 h-full z-40 transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}>
+      <div className={`fixed top-0 right-0 h-full z-40 transition-transform duration-300 md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}`}>
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Main content */}
-      <div className="lg:mr-80 pt-16 lg:pt-0">
+      <div className="md:mr-80 pt-16 md:pt-0">
         <Outlet />
       </div>
 
       {/* حقوق النشر — السنة تتحدث تلقائياً */}
-      <footer className="lg:mr-80 py-4 text-center text-[11px] text-white" style={{ background: "#173F5F" }}>
+      <footer className="md:mr-80 py-4 text-center text-[11px] text-white" style={{ background: "#173F5F" }}>
         © {new Date().getFullYear()} {t("footerRights")}
       </footer>
 
