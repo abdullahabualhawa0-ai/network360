@@ -31,6 +31,8 @@ import TeacherExams from './pages/TeacherExams';
 import TeacherGuard from '@/components/TeacherGuard';
 import Plans from './pages/Plans.jsx';
 import ExamManager from './pages/admin/ExamManager';
+import TeachersManager from './pages/admin/TeachersManager';
+import RegistrationRequests from './pages/admin/RegistrationRequests';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings } = useAuth();
@@ -70,6 +72,8 @@ const AuthenticatedApp = () => {
           <Route path="/admin/students" element={<AdminStudentsReport />} />
           <Route path="/admin/exams" element={<ExamManager />} />
           <Route path="/admin/exam-results" element={<ExamResults />} />
+          <Route path="/admin/registration-requests" element={<RegistrationRequests />} />
+          <Route path="/admin/teachers" element={<TeachersManager />} />
         </Route>
       </Route>
 

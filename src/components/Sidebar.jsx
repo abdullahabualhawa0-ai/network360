@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   BookOpen, Home, MonitorPlay, BarChart2, Users, FlaskConical,
-  FileText, History, ClipboardList, FileCheck, Settings, School, GraduationCap
+  FileText, History, ClipboardList, FileCheck, Settings, School, GraduationCap,
+  UserCog,
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useStudentSession } from "@/lib/studentSession";
@@ -68,7 +69,9 @@ export default function Sidebar({ onClose }) {
         {showExams && navItem("/exams", <ClipboardList size={16} />, t("navExams"))}
         {navItem("/settings", <Settings size={16} />, t("navSettings"))}
         {isSuperAdmin && navItem("/admin/schools", <School size={16} />, t("navSchools"))}
+        {isSuperAdmin && navItem("/admin/registration-requests", <ClipboardList size={16} />, t("navRegRequests"))}
         {isSchoolAdmin && navItem("/admin/school-students", <GraduationCap size={16} />, t("navMyStudents"))}
+        {isSchoolAdmin && navItem("/admin/teachers", <UserCog size={16} />, t("navTeachers"))}
         {isSuperAdmin && navItem("/admin/students", <Users size={16} />, t("navStudentReports"))}
         {isAdmin && navItem("/admin/exams", <FileText size={16} />, t("navExamManage"))}
         {isAdmin && navItem("/admin/exam-results", <FileCheck size={16} />, t("navExamResults"))}

@@ -3,17 +3,19 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Plus, ChevronLeft, FileText, Eye, Trash2,
-  Pencil, AlertCircle, BookOpen,
-  Clock, Loader2
+  Pencil, AlertCircle, BookOpen, Clock, Loader2,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { resolveAdminSchool } from "@/lib/schoolUtils";
+import { t, useLang, useDir } from "@/lib/i18n";
 import ExamEditor from "../../components/exams/ExamEditor";
 import ExamPreview from "../../components/exams/ExamPreview";
 
 export default function ExamManager() {
   const { user, isLoadingAuth } = useAuth();
+  useLang();
+  const direction = useDir();
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
@@ -36,17 +38,17 @@ export default function ExamManager() {
       .then((rows) => setExams(user?.school_id ? (rows || []).filter((e) => e.school_id === user.school_id) : (rows || [])));
 
   const deleteExam = async (id) => {
-    if (!confirm("هل أنت متأكد من حذف هذا الامتحان؟")) return;
+    if (!confirm(t("teacherConfirmDelete"))) return;
     await base44.entities.Exam.delete(id);
     setExams((prev) => prev.filter((e) => e.id !== id));
   };
 
   if (isLoadingAuth || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#020617" }}>
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-cyan-400" />
-          <span className="text-slate-400 text-sm">جاري التحميل...</span>
+          <Loader2 size={32} className="animate-spin" style={{ color: "#173F5F" }} />
+          <span className="text-muted-foreground text-sm">{t("loading")}</span>
         </div>
       </div>
     );
@@ -54,16 +56,16 @@ export default function ExamManager() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#020617" }}>
+      <div className="min-h-screen flex items-center justify-center bg-background" dir={direction}>
         <div className="text-center">
           <div className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)" }}>
-            <AlertCircle size={36} className="text-red-400" />
+            style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.3)" }}>
+            <AlertCircle size={36} style={{ color: "#C94C4C" }} />
           </div>
-          <h2 className="text-xl font-black text-white mb-2">وصول مقيّد</h2>
-          <p className="text-slate-400 text-sm mb-6">هذه الصفحة للمعلمين والمديرين فقط.</p>
-          <Link to="/" className="px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm hover:bg-cyan-500/20 transition-colors">
-            العودة للرئيسية
+          <h2 className="font-black text-lg mb-2">{t("examMgmtRestricted")}</h2>
+          <p className="text-muted-foreground text-sm mb-6">{t("examMgmtRestrictedDesc")}</p>
+          <Link to="/" className="px-4 py-2 rounded-xl text-sm font-bold text-white" style={{ background: "#173F5F" }}>
+            {t("examMgmtBackHome")}
           </Link>
         </div>
       </div>
@@ -113,35 +115,29 @@ export default function ExamManager() {
 
   // List view
   return (
-    <div className="min-h-screen" style={{ background: "#020617" }}>
+    <div className="min-h-screen bg-background text-foreground" dir={direction}>
       {/* Header */}
-      <div className="relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg,#0d1117 0%,#0d1a2a 50%,#0d1117 100%)", borderBottom: "1px solid rgba(6,182,212,0.2)" }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ backgroundImage: "linear-gradient(rgba(6,182,212,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(6,182,212,0.04) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
-        <div className="relative max-w-6xl mx-auto px-6 py-8">
+      <div className="bg-card" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+        <div className="max-w-6xl mx-auto px-6 py-8">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-2 mb-3 text-sm" style={{ color: "rgba(6,182,212,0.65)" }}>
-              <Link to="/" className="hover:text-cyan-300 transition-colors">الرئيسية</Link>
+            <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
+              <Link to="/" className="hover:text-primary transition-colors">{t("navHome")}</Link>
               <ChevronLeft size={13} />
-              <span className="text-cyan-300">لوحة الامتحانات</span>
+              <span style={{ color: "#173F5F" }}>{t("examMgmtBreadcrumb")}</span>
             </div>
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
-                <h1 className="text-3xl font-black mb-1" style={{
-                  background: "linear-gradient(135deg,#06b6d4,#a78bfa)",
-                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
-                }}>
-                  📋 إدارة الامتحانات
+                <h1 className="font-black text-2xl mb-1" style={{ color: "#173F5F" }}>
+                  {t("examMgmtTitle")}
                 </h1>
-                <p className="text-slate-400 text-sm">إنشاء وإدارة امتحانات مواد الشبكات</p>
+                <p className="text-muted-foreground text-sm">{t("examMgmtDesc")}</p>
               </div>
               <button
                 onClick={() => setView("create")}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white transition-all hover:scale-105 hover:brightness-110 text-sm"
-                style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white transition-all hover:scale-105 text-sm"
+                style={{ background: "#173F5F" }}
               >
-                <Plus size={16} /> إنشاء امتحان جديد
+                <Plus size={16} /> {t("examMgmtNew")}
               </button>
             </div>
           </motion.div>
@@ -152,36 +148,39 @@ export default function ExamManager() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "إجمالي الامتحانات", value: exams.length, color: "#06b6d4" },
-            { label: "منشورة", value: exams.filter(e => e.status === "published").length, color: "#34d399" },
-            { label: "مسودة", value: exams.filter(e => e.status === "draft").length, color: "#fbbf24" },
-            { label: "إجمالي الأسئلة", value: exams.reduce((s, e) => s + (e.questions?.length || 0), 0), color: "#a78bfa" },
+            { label: t("examMgmtTotal"), value: exams.length, color: "#2F6690" },
+            { label: t("examMgmtPublished"), value: exams.filter(e => e.status === "published").length, color: "#2E7D5B" },
+            { label: t("examMgmtDrafts"), value: exams.filter(e => e.status === "draft").length, color: "#D69E2E" },
+            { label: t("examMgmtTotalQ"), value: exams.reduce((s, e) => s + (e.questions?.length || 0), 0), color: "#3A86A8" },
           ].map((stat) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl p-4"
-              style={{ background: "rgba(12,20,40,0.9)", border: `1px solid rgba(${hexToRgb(stat.color)},0.2)` }}
+              className="rounded-2xl p-4 bg-card"
+              style={{ border: "1px solid hsl(var(--border))" }}
             >
               <div className="text-2xl font-black" style={{ color: stat.color }}>{stat.value}</div>
-              <div className="text-xs text-slate-400 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
             </motion.div>
           ))}
         </div>
 
         {/* Exams list */}
         {exams.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">📝</div>
-            <h3 className="text-lg font-bold text-slate-300 mb-2">لا توجد امتحانات بعد</h3>
-            <p className="text-slate-500 text-sm mb-6">ابدأ بإنشاء أول امتحان لطلابك</p>
+          <div className="text-center py-20 rounded-2xl bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
+            <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.2)" }}>
+              <FileText size={28} style={{ color: "#2F6690" }} />
+            </div>
+            <h3 className="font-bold text-base mb-2">{t("examMgmtNoExams")}</h3>
+            <p className="text-muted-foreground text-sm mb-6">{t("examMgmtNoExamsDesc")}</p>
             <button
               onClick={() => setView("create")}
               className="px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-              style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}
+              style={{ background: "#173F5F" }}
             >
-              إنشاء امتحان جديد
+              {t("examMgmtNew")}
             </button>
           </div>
         ) : (
@@ -192,36 +191,35 @@ export default function ExamManager() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap"
-                style={{ background: "rgba(12,20,40,0.9)", border: "1px solid rgba(6,182,212,0.12)" }}
+                className="rounded-2xl p-5 bg-card flex items-center justify-between gap-4 flex-wrap"
+                style={{ border: "1px solid hsl(var(--border))" }}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                    style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)" }}>
-                    📋
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.2)" }}>
+                    <FileText size={20} style={{ color: "#2F6690" }} />
                   </div>
                   <div>
-                    <h3 className="font-black text-white text-base">{exam.title}</h3>
+                    <h3 className="font-black text-base" style={{ color: "#173F5F" }}>{exam.title}</h3>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
                       {exam.topic_title && (
-                        <span className="text-xs text-slate-400 flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <BookOpen size={10} /> {exam.section_title} › {exam.topic_title}
                         </span>
                       )}
-                      <span className="text-xs text-slate-500 flex items-center gap-1">
-                        <FileText size={10} /> {exam.questions?.length || 0} سؤال
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <FileText size={10} /> {exam.questions?.length || 0} {t("examMgmtQuestions")}
                       </span>
                       {exam.duration_minutes && (
-                        <span className="text-xs text-slate-500 flex items-center gap-1">
-                          <Clock size={10} /> {exam.duration_minutes} دقيقة
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock size={10} /> {exam.duration_minutes} {t("examMgmtMinutes")}
                         </span>
                       )}
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
-                        exam.status === "published"
-                          ? "text-green-400 bg-green-400/10 border-green-400/30"
-                          : "text-amber-400 bg-amber-400/10 border-amber-400/30"
-                      }`}>
-                        {exam.status === "published" ? "✓ منشور" : "مسودة"}
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                        style={exam.status === "published"
+                          ? { background: "rgba(46,125,91,0.1)", border: "1px solid rgba(46,125,91,0.35)", color: "#2E7D5B" }
+                          : { background: "rgba(214,158,46,0.1)", border: "1px solid rgba(214,158,46,0.35)", color: "#D69E2E" }}>
+                        {exam.status === "published" ? t("examMgmtPublishedBadge") : t("examMgmtDraftBadge")}
                       </span>
                     </div>
                   </div>
@@ -230,21 +228,21 @@ export default function ExamManager() {
                   <button
                     onClick={() => { setSelectedExam(exam); setView("preview"); }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-105"
-                    style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}
+                    style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}
                   >
-                    <Eye size={12} /> معاينة
+                    <Eye size={12} /> {t("examMgmtPreview")}
                   </button>
                   <button
                     onClick={() => { setSelectedExam(exam); setView("edit"); }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-105"
-                    style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}
+                    style={{ background: "rgba(23,63,95,0.08)", border: "1px solid rgba(23,63,95,0.25)", color: "#173F5F" }}
                   >
-                    <Pencil size={12} /> تعديل
+                    <Pencil size={12} /> {t("examMgmtEdit")}
                   </button>
                   <button
                     onClick={() => deleteExam(exam.id)}
-                    className="p-1.5 rounded-xl text-xs transition-all hover:scale-105"
-                    style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}
+                    className="p-1.5 rounded-xl transition-all hover:scale-105"
+                    style={{ background: "rgba(201,76,76,0.06)", border: "1px solid rgba(201,76,76,0.2)", color: "#C94C4C" }}
                   >
                     <Trash2 size={12} />
                   </button>
@@ -256,11 +254,4 @@ export default function ExamManager() {
       </div>
     </div>
   );
-}
-
-function hexToRgb(hex) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r},${g},${b}`;
 }
