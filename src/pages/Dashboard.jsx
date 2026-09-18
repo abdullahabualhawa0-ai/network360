@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { t, useLang } from "@/lib/i18n";
 import { sectionTitle, topicTitle } from "@/lib/courseI18n";
+import ExamResultsSection from "@/components/dashboard/ExamResultsSection";
 
 const PROGRESS_KEY = "topic-progress";
 const QUIZ_KEY = "quiz-results";
@@ -254,6 +255,9 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* School exam results */}
+        <ExamResultsSection />
 
         {visitedTopics === 0 && completedQuizzes === 0 && (
           <div className="text-center py-12">

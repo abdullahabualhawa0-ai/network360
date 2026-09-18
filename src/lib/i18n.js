@@ -550,6 +550,16 @@ const T = {
   examPreviewMark: { ar: "العلامة", en: "Mark", he: "ציון" },
   examPreviewPlatform: { ar: "منصة تعلم الشبكات التعليمية", en: "Networking Learning Platform", he: "פלטפורמת למידת רשתות" },
   examPreviewFooter: { ar: "منصة تعلم الشبكات التعليمية — بالتوفيق للجميع", en: "Networking Learning Platform — Good luck to all", he: "פלטפורמת למידת רשתות — בהצלחה לכולם" },
+
+  /* ─── نتائج الامتحانات في لوحة التقدم ─── */
+  dashExamResults: { ar: "نتائج الامتحانات المدرسية", en: "School Exam Results", he: "תוצאות בחינות בית-ספר" },
+  dashExamResultsDesc: { ar: "نتائج الامتحانات التي أديتها من مدرستك", en: "Results of exams you took from your school", he: "תוצאות בחינות שביצעתם מבית-הספר" },
+  dashExamNoResults: { ar: "لا توجد نتائج امتحانات بعد", en: "No exam results yet", he: "אין עדיין תוצאות בחינות" },
+  dashExamNoResultsDesc: { ar: "عند إكمال امتحان من قسم الامتحانات ستظهر نتيجتك هنا", en: "Complete an exam from the Exams section to see your results here", he: "השלימו בחינה מאזור הבחינות כדי לראות את התוצאות כאן" },
+  dashExamScore: { ar: "النتيجة", en: "Score", he: "ציון" },
+  dashExamCorrect: { ar: "إجابات صحيحة", en: "Correct answers", he: "תשובות נכונות" },
+  dashExamDate: { ar: "التاريخ", en: "Date", he: "תאריך" },
+  dashExamLoading: { ar: "جاري تحميل النتائج...", en: "Loading results...", he: "טוען תוצאות..." },
 };
 
 export function getLang() {
