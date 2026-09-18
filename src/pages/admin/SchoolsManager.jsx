@@ -128,9 +128,9 @@ export default function SchoolsManager() {
             </div>
             <div>
               <h1 className="font-black text-xl">المدارس</h1>
-              <p className="text-xs text-muted-foreground hidden">
-                شاشة المالك (Owner) — مدارس جديدة برموز فريدة، خطط الاشتراك وحدود الطلاب، تعيين المشرفين
-              </p>
+              
+
+              
             </div>
           </div>
           <div className="flex items-center gap-2">
