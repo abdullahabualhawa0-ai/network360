@@ -280,6 +280,7 @@ const T = {
   bestResultLabel: { ar: "أفضل نتيجة", en: "Best result", he: "התוצאה הטובה ביותר" },
   performedLabel: { ar: "مؤدّى", en: "Done", he: "בוצע" },
   retakeLabel: { ar: "إعادة التأدية", en: "Retake", he: "ביצוע חוזר" },
+  requestRetake: { ar: "طلب إعادة", en: "Request retake", he: "בקשת ביצוע חוזר" },
   startExam: { ar: "ابدأ الامتحان", en: "Start exam", he: "התחל בחינה" },
 
   /* ─── الإعدادات — نصوص متبقية ─── */

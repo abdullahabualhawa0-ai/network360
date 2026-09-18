@@ -19,9 +19,9 @@ export default function Sidebar({ onClose }) {
   const isSuperAdmin = user?.role === "admin";
   const isSchoolAdmin = user?.role === "school_admin" || !!schoolAdminSession;
   const isAdmin = isSuperAdmin || isSchoolAdmin;
-  // الطالب الفردي (خطة شخصية بدون مدرسة فعلية) لا يرى الامتحانات
+  // الامتحانات (تأدية) للطلاب فقط — المشرفون لديهم إدارة الامتحانات ونتائجها
   const isPersonalStudent = !!session?.is_personal;
-  const showExams = isAdmin || (session && !isPersonalStudent);
+  const showExams = session && !isPersonalStudent && !isAdmin;
 
   const navItem = (to, icon, label) => {
     const isActive = location.pathname === to;

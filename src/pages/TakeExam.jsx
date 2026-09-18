@@ -37,7 +37,21 @@ export default function TakeExam() {
       const reqs = await studentApi("filter", "ExamAccessRequest", {
         query: { exam_id: examId },
       }).catch(() => []);
-      const ok = (reqs || []).some((r) => r.status === "approved");
+      const existingResults = await studentApi("filter", "ExamResult", {
+        query: { exam_id: examId },
+      }).catch(() => []);
+      // إذن نشط = أحدث موافقة لم تُستهلك بتأدية أحدث منها
+      const approvedReqs = (reqs || [])
+        .filter((r) => r.status === "approved")
+        .sort((a, b) => new Date(b.reviewed_at || b.created_date) - new Date(a.reviewed_at || a.created_date));
+      const lastApproved = approvedReqs[0];
+      const latestResult = (existingResults || [])
+        .sort((a, b) => new Date(b.submission_time) - new Date(a.submission_time))[0];
+      const ok =
+        lastApproved &&
+        (!latestResult ||
+          new Date(lastApproved.reviewed_at || lastApproved.created_date) >
+            new Date(latestResult.submission_time));
       setExam(ex);
       setAllowed(ok);
       if (ok) setSecondsLeft((ex.duration_minutes || 30) * 60);

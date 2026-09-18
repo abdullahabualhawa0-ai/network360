@@ -104,12 +104,25 @@ export default function Exams() {
 
         <div className="grid gap-3">
           {visibleExams.map((exam, i) => {
-            const myRequests = requests.filter((r) => r.exam_id === exam.id);
-            const lastRequest = myRequests[myRequests.length - 1];
-            const myResults = results.filter((r) => r.exam_id === exam.id);
+            const myRequests = requests
+              .filter((r) => r.exam_id === exam.id)
+              .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+            const lastRequest = myRequests[0];
+            const lastApproved = myRequests.find((r) => r.status === "approved");
+            const myResults = results
+              .filter((r) => r.exam_id === exam.id)
+              .sort((a, b) => new Date(b.submission_time) - new Date(a.submission_time));
+            const latestResult = myResults[0];
             const bestResult = myResults.length
               ? myResults.reduce((a, b) => ((a.percentage || 0) >= (b.percentage || 0) ? a : b))
               : null;
+
+            // إذن نشط لم يُستهلك بعد: أحدث موافقة بعد أحدث نتيجة
+            const canTakeNow =
+              lastApproved &&
+              (!latestResult ||
+                new Date(lastApproved.reviewed_at || lastApproved.created_date) >
+                  new Date(latestResult.submission_time));
 
             return (
               <motion.div key={exam.id}
@@ -149,7 +162,8 @@ export default function Exams() {
                     </span>
                   )}
 
-                  {!lastRequest && !bestResult && (
+                  {/* لا يوجد طلب بعد — طلب دخول أولي */}
+                  {!lastRequest && (
                     <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap disabled:opacity-60"
                       style={{ background: "#173F5F" }}>
@@ -157,6 +171,7 @@ export default function Exams() {
                     </button>
                   )}
 
+                  {/* الطلب الحالي معلّق — بانتظار الموافقة */}
                   {lastRequest?.status === "pending" && (
                     <span className="px-3 py-2 rounded-xl text-[10px] font-bold"
                       style={{ background: REQ_STATUS.pending.bg, border: `1px solid ${REQ_STATUS.pending.border}`, color: REQ_STATUS.pending.color }}>
@@ -164,27 +179,31 @@ export default function Exams() {
                     </span>
                   )}
 
+                  {/* آخر طلب مرفوض — يمكن إرسال طلب جديد */}
                   {lastRequest?.status === "rejected" && (
-                    <span className="px-3 py-2 rounded-xl text-[10px] font-bold flex items-center gap-1"
-                      style={{ background: REQ_STATUS.rejected.bg, border: `1px solid ${REQ_STATUS.rejected.border}`, color: REQ_STATUS.rejected.color }}>
-                      <Ban size={11} /> {t("accessRejected")}
-                    </span>
+                    <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
+                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap disabled:opacity-60"
+                      style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
+                      {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestAccess")}</span>}
+                    </button>
                   )}
 
-                  {lastRequest?.status === "approved" && !bestResult && (
+                  {/* إذن نشط لم يُستهلك — ابدأ التأدية */}
+                  {canTakeNow && (
                     <Link to={`/exams/${exam.id}`}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap"
                       style={{ background: "#2E7D5B" }}>
-                      {t("startExam")} 🚀
+                      {bestResult ? t("retakeLabel") : t("startExam")} 🚀
                     </Link>
                   )}
 
-                  {lastRequest?.status === "approved" && bestResult && (
-                    <Link to={`/exams/${exam.id}`}
-                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap"
+                  {/* تأدى الامتحان ولا يوجد إذن جديد — يجب طلب إذن لإعادة التأدية */}
+                  {bestResult && !canTakeNow && lastRequest?.status !== "pending" && (
+                    <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
+                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap disabled:opacity-60"
                       style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)", color: "#2F6690" }}>
-                      {t("retakeLabel")}
-                    </Link>
+                      {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestRetake")}</span>}
+                    </button>
                   )}
                 </div>
               </motion.div>
