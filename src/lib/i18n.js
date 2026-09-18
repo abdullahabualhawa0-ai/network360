@@ -469,6 +469,24 @@ const T = {
   reqRejectedMsg: { ar: "تم رفض الطلب وإرسال إشعار للمستخدم", en: "Request rejected — user notified", he: "הבקשה נדחתה — המשתמש קיבל הודעה" },
   reqNotifyErr: { ar: "تم تحديث الحالة لكن تعذر إرسال البريد", en: "Status updated but email failed to send", he: "הסטטוס עודכן אך שליחת האימייל נכשלה" },
 
+  /* ─── إيميلات القبول/الرفض ─── */
+  mailAcceptedSubjectSchool: { ar: "✅ تم قبول طلب تسجيل مدرستك", en: "✅ Your school registration was accepted", he: "✅ רישום בית הספר שלכם התקבל" },
+  mailAcceptedSubjectIndividual: { ar: "✅ تم قبول طلب تسجيلك", en: "✅ Your registration was accepted", he: "✅ הרישום שלכם התקבל" },
+  mailRejectedSubjectSchool: { ar: "❌ تم رفض طلب تسجيل مدرستك", en: "❌ Your school registration was rejected", he: "❌ רישום בית הספר שלכם נדחה" },
+  mailRejectedSubjectIndividual: { ar: "❌ تم رفض طلب تسجيلك", en: "❌ Your registration was rejected", he: "❌ הרישום שלכם נדחה" },
+  mailAcceptedTitle: { ar: "تم قبول طلبك ✓", en: "Your request was accepted ✓", he: "הבקשה שלכם התקבלה ✓" },
+  mailRejectedTitle: { ar: "تم رفض طلبك", en: "Your request was rejected", he: "הבקשה שלכם נדחתה" },
+  mailAcceptedGreeting: { ar: "مرحباً", en: "Hello", he: "שלום" },
+  mailAcceptedBodySchool: { ar: "تم قبول طلب تسجيلك للمدرسة", en: "Your registration request for the school", he: "בקשת הרישום שלכם לבית הספר" },
+  mailAcceptedBodyIndividual: { ar: "تم قبول طلب تسجيلك.", en: "Your registration request was accepted.", he: "בקשת הרישום שלכם התקבלה." },
+  mailSchoolCodeLabel: { ar: "رمز المدرسة", en: "School Code", he: "קוד בית הספר" },
+  mailAdminCodeLabel: { ar: "رمز المشرف", en: "Admin Code", he: "קוד מנהל" },
+  mailAdminAssignedNote: { ar: "لقد تم تعيينك مشرفاً لهذه المدرسة. ادخل عبر رمز المدرسة ورمز المشرف من صفحة الدخول.", en: "You have been assigned as the school's admin. Log in using the School Code and Admin Code from the login page.", he: "מוניתם למנהל בית הספר. היכנסו באמצעות קוד בית הספר וקוד המנהל מדף הכניסה." },
+  mailAcceptedFooter: { ar: "سيتم التواصل معك قريباً بالخطوات التالية.", en: "We will contact you soon with the next steps.", he: "ניצור איתכם קשר בקרוב עם השלבים הבאים." },
+  mailRejectedBodySchool: { ar: "نأسف لإبلاغك بأنه تم رفض طلب تسجيلك للمدرسة", en: "We regret to inform you that your registration request for the school", he: "אנו מצטערים להודיע שבקשת הרישום שלכם לבית הספר" },
+  mailRejectedBodyIndividual: { ar: "نأسف لإبلاغك بأنه تم رفض طلب تسجيلك.", en: "We regret to inform you that your registration request was rejected.", he: "אנו מצטערים להודיע שבקשת הרישום שלכם נדחתה." },
+  mailRejectedFooter: { ar: "لأي استفسار يمكنك التواصل معنا.", en: "For any inquiry, you can contact us.", he: "לכל שאלה ניתן ליצור איתנו קשר." },
+
   /* ─── زر تغيير اللغة ─── */
   langSwitcher: { ar: "اللغة", en: "Language", he: "שפה" },
   langArabic: { ar: "العربية", en: "Arabic", he: "ערבית" },
@@ -561,6 +579,32 @@ const T = {
   dashExamCorrect: { ar: "إجابات صحيحة", en: "Correct answers", he: "תשובות נכונות" },
   dashExamDate: { ar: "التاريخ", en: "Date", he: "תאריך" },
   dashExamLoading: { ar: "جاري تحميل النتائج...", en: "Loading results...", he: "טוען תוצאות..." },
+
+  /* ─── تأدية الامتحان (TakeExam) ─── */
+  takeExamLoading: { ar: "جاري تحضير الامتحان...", en: "Preparing the exam...", he: "מכין את הבחינה..." },
+  takeExamNotFound: { ar: "الامتحان غير موجود", en: "Exam not found", he: "הבחינה לא נמצאה" },
+  takeExamBackToExams: { ar: "العودة للامتحانات", en: "Back to exams", he: "חזרה לבחינות" },
+  takeExamNoAccess: { ar: "لا تملك موافقة دخول بعد", en: "You don't have access approval yet", he: "אין לכם אישור גישה עדיין" },
+  takeExamNoAccessDesc: { ar: "أرسل طلب دخول من صفحة الامتحانات وبعد موافقة المعلم يمكنك التأدية.", en: "Send an access request from the exams page — once the teacher approves, you can take the exam.", he: "שלחו בקשת גישה מדף הבחינות — לאחר אישור המורה תוכלו לבצע את הבחינה." },
+  takeExamRequestAccess: { ar: "طلب دخول", en: "Request access", he: "בקשת גישה" },
+  takeExamPassed: { ar: "🎉 ناجح — أحسنت!", en: "🎉 Passed — well done!", he: "🎉 עברת — כל הכבוד!" },
+  takeExamFailed: { ar: "لم تجتز — راجع الأخطاء", en: "Did not pass — review your mistakes", he: "לא עברת — סקרו את הטעויות" },
+  takeExamResultSummary: { ar: "إجابة صحيحة من", en: "correct answers out of", he: "תשובות נכונות מתוך" },
+  takeExamResultSaved: { ar: "النتيجة محفوظة في سجلك", en: "Result saved to your record", he: "התוצאה נשמרה ברשומה שלך" },
+  takeExamReviewTitle: { ar: "مراجعة الإجابات", en: "Answer Review", he: "סקירת התשובות" },
+  takeExamYourAnswer: { ar: "إجابتك", en: "Your answer", he: "התשובה שלך" },
+  takeExamCorrectAnswer: { ar: "الإجابة الصحيحة", en: "Correct answer", he: "התשובה הנכונה" },
+  takeExamAllExams: { ar: "جميع الامتحانات", en: "All exams", he: "כל הבחינות" },
+  takeExamProgressBoard: { ar: "لوحة التقدم", en: "Progress board", he: "לוח התקדמות" },
+  takeExamAnsweredCount: { ar: "تمت الإجابة", en: "answered", he: "נענו" },
+  takeExamSubmit: { ar: "تسليم", en: "Submit", he: "הגשה" },
+  takeExamSubmitting: { ar: "جاري التسليم...", en: "Submitting...", he: "מגיש..." },
+  takeExamSubmitFinal: { ar: "تسليم الامتحان وعرض النتيجة", en: "Submit exam and show result", he: "הגשת הבחינה והצגת התוצאה" },
+  takeExamCancelExit: { ar: "إلغاء والخروج", en: "Cancel and exit", he: "ביטול ויציאה" },
+  takeExamShortPh: { ar: "اكتب إجابتك هنا...", en: "Type your answer here...", he: "כתבו את התשובה כאן..." },
+  takeExamConfirmUnanswered: { ar: "سؤال بدون إجابة. هل تريد التسليم الآن؟", en: "question(s) unanswered. Submit now?", he: "שאלות ללא תשובה. להגיש עכשיו?" },
+  takeExamTrue: { ar: "صح", en: "True", he: "נכון" },
+  takeExamFalse: { ar: "خطأ", en: "False", he: "לא נכון" },
 };
 
 export function getLang() {

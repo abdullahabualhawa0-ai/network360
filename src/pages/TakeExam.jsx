@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock, Loader2, AlertTriangle, Send, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
+import { t, useLang, useDir } from "@/lib/i18n";
 
 const norm = (s) => (s || "").toString().trim().replace(/\s+/g, " ").toLowerCase();
 
@@ -15,6 +16,8 @@ function fmtTime(s) {
 export default function TakeExam() {
   const { examId } = useParams();
   const session = useStudentSession();
+  useLang();
+  const direction = useDir();
   const [exam, setExam] = useState(null);
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -113,7 +116,7 @@ export default function TakeExam() {
 
   const confirmSubmit = () => {
     const unanswered = (exam?.questions || []).length - Object.keys(answers).length;
-    if (unanswered > 0 && !confirm(`لديك ${unanswered} سؤال بدون إجابة. هل تريد التسليم الآن؟`)) return;
+    if (unanswered > 0 && !confirm(`${unanswered} ${t("takeExamConfirmUnanswered")}`)) return;
     submit();
   };
 
@@ -121,18 +124,18 @@ export default function TakeExam() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background">
         <Loader2 size={32} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
-        <p className="text-xs text-muted-foreground">جاري تحضير الامتحان...</p>
+        <p className="text-xs text-muted-foreground">{t("takeExamLoading")}</p>
       </div>
     );
   }
 
   if (!exam) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-background" dir={direction}>
         <div className="text-center">
           <AlertTriangle size={36} className="text-red-400 mx-auto mb-3" />
-          <h2 className="font-black text-lg mb-2">الامتحان غير موجود</h2>
-          <Link to="/exams" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>العودة للامتحانات</Link>
+          <h2 className="font-black text-lg mb-2">{t("takeExamNotFound")}</h2>
+          <Link to="/exams" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>{t("takeExamBackToExams")}</Link>
         </div>
       </div>
     );
@@ -140,14 +143,14 @@ export default function TakeExam() {
 
   if (!allowed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-background" dir={direction}>
         <div className="text-center max-w-sm">
           <AlertTriangle size={36} className="text-amber-400 mx-auto mb-3" />
-          <h2 className="font-black text-lg mb-2">لا تملك موافقة دخول بعد</h2>
-          <p className="text-xs text-muted-foreground mb-5">أرسل طلب دخول من صفحة الامتحانات وبعد موافقة المعلم يمكنك التأدية.</p>
+          <h2 className="font-black text-lg mb-2">{t("takeExamNoAccess")}</h2>
+          <p className="text-xs text-muted-foreground mb-5">{t("takeExamNoAccessDesc")}</p>
           <Link to="/exams" className="px-5 py-2.5 rounded-xl text-sm font-bold text-white inline-block"
-            style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
-            طلب دخول
+            style={{ background: "#173F5F" }}>
+            {t("takeExamRequestAccess")}
           </Link>
         </div>
       </div>

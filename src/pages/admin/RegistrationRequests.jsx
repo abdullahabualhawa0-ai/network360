@@ -6,7 +6,8 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { t, useLang, useDir } from "@/lib/i18n";
+import BackButton from "@/components/BackButton";
+import { t, useLang, useDir, getLang, LANG_DIR } from "@/lib/i18n";
 
 const STATUS_UI = {
   new: { label: "reqStatusNew", color: "#2F6690", bg: "rgba(47,102,144,0.1)", border: "rgba(47,102,144,0.35)" },
@@ -41,33 +42,38 @@ export default function RegistrationRequests() {
 
   const notifyUser = async (req, accepted, schoolCode, adminCode) => {
     const isSchool = req.request_type === "school";
+    const lang = getLang();
+    const dirAttr = LANG_DIR[lang] || "rtl";
     const subject = accepted
-      ? (isSchool ? "✅ تم قبول طلب تسجيل مدرستك" : "✅ تم قبول طلب تسجيلك")
-      : (isSchool ? "❌ تم رفض طلب تسجيل مدرستك" : "❌ تم رفض طلب تسجيلك");
-    const html = accepted
-      ? `<div dir="rtl" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #F7F9FC; border-radius: 16px;">
-          <div style="background: #2E7D5B; color: #fff; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
-            <h2 style="margin: 0; font-size: 18px;">تم قبول طلبك ✓</h2>
-          </div>
-          <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;">
-            <p style="margin: 0 0 12px; font-size: 14px;">مرحباً ${req.full_name || ""}،</p>
-            <p style="margin: 0 0 12px; font-size: 14px;">تم قبول طلب تسجيلك${isSchool ? ` للمدرسة «${req.school_name || ""}»` : ""}.</p>
-            ${isSchool && schoolCode ? `<p style="margin: 0 0 8px; font-size: 14px;">رمز المدرسة: <b dir="ltr">${schoolCode}</b></p>` : ""}
-            ${isSchool && adminCode ? `<p style="margin: 0 0 8px; font-size: 14px;">رمز المشرف: <b dir="ltr">${adminCode}</b></p>` : ""}
-            ${isSchool && adminCode ? `<p style="margin: 0 0 12px; font-size: 13px; color: #2F6690;">لقد تم تعيينك مشرفاً لهذه المدرسة. ادخل عبر رمز المدرسة ورمز المشرف من صفحة الدخول.</p>` : ""}
-            <p style="margin: 0; font-size: 12px; color: #64748B;">سيتم التواصل معك قريباً بالخطوات التالية.</p>
-          </div>
-        </div>`
-      : `<div dir="rtl" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #F7F9FC; border-radius: 16px;">
-          <div style="background: #C94C4C; color: #fff; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
-            <h2 style="margin: 0; font-size: 18px;">تم رفض طلبك</h2>
-          </div>
-          <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;">
-            <p style="margin: 0 0 12px; font-size: 14px;">مرحباً ${req.full_name || ""}،</p>
-            <p style="margin: 0 0 12px; font-size: 14px;">نأسف لإبلاغك بأنه تم رفض طلب تسجيلك${isSchool ? ` للمدرسة «${req.school_name || ""}»` : ""}.</p>
-            <p style="margin: 0; font-size: 12px; color: #64748B;">لأي استفسار يمكنك التواصل معنا.</p>
-          </div>
-        </div>`;
+      ? t(isSchool ? "mailAcceptedSubjectSchool" : "mailAcceptedSubjectIndividual", lang)
+      : t(isSchool ? "mailRejectedSubjectSchool" : "mailRejectedSubjectIndividual", lang);
+    const title = accepted ? t("mailAcceptedTitle", lang) : t("mailRejectedTitle", lang);
+    const greeting = t("mailAcceptedGreeting", lang);
+    const headerColor = accepted ? "#2E7D5B" : "#C94C4C";
+    const bodyLine = accepted
+      ? (isSchool
+        ? `${t("mailAcceptedBodySchool", lang)} «${req.school_name || ""}».`
+        : t("mailAcceptedBodyIndividual", lang))
+      : (isSchool
+        ? `${t("mailRejectedBodySchool", lang)} «${req.school_name || ""}».`
+        : t("mailRejectedBodyIndividual", lang));
+    const footer = accepted ? t("mailAcceptedFooter", lang) : t("mailRejectedFooter", lang);
+    const codeLines = (isSchool && schoolCode)
+      ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailSchoolCodeLabel", lang)}: <b dir="ltr">${schoolCode}</b></p>`
+        + (adminCode ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminCodeLabel", lang)}: <b dir="ltr">${adminCode}</b></p>` : "")
+        + (adminCode ? `<p style="margin:0 0 12px;font-size:13px;color:#2F6690;">${t("mailAdminAssignedNote", lang)}</p>` : "")
+      : "";
+    const html = `<div dir="${dirAttr}" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #F7F9FC; border-radius: 16px;">
+        <div style="background: ${headerColor}; color: #fff; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
+          <h2 style="margin: 0; font-size: 18px;">${title}</h2>
+        </div>
+        <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;">
+          <p style="margin: 0 0 12px; font-size: 14px;">${greeting} ${req.full_name || ""}،</p>
+          <p style="margin: 0 0 12px; font-size: 14px;">${bodyLine}</p>
+          ${codeLines}
+          <p style="margin: 0; font-size: 12px; color: #64748B;">${footer}</p>
+        </div>
+      </div>`;
     try {
       await base44.integrations.Core.SendEmail({ to: req.email, subject, html });
       return true;
@@ -201,6 +207,11 @@ export default function RegistrationRequests() {
   return (
     <div className="min-h-screen bg-background text-foreground" dir={direction}>
       <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* Back */}
+        <div className="mb-4">
+          <BackButton fallback="/admin/schools" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
           <div className="flex items-center gap-3">

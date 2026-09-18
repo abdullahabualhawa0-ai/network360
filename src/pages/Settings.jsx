@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, Mail, LogOut, Shield } from "lucide-react";
+import BackButton from "@/components/BackButton";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { studentApi, useStudentSession, clearStudentSession } from "@/lib/studentSession";
@@ -180,6 +181,11 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-background text-foreground" dir={direction}>
       <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Back */}
+        <div className="mb-4">
+          <BackButton fallback={isStudent ? "/" : isTeacher ? "/teacher/dashboard" : "/admin/schools"} />
+        </div>
+
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: "#173F5F" }}>
