@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { GraduationCap, Users, ClipboardList, FileCheck, LogOut, School } from "lucide-react";
+import { GraduationCap, Users, ClipboardList, FileCheck, LogOut, School, Settings } from "lucide-react";
 import { useTeacherSession, clearTeacherSession } from "@/lib/teacherSession";
 import { t, useLang, useDir } from "@/lib/i18n";
+import BackButton from "@/components/BackButton";
 
 /**
  * لوحة الأستاذ — نقطة الدخول بعد دخول الأستاذ (School Code + Teacher Code).
@@ -24,12 +25,16 @@ export default function TeacherDashboard() {
     { icon: ClipboardList, key: "teacherExams", desc: "teacherExamsDesc", to: "/teacher/exams" },
     { icon: Users, key: "teacherStudents", desc: "teacherStudentsDesc", to: "/teacher/students" },
     { icon: FileCheck, key: "teacherResults", desc: "teacherResultsDesc", to: "/teacher/results" },
+    { icon: Settings, key: "navSettings", desc: "settingsSubtitle", to: "/teacher/settings" },
   ];
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir={direction}>
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
+        <div className="mb-4">
+          <BackButton fallback="/student-login" />
+        </div>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: "#173F5F" }}>
@@ -60,7 +65,7 @@ export default function TeacherDashboard() {
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {cards.map((c, i) => (
             <motion.button key={c.key}
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}

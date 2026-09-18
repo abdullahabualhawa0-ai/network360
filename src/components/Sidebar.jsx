@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useStudentSession } from "@/lib/studentSession";
+import { useTeacherSession } from "@/lib/teacherSession";
 import { useSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { clearSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang } from "@/lib/i18n";
@@ -14,6 +15,7 @@ export default function Sidebar({ onClose }) {
   const location = useLocation();
   const { user } = useAuth();
   const session = useStudentSession();
+  const teacherSession = useTeacherSession();
   const schoolAdminSession = useSchoolAdminSession();
   useLang();
   const isSuperAdmin = user?.role === "admin";
@@ -22,6 +24,10 @@ export default function Sidebar({ onClose }) {
   // الامتحانات (تأدية) للطلاب فقط — المشرفون لديهم إدارة الامتحانات ونتائجها
   const isPersonalStudent = !!session?.is_personal;
   const showExams = session && !isPersonalStudent && !isAdmin;
+  // مسار الإعدادات حسب الدور النشط
+  const settingsPath = teacherSession ? "/teacher/settings"
+    : schoolAdminSession ? "/admin/settings"
+    : "/settings";
 
   const navItem = (to, icon, label) => {
     const isActive = location.pathname === to;
@@ -70,7 +76,7 @@ export default function Sidebar({ onClose }) {
         {navItem("/scenario-lab", <FlaskConical size={16} />, t("navScenarioLab"))}
         {navItem("/lab-history", <History size={16} />, t("navLabHistory"))}
         {showExams && navItem("/exams", <ClipboardList size={16} />, t("navExams"))}
-        {navItem("/settings", <Settings size={16} />, t("navSettings"))}
+        {navItem(settingsPath, <Settings size={16} />, t("navSettings"))}
         {isSuperAdmin && navItem("/admin/schools", <School size={16} />, t("navSchools"))}
         {isSuperAdmin && navItem("/admin/registration-requests", <ClipboardList size={16} />, t("navRegRequests"))}
         {isSchoolAdmin && navItem("/admin/school-students", <GraduationCap size={16} />, t("navMyStudents"))}

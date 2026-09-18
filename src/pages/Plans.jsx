@@ -14,7 +14,11 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 export default function Plans() {
   useLang();
   const direction = useDir();
-  const [step, setStep] = useState("type"); // type | individual | school | done
+  const [step, setStep] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("type");
+    return type === "individual" ? "individual" : type === "school" ? "school" : "type";
+  }); // type | individual | school | done
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 

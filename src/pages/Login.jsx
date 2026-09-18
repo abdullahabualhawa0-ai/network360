@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { clearStudentSession } from "@/lib/studentSession";
+import { clearTeacherSession } from "@/lib/teacherSession";
+import { clearSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +30,9 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
+      clearStudentSession();
+      clearTeacherSession();
+      clearSchoolAdminSession();
       window.location.href = returnTo;
     } catch (err) {
       setError(err.message || "Invalid email or password");

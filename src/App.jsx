@@ -76,6 +76,7 @@ const AuthenticatedApp = () => {
           <Route path="/admin/exam-results" element={<ExamResults />} />
           <Route path="/admin/registration-requests" element={<RegistrationRequests />} />
           <Route path="/admin/teachers" element={<TeachersManager />} />
+          <Route path="/admin/settings" element={<Settings />} />
         </Route>
       </Route>
 
@@ -98,6 +99,7 @@ const AuthenticatedApp = () => {
       <Route element={<TeacherGuard />}>
         <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
         <Route path="/teacher/exams" element={<TeacherExams />} />
+        <Route path="/teacher/settings" element={<Settings />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />

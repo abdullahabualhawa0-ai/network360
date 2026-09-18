@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { KeyRound, Loader2, AlertTriangle, GraduationCap, UserPlus, BookOpen, Shield } from "lucide-react";
+import { KeyRound, Loader2, AlertTriangle, GraduationCap, UserPlus, BookOpen, Shield, User, ArrowLeft } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { studentLogin, setStudentSession } from "@/lib/studentSession";
-import { teacherLogin, setTeacherSession } from "@/lib/teacherSession";
-import { schoolAdminLogin, setSchoolAdminSession } from "@/lib/schoolAdminSession";
+import { studentLogin, setStudentSession, clearStudentSession } from "@/lib/studentSession";
+import { teacherLogin, setTeacherSession, clearTeacherSession } from "@/lib/teacherSession";
+import { schoolAdminLogin, setSchoolAdminSession, clearSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang, useDir } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -65,6 +65,8 @@ export default function StudentLogin() {
     setError(null);
     try {
       const session = await studentLogin(sSchoolCode, sStudentCode);
+      clearTeacherSession();
+      clearSchoolAdminSession();
       setStudentSession(session);
       navigate("/", { replace: true });
     } catch (err) {
@@ -80,6 +82,8 @@ export default function StudentLogin() {
     setError(null);
     try {
       const session = await teacherLogin(tSchoolCode, tTeacherCode);
+      clearStudentSession();
+      clearSchoolAdminSession();
       setTeacherSession(session);
       navigate("/teacher/dashboard", { replace: true });
     } catch (err) {
@@ -95,6 +99,8 @@ export default function StudentLogin() {
     setError(null);
     try {
       const session = await schoolAdminLogin(aSchoolCode, aAdminCode);
+      clearStudentSession();
+      clearTeacherSession();
       setSchoolAdminSession(session);
       navigate("/admin/school-students", { replace: true });
     } catch (err) {
@@ -145,6 +151,10 @@ export default function StudentLogin() {
         {/* Admin login — يظهر بدلاً من التبويبات عند تفعيله */}
         {showAdminLogin && (
           <form onSubmit={submitAdmin} className="space-y-3">
+            <button type="button" onClick={() => { setShowAdminLogin(false); setError(null); }}
+              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all" style={{ color: "#2F6690" }}>
+              <ArrowLeft size={12} className="rotate-180" /> {t("back")}
+            </button>
             <LoginField value={aSchoolCode} onChange={setASchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
             <LoginField value={aAdminCode} onChange={setAAdminCode} label={t("adminCode")} placeholder={t("adminCodePlaceholder")} />
             {error && <ErrorBox text={error} />}
@@ -177,15 +187,20 @@ export default function StudentLogin() {
 
         {/* Create account tab */}
         {tab === "create" && !showAdminLogin && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="rounded-xl p-4 text-center" style={{ background: "rgba(47,102,144,0.06)", border: "1px solid rgba(47,102,144,0.2)" }}>
               <UserPlus size={22} className="mx-auto mb-2" style={{ color: "#2F6690" }} />
               <p className="text-xs text-muted-foreground leading-relaxed">{t("createAccountPrompt")}</p>
             </div>
-            <Link to="/plans"
+            <Link to="/plans?type=individual"
+              className="w-full py-3 rounded-xl text-sm font-black text-white flex items-center justify-center gap-2 transition-all"
+              style={{ background: "#2E7D5B" }}>
+              <User size={15} /> {t("regTypeIndividual")}
+            </Link>
+            <Link to="/plans?type=school"
               className="w-full py-3 rounded-xl text-sm font-black text-white flex items-center justify-center gap-2 transition-all"
               style={{ background: "#173F5F" }}>
-              <UserPlus size={15} /> {t("goPlans")}
+              <BookOpen size={15} /> {t("regTypeSchool")}
             </Link>
           </div>
         )}
