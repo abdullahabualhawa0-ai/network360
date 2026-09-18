@@ -6,6 +6,7 @@ import { studentLogin, setStudentSession } from "@/lib/studentSession";
 import { teacherLogin, setTeacherSession } from "@/lib/teacherSession";
 import { schoolAdminLogin, setSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang, useDir } from "@/lib/i18n";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 /**
  * صفحة الدخول الموحّدة — ثلاثة تبويبات:
@@ -106,6 +107,10 @@ export default function StudentLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4" dir={direction}
       style={{ background: "#F7F9FC" }}>
+      {/* زر تغيير اللغة — ثابت أعلى الصفحة */}
+      <div className="fixed top-4 end-4 z-10">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-md rounded-2xl p-6 bg-white"
         style={{ border: "1px solid #E2E8F0", boxShadow: "0 4px 20px rgba(23,63,95,0.08)" }}>
         {/* Header — مع رابط دخول المشرف جنب اسم المنصة */}

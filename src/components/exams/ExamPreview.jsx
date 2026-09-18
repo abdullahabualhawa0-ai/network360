@@ -1,13 +1,24 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, Printer, FileText, Clock, User, Calendar } from "lucide-react";
+import { t, useLang, useDir } from "@/lib/i18n";
+
+const BRAND = {
+  primary: "#173F5F",
+  secondary: "#2F6690",
+  accent: "#3A86A8",
+  bg: "#F7F9FC",
+  card: "#FFFFFF",
+  border: "#E2E8F0",
+  text: "#1F2937",
+};
 
 export default function ExamPreview({ exam, onBack }) {
+  useLang();
+  const direction = useDir();
   const printRef = useRef(null);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   const questionLetters = ["أ", "ب", "ج", "د"];
 
@@ -24,50 +35,40 @@ export default function ExamPreview({ exam, onBack }) {
         }
       `}</style>
 
-      <div className="min-h-screen" style={{ background: "#020617" }}>
+      <div className="min-h-screen" dir={direction} style={{ background: BRAND.bg }}>
         {/* Toolbar */}
-        <div className="no-print sticky top-0 z-20 flex items-center justify-between px-6 py-3"
-          style={{ background: "rgba(2,6,23,0.98)", borderBottom: "1px solid rgba(6,182,212,0.15)" }}>
-          <button onClick={onBack} className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors text-sm">
-            <ChevronLeft size={16} /> رجوع
+        <div className="no-print sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 py-3"
+          style={{ background: BRAND.card, borderBottom: `1px solid ${BRAND.border}` }}>
+          <button onClick={onBack}
+            className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: BRAND.secondary }}>
+            <ChevronLeft size={16} /> {t("examPreviewBack")}
           </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105"
-              style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)" }}
-            >
-              <Printer size={14} /> طباعة الامتحان
-            </button>
-          </div>
+          <button onClick={handlePrint}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all"
+            style={{ background: BRAND.primary }}>
+            <Printer size={14} /> {t("examPreviewPrint")}
+          </button>
         </div>
 
-        {/* Preview Card */}
+        {/* Preview note */}
         <div className="no-print max-w-3xl mx-auto px-6 py-6 mb-4">
           <div className="rounded-2xl p-4 flex items-center gap-3"
-            style={{ background: "rgba(6,182,212,0.05)", border: "1px solid rgba(6,182,212,0.2)" }}>
-            <FileText size={16} className="text-cyan-400" />
-            <span className="text-sm text-slate-300">معاينة ورقة الامتحان — ستُطبع بتنسيق A4</span>
+            style={{ background: "rgba(47,102,144,0.06)", border: "1px solid rgba(47,102,144,0.2)" }}>
+            <FileText size={16} style={{ color: BRAND.secondary }} />
+            <span className="text-sm" style={{ color: BRAND.text }}>{t("examPreviewNote")}</span>
           </div>
         </div>
 
         {/* Print Area */}
-        <div
-          id="print-area"
-          ref={printRef}
+        <div id="print-area" ref={printRef}
           className="max-w-3xl mx-auto px-6 pb-12"
-          style={{ fontFamily: "'Tajawal', Arial, sans-serif", direction: "rtl" }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl overflow-hidden shadow-2xl"
-            style={{ background: "white", color: "#1e293b" }}
-          >
+          style={{ fontFamily: "'Tajawal', Arial, sans-serif", direction: "rtl" }}>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl overflow-hidden shadow-lg" style={{ background: "white", color: "#1e293b" }}>
             {/* Exam Header */}
-            <div style={{ background: "linear-gradient(135deg,#0891b2,#7c3aed)", padding: "28px 32px" }}>
+            <div style={{ background: BRAND.primary, padding: "28px 32px" }}>
               <div className="text-center text-white">
-                <div className="text-xs font-bold mb-1 opacity-80">منصة تعلم الشبكات التعليمية</div>
+                <div className="text-xs font-bold mb-1 opacity-80">{t("examPreviewPlatform")}</div>
                 <h1 style={{ fontSize: 22, fontWeight: 900, margin: "8px 0" }}>{exam.title}</h1>
                 {exam.section_title && (
                   <div className="text-sm opacity-85">{exam.section_title}{exam.topic_title ? ` › ${exam.topic_title}` : ""}</div>
@@ -76,26 +77,26 @@ export default function ExamPreview({ exam, onBack }) {
             </div>
 
             {/* Student Info */}
-            <div style={{ padding: "20px 32px", borderBottom: "2px solid #e2e8f0", display: "flex", gap: 24, flexWrap: "wrap" }}>
+            <div style={{ padding: "20px 32px", borderBottom: `2px solid ${BRAND.border}`, display: "flex", gap: 24, flexWrap: "wrap" }}>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, color: "#64748b", fontSize: 12, fontWeight: 700 }}>
-                  <User size={12} /> اسم الطالب
+                  <User size={12} /> {t("examPreviewStudentName")}
                 </div>
                 <div style={{ borderBottom: "2px solid #cbd5e1", height: 28, minWidth: 200 }} />
               </div>
               <div style={{ flex: 1, minWidth: 150 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, color: "#64748b", fontSize: 12, fontWeight: 700 }}>
-                  <Calendar size={12} /> التاريخ
+                  <Calendar size={12} /> {t("examPreviewDate")}
                 </div>
                 <div style={{ borderBottom: "2px solid #cbd5e1", height: 28, minWidth: 150 }} />
               </div>
               {exam.duration_minutes && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#64748b", fontSize: 12, fontWeight: 700, alignSelf: "center" }}>
-                  <Clock size={12} /> المدة: {exam.duration_minutes} دقيقة
+                  <Clock size={12} /> {t("examPreviewDuration")}: {exam.duration_minutes} {t("examPreviewMinutes")}
                 </div>
               )}
               <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#64748b", fontSize: 12, fontWeight: 700, alignSelf: "center" }}>
-                <FileText size={12} /> العلامة: ______ / {exam.questions?.length || 0}
+                <FileText size={12} /> {t("examPreviewMark")}: ______ / {exam.questions?.length || 0}
               </div>
             </div>
 
@@ -103,22 +104,18 @@ export default function ExamPreview({ exam, onBack }) {
             <div style={{ padding: "24px 32px" }}>
               {(exam.questions || []).map((q, qi) => (
                 <div key={qi} style={{ marginBottom: 28, pageBreakInside: "avoid" }}>
-                  {/* Question */}
                   <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
                     <div style={{
                       minWidth: 28, height: 28, borderRadius: 8,
-                      background: "#0891b2", color: "white",
+                      background: BRAND.accent, color: "white",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 13, fontWeight: 900, flexShrink: 0
+                      fontSize: 13, fontWeight: 900, flexShrink: 0,
                     }}>
                       {qi + 1}
                     </div>
-                    <p style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.6, margin: 0, flex: 1 }}>
-                      {q.text}
-                    </p>
+                    <p style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.6, margin: 0, flex: 1 }}>{q.text}</p>
                   </div>
 
-                  {/* MCQ Options */}
                   {q.type === "mcq" && q.options?.length > 0 && (
                     <div style={{ paddingRight: 38, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 24px" }}>
                       {q.options.map((opt, oi) => opt ? (
@@ -127,7 +124,7 @@ export default function ExamPreview({ exam, onBack }) {
                             width: 20, height: 20, borderRadius: "50%",
                             border: "2px solid #cbd5e1",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 11, fontWeight: 700, color: "#64748b", flexShrink: 0
+                            fontSize: 11, fontWeight: 700, color: "#64748b", flexShrink: 0,
                           }}>
                             {questionLetters[oi]}
                           </div>
@@ -137,10 +134,9 @@ export default function ExamPreview({ exam, onBack }) {
                     </div>
                   )}
 
-                  {/* True/False */}
                   {q.type === "truefalse" && (
                     <div style={{ paddingRight: 38, display: "flex", gap: 24 }}>
-                      {["صح", "خطأ"].map((opt) => (
+                      {[t("examEditorTrue"), t("examEditorFalse")].map((opt) => (
                         <div key={opt} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #cbd5e1" }} />
                           <span style={{ fontSize: 13, color: "#374151", fontWeight: 700 }}>{opt}</span>
@@ -149,7 +145,6 @@ export default function ExamPreview({ exam, onBack }) {
                     </div>
                   )}
 
-                  {/* Short answer */}
                   {q.type === "short" && (
                     <div style={{ paddingRight: 38 }}>
                       <div style={{ borderBottom: "1.5px solid #cbd5e1", height: 32, marginBottom: 8 }} />
@@ -161,8 +156,8 @@ export default function ExamPreview({ exam, onBack }) {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: "16px 32px", borderTop: "2px solid #e2e8f0", textAlign: "center", color: "#94a3b8", fontSize: 11 }}>
-              منصة تعلم الشبكات التعليمية — بالتوفيق للجميع 🌐
+            <div style={{ padding: "16px 32px", borderTop: `2px solid ${BRAND.border}`, textAlign: "center", color: "#94a3b8", fontSize: 11 }}>
+              {t("examPreviewFooter")} 🌐
             </div>
           </motion.div>
         </div>
