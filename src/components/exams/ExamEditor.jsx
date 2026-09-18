@@ -67,7 +67,6 @@ export default function ExamEditor({ exam, onSave, onCancel }) {
     setTopicId(id);
     setTopicTitle(tp?.title || "");
     setSectionTitle(tp?.sectionTitle || "");
-    if (!title && tp) setTitle(`${t("examEditorCreate")}: ${tp.title}`);
   };
 
   const toggleType = (val) => {
