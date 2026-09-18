@@ -605,6 +605,42 @@ const T = {
   takeExamConfirmUnanswered: { ar: "سؤال بدون إجابة. هل تريد التسليم الآن؟", en: "question(s) unanswered. Submit now?", he: "שאלות ללא תשובה. להגיש עכשיו?" },
   takeExamTrue: { ar: "صح", en: "True", he: "נכון" },
   takeExamFalse: { ar: "خطأ", en: "False", he: "לא נכון" },
+
+  /* ─── نتائج الامتحانات (Admin) ─── */
+  examResultsTitle: { ar: "نتائج الامتحانات", en: "Exam Results", he: "תוצאות בחינות" },
+  examResultsDesc: { ar: "نتائج وطلبات دخول طلاب مدرستك فقط", en: "Results and access requests for your school students only", he: "תוצאות ובקשות גישה של תלמידי בית-הספר בלבד" },
+  examResultsTotalAttempts: { ar: "إجمالي المحاولات", en: "Total Attempts", he: "סך ניסיונות" },
+  examResultsParticipants: { ar: "عدد المشاركين", en: "Participants", he: "משתתפים" },
+  examResultsAvgScore: { ar: "متوسط النتائج", en: "Average Score", he: "ציון ממוצע" },
+  examResultsPassCount: { ar: "ناجحون (60%+)", en: "Passed (60%+)", he: "עברו (60%+)" },
+  examResultsTabResults: { ar: "النتائج", en: "Results", he: "תוצאות" },
+  examResultsTabRequests: { ar: "طلبات الدخول", en: "Access Requests", he: "בקשות גישה" },
+  examResultsNoResults: { ar: "لا توجد نتائج بعد — بانتظار تأدية الطلاب", en: "No results yet — waiting for students to take exams", he: "אין עדיין תוצאות — ממתינים לביצוע התלמידים" },
+  examResultsNoRequests: { ar: "لا توجد طلبات دخول معلقة", en: "No pending access requests", he: "אין בקשות גישה ממתינות" },
+  examResultsCorrectShort: { ar: "صحيحة", en: "correct", he: "נכונות" },
+  examResultsApprove: { ar: "موافقة", en: "Approve", he: "אישור" },
+  examResultsReject: { ar: "رفض", en: "Reject", he: "דחייה" },
+  examResultsWantsAccess: { ar: "يرغب بالدخول إلى", en: "Requests access to", he: "מבקש גישה ל" },
+  examResultsRestricted: { ar: "وصول مقيّد", en: "Restricted Access", he: "גישה מוגבלת" },
+  examResultsRestrictedDesc: { ar: "هذه الصفحة للمعلمين والمديرين فقط.", en: "This page is for teachers and admins only.", he: "דף זה למורים ומנהלים בלבד." },
+  examResultsBackHome: { ar: "العودة للرئيسية", en: "Back to Home", he: "חזרה לבית" },
+
+  /* ─── صفحة طلاب الأستاذ ─── */
+  teacherStudentsTitle: { ar: "طلابي", en: "My Students", he: "התלמידים שלי" },
+  teacherStudentsPageDesc: { ar: "الطلاب المرتبطون بمدرستك", en: "Students linked to your school", he: "התלמידים המקושרים לבית-הספר שלך" },
+  teacherStudentsNoStudents: { ar: "لا يوجد طلاب بعد", en: "No students yet", he: "אין תלמידים עדיין" },
+  teacherStudentsNoStudentsDesc: { ar: "سيظهر طلاب مدرستك هنا تلقائياً عند إضافتهم", en: "Your school's students will appear here automatically", he: "תלמידי בית-הספר יופיעו כאן אוטומטית" },
+  teacherStudentsCode: { ar: "رمز الطالب", en: "Student Code", he: "קוד תלמיד" },
+  teacherStudentsName: { ar: "الاسم", en: "Name", he: "שם" },
+  teacherStudentsStatus: { ar: "الحالة", en: "Status", he: "סטטוס" },
+  teacherStudentsApproved: { ar: "موثّق ✓", en: "Approved ✓", he: "מאושר ✓" },
+  teacherStudentsPending: { ar: "بانتظار الموافقة", en: "Pending", he: "ממתין" },
+  teacherStudentsRejected: { ar: "مرفوض", en: "Rejected", he: "נדחה" },
+  teacherStudentsDisabled: { ar: "معطّل", en: "Disabled", he: "מושבת" },
+
+  /* ─── صفحة نتائج الأستاذ ─── */
+  teacherResultsTitle: { ar: "نتائج الطلاب", en: "Student Results", he: "תוצאות תלמידים" },
+  teacherResultsPageDesc: { ar: "نتائج امتحانات طلاب مدرستك", en: "Exam results for your school's students", he: "תוצאות בחינות של תלמידי בית-הספר" },
 };
 
 export function getLang() {

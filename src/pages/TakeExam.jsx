@@ -161,7 +161,7 @@ export default function TakeExam() {
   if (result) {
     const passed = result.pct >= 60;
     return (
-      <div className="min-h-screen bg-background text-foreground" dir="rtl">
+      <div className="min-h-screen bg-background text-foreground" dir={direction}>
         <div className="max-w-3xl mx-auto px-4 py-8">
           <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
             className="rounded-2xl p-8 text-center mb-6"
@@ -172,13 +172,13 @@ export default function TakeExam() {
             <div className="text-5xl font-black mb-1" style={{ color: passed ? "#34d399" : "#f87171" }}>
               {result.pct}%
             </div>
-            <div className="font-black text-lg mb-1">{passed ? "🎉 ناجح — أحسنت!" : "لم تجتز — راجع الأخطاء"}</div>
+            <div className="font-black text-lg mb-1">{passed ? t("takeExamPassed") : t("takeExamFailed")}</div>
             <div className="text-xs text-muted-foreground">
-              {result.correct} إجابة صحيحة من {result.total} سؤال — النتيجة محفوظة في سجلك
+              {result.correct} {t("takeExamResultSummary")} {result.total} — {t("takeExamResultSaved")}
             </div>
           </motion.div>
 
-          <h3 className="font-black text-sm mb-3">مراجعة الإجابات</h3>
+          <h3 className="font-black text-sm mb-3">{t("takeExamReviewTitle")}</h3>
           <div className="space-y-2 mb-6">
             {(exam.questions || []).map((q, i) => {
               const r = result.review[String(i)];
@@ -192,8 +192,8 @@ export default function TakeExam() {
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold mb-1.5">{i + 1}. {q.text}</div>
                       <div className="text-[11px] flex flex-wrap gap-x-4 gap-y-1">
-                        <span className="text-muted-foreground">إجابتك: <span className={ok ? "text-green-400" : "text-red-400"}>{r?.given}</span></span>
-                        {!ok && <span className="text-muted-foreground">الإجابة الصحيحة: <span className="text-green-400">{q.answer}</span></span>}
+                        <span className="text-muted-foreground">{t("takeExamYourAnswer")}: <span className={ok ? "text-green-400" : "text-red-400"}>{r?.given}</span></span>
+                        {!ok && <span className="text-muted-foreground">{t("takeExamCorrectAnswer")}: <span className="text-green-400">{q.answer}</span></span>}
                       </div>
                     </div>
                   </div>
@@ -205,11 +205,11 @@ export default function TakeExam() {
           <div className="flex gap-2">
             <Link to="/exams" className="flex-1 py-2.5 rounded-xl text-xs font-bold text-center"
               style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
-              جميع الامتحانات
+              {t("takeExamAllExams")}
             </Link>
             <Link to="/dashboard" className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white text-center"
-              style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
-              لوحة التقدم
+              style={{ background: "#173F5F" }}>
+              {t("takeExamProgressBoard")}
             </Link>
           </div>
         </div>
@@ -223,28 +223,28 @@ export default function TakeExam() {
   const timeDanger = secondsLeft !== null && secondsLeft <= 60;
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground" dir={direction}>
       {/* Sticky bar */}
       <div className="sticky top-0 z-20 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
-        style={{ background: "rgba(2,6,23,0.98)", borderBottom: "1px solid rgba(6,182,212,0.15)" }}>
+        style={{ background: "#173F5F", borderBottom: "1px solid rgba(47,102,144,0.3)" }}>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-black text-xs truncate">{exam.title}</span>
-          <span className="text-[10px] text-muted-foreground">({answeredCount}/{qs.length} تمت الإجابة)</span>
+          <span className="font-black text-xs truncate text-white">{exam.title}</span>
+          <span className="text-[10px] text-white/60">({answeredCount}/{qs.length} {t("takeExamAnsweredCount")})</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-black font-mono"
             style={{
-              background: timeDanger ? "rgba(239,68,68,0.12)" : "rgba(6,182,212,0.1)",
-              border: `1px solid ${timeDanger ? "rgba(239,68,68,0.4)" : "rgba(6,182,212,0.3)"}`,
-              color: timeDanger ? "#f87171" : "#06b6d4",
+              background: timeDanger ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.08)",
+              border: `1px solid ${timeDanger ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.15)"}`,
+              color: timeDanger ? "#f87171" : "#fff",
             }}>
             <Clock size={13} /> {fmtTime(secondsLeft ?? 0)}
           </span>
           <button onClick={confirmSubmit} disabled={submitting}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white disabled:opacity-60"
-            style={{ background: "linear-gradient(90deg,#059669,#10b981)" }}>
+            style={{ background: "#2E7D5B" }}>
             {submitting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-            تسليم
+            {t("takeExamSubmit")}
           </button>
         </div>
       </div>
@@ -268,12 +268,12 @@ export default function TakeExam() {
                     <button key={oi} onClick={() => setAnswer(i, opt)}
                       className="w-full text-right px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
                       style={{
-                        background: selected ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.03)",
-                        border: `1px solid ${selected ? "#06b6d4" : "rgba(255,255,255,0.08)"}`,
-                        color: selected ? "#06b6d4" : "hsl(var(--foreground))",
+                        background: selected ? "rgba(47,102,144,0.1)" : "rgba(47,102,144,0.03)",
+                        border: `1px solid ${selected ? "#2F6690" : "hsl(var(--border))"}`,
+                        color: selected ? "#2F6690" : "hsl(var(--foreground))",
                       }}>
                       <span className="w-5 h-5 rounded-lg flex items-center justify-center text-[9px] flex-shrink-0"
-                        style={{ background: selected ? "#06b6d4" : "rgba(255,255,255,0.08)", color: selected ? "#fff" : "hsl(var(--muted-foreground))" }}>
+                        style={{ background: selected ? "#2F6690" : "rgba(47,102,144,0.08)", color: selected ? "#fff" : "hsl(var(--muted-foreground))" }}>
                         {String.fromCharCode(0x0623 + oi)}
                       </span>
                       {opt}
@@ -286,15 +286,15 @@ export default function TakeExam() {
             {/* True/False */}
             {q.type === "truefalse" && (
               <div className="flex gap-3">
-                {["صح", "خطأ"].map((opt) => {
+                {[t("takeExamTrue"), t("takeExamFalse")].map((opt) => {
                   const selected = answers[i] === opt;
                   return (
                     <button key={opt} onClick={() => setAnswer(i, opt)}
                       className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
                       style={{
-                        background: selected ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.03)",
-                        border: `1px solid ${selected ? "#06b6d4" : "rgba(255,255,255,0.08)"}`,
-                        color: selected ? "#06b6d4" : "hsl(var(--muted-foreground))",
+                        background: selected ? "rgba(47,102,144,0.1)" : "rgba(47,102,144,0.03)",
+                        border: `1px solid ${selected ? "#2F6690" : "hsl(var(--border))"}`,
+                        color: selected ? "#2F6690" : "hsl(var(--muted-foreground))",
                       }}>
                       {opt}
                     </button>
@@ -306,20 +306,20 @@ export default function TakeExam() {
             {/* Short answer */}
             {q.type === "short" && (
               <input value={answers[i] || ""} onChange={(e) => setAnswer(i, e.target.value)}
-                placeholder="اكتب إجابتك هنا..."
+                placeholder={t("takeExamShortPh")}
                 className="w-full px-4 py-2.5 rounded-xl text-sm bg-transparent focus:outline-none"
-                style={{ border: "1px solid rgba(6,182,212,0.3)" }} />
+                style={{ border: "1px solid hsl(var(--border))" }} />
             )}
           </motion.div>
         ))}
 
         <button onClick={confirmSubmit} disabled={submitting}
           className="w-full py-3.5 rounded-2xl text-sm font-black text-white disabled:opacity-60"
-          style={{ background: "linear-gradient(90deg,#059669,#10b981)" }}>
-          {submitting ? "جاري التسليم..." : "تسليم الامتحان وعرض النتيجة"}
+          style={{ background: "#2E7D5B" }}>
+          {submitting ? t("takeExamSubmitting") : t("takeExamSubmitFinal")}
         </button>
         <Link to="/exams" className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:opacity-80">
-          إلغاء والخروج <ChevronRight size={11} className="rotate-180" />
+          {t("takeExamCancelExit")} <ChevronRight size={11} className="rotate-180" />
         </Link>
       </div>
     </div>

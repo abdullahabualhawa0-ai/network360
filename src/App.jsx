@@ -29,6 +29,8 @@ import StudentGuard from '@/components/StudentGuard';
 import StudentLogin from './pages/StudentLogin';
 import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherExams from './pages/TeacherExams';
+import TeacherStudents from './pages/TeacherStudents';
+import TeacherResults from './pages/TeacherResults';
 import TeacherGuard from '@/components/TeacherGuard';
 import Plans from './pages/Plans.jsx';
 import ExamManager from './pages/admin/ExamManager';
@@ -99,6 +101,8 @@ const AuthenticatedApp = () => {
       <Route element={<TeacherGuard />}>
         <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
         <Route path="/teacher/exams" element={<TeacherExams />} />
+        <Route path="/teacher/students" element={<TeacherStudents />} />
+        <Route path="/teacher/results" element={<TeacherResults />} />
         <Route path="/teacher/settings" element={<Settings />} />
       </Route>
 
