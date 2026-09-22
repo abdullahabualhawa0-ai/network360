@@ -56,12 +56,15 @@ export default function Settings() {
   useLang();
   const direction = useDir();
   const active = useActiveRole();
+  const studentSession = useStudentSession();
 
   const isStudent = active.role === "student";
   const isTeacher = active.role === "teacher";
   const isSchoolAdmin = active.role === "school_admin";
   const isOwner = active.role === "owner";
   const isAdmin = isOwner; // تعديل البريد للمالك فقط
+  // الخطة الشخصية: لا تُظهر قسم المدرسة
+  const isPersonalStudent = isStudent && !!studentSession?.is_personal;
 
   const [lang, setLang] = useState(getSavedLang);
   const [saving, setSaving] = useState(false);
@@ -268,7 +271,8 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* School */}
+        {/* School — يُخفى للخطة الشخصية */}
+        {!isPersonalStudent && (
         <div className="rounded-2xl p-5 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center gap-2 mb-4" style={{ color: "#2F6690" }}>
             <School size={15} />
@@ -290,6 +294,7 @@ export default function Settings() {
             )}
           </motion.div>
         </div>
+        )}
 
         {/* معلومات التواصل — للمالك فقط تعديل */}
         {isOwner && (

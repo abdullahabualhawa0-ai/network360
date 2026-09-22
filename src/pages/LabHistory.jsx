@@ -7,6 +7,7 @@ import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { SCENARIOS, getLessonInfo } from "@/lib/scenarios";
 import { t, useLang } from "@/lib/i18n";
 import { topicTitleById } from "@/lib/courseI18n";
+import { scenarioTitle } from "@/lib/scenarioI18n";
 
 const STATUS_MAP = {
   completed: { key: "stCompleted", color: "#2E7D5B", bg: "rgba(46,125,91,0.10)", border: "rgba(46,125,91,0.35)" },

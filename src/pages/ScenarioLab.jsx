@@ -14,6 +14,7 @@ import { useStudentSession, studentApi } from "@/lib/studentSession";
 import { ensureLabRecord, markTaskCompleted } from "../lib/labTracking";
 import { t, useLang } from "@/lib/i18n";
 import { topicTitleById } from "@/lib/courseI18n";
+import { localizeScenario, scenarioFeedback } from "@/lib/scenarioI18n";
 
 /** حالة المحاكاة محفوظة لكل سيناريو في جلسة مستقلة (Simulation Session) */
 export const simStateKey = (scenarioId) => (scenarioId ? `network-simulator-state-s${scenarioId}` : "network-simulator-state");
@@ -132,9 +133,16 @@ export default function ScenarioLab() {
 
   const evaluate = () => {
     if (!selected) return;
-    const { nodes, connections } = getSimNetwork(selected.id);
-    const res = selected.eval(nodes, connections);
-    setResult(res);
+    const sc = localizeScenario(selected);
+    const { nodes, connections } = getSimNetwork(sc.id);
+    const res = sc.eval(nodes, connections);
+    // ترجمة رسالة التقييم و labels المهام
+    const tr = localizeScenario(selected);
+    const trDetails = (res.details || []).map((d, i) => ({
+      ...d,
+      label: tr.checks?.[i]?.label || d.label,
+    }));
+    setResult({ ...res, details: trDetails, feedback: scenarioFeedback(res.passed) });
     if (res.passed) persistEvaluation(selected, res);
   };
 
@@ -262,7 +270,8 @@ export default function ScenarioLab() {
               </motion.div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {available.map((sc, i) => {
+                {available.map((scRaw, i) => {
+                  const sc = localizeScenario(scRaw);
                   const rec = dbMap[sc.id];
                   const inProgress = rec && rec.status && rec.status !== "completed";
                   const lesson = getLessonInfo(sc.lessonId);
@@ -278,7 +287,7 @@ export default function ScenarioLab() {
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = inProgress ? "rgba(214,158,46,0.6)" : "#3A86A8"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = inProgress ? "rgba(214,158,46,0.45)" : "#E2E8F0"; }}
-                      onClick={() => { setSelected(sc); setResult(null); setAiTip(""); setShowHints(false); startLab(sc); }}
+                      onClick={() => { setSelected(scRaw); setResult(null); setAiTip(""); setShowHints(false); startLab(scRaw); }}
                     >
                       <div className="flex items-start justify-between mb-4">
                         <span className="text-3xl">{sc.icon}</span>
@@ -330,19 +339,22 @@ export default function ScenarioLab() {
               {t("backToScenarios")}
             </button>
 
-            {/* Scenario Card */}
+            {/* Scenario Card — نسخة مترجمة */}
+            {(() => {
+              const sc = localizeScenario(selected);
+              return (
             <div className="rounded-2xl p-6 mb-4 bg-white"
               style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(23,63,95,0.06)" }}>
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-4xl">{selected.icon}</span>
+                <span className="text-4xl">{sc.icon}</span>
                 <div>
-                  <h2 className="text-xl font-black" style={{ color: "#173F5F" }}>{selected.title}</h2>
+                  <h2 className="text-xl font-black" style={{ color: "#173F5F" }}>{sc.title}</h2>
                   <div className="flex items-center gap-2 flex-wrap mt-1">
-                    <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${selected.diffColor}`}>
-                      {diffLabel(selected.difficulty)} • {selected.time} • {selected.xp} XP
+                    <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${sc.diffColor}`}>
+                      {diffLabel(sc.difficulty)} • {sc.time} • {sc.xp} XP
                     </span>
                     {(() => {
-                      const lesson = getLessonInfo(selected.lessonId);
+                      const lesson = getLessonInfo(sc.lessonId);
                       return lesson ? (
                         <Link to={`/topic/${lesson.unitId}/${lesson.lessonId}`}
                           className="text-[10px] flex items-center gap-1 hover:underline" style={{ color: "#2F6690" }}>
@@ -353,15 +365,17 @@ export default function ScenarioLab() {
                   </div>
                 </div>
               </div>
-              <p className="text-sm mb-5 leading-relaxed" style={{ color: "rgba(31,41,55,0.75)" }}>{selected.desc}</p>
+              <p className="text-sm mb-5 leading-relaxed" style={{ color: "rgba(31,41,55,0.75)" }}>{sc.desc}</p>
 
               {/* Objectives with live check */}
               {(() => {
-                const { nodes, connections } = getSimNetwork(selected.id);
-                const liveResult = selected.eval(nodes, connections);
+                const { nodes, connections } = getSimNetwork(sc.id);
+                const liveResult = sc.eval(nodes, connections);
                 const details = liveResult.details || [];
-                const completedCountTasks = details.filter((d) => d.ok).length;
-                const totalCount = details.length;
+                const tr = localizeScenario(selected);
+                const trDetails = details.map((d, i) => ({ ...d, label: tr.checks?.[i]?.label || d.label }));
+                const completedCountTasks = trDetails.filter((d) => d.ok).length;
+                const totalCount = trDetails.length;
                 const pct = totalCount > 0 ? Math.round((completedCountTasks / totalCount) * 100) : 0;
                 return (
                   <div className="mb-5">
@@ -376,7 +390,7 @@ export default function ScenarioLab() {
                         style={{ width: `${pct}%`, background: pct === 100 ? "#2E7D5B" : "#2F6690" }} />
                     </div>
                     <ul className="space-y-2">
-                      {details.map((d, i) => (
+                      {trDetails.map((d, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm">
                           {d.ok ? (
                             <CheckCircle2 size={14} className="text-success flex-shrink-0 mt-0.5" />
@@ -415,6 +429,8 @@ export default function ScenarioLab() {
                 </button>
               </div>
             </div>
+              );
+            })()}
 
             {/* Hints */}
             <AnimatePresence>
@@ -425,12 +441,12 @@ export default function ScenarioLab() {
                   exit={{ opacity: 0, height: 0 }}
                   className="rounded-2xl p-5 mb-4 overflow-hidden"
                   style={{ background: "rgba(214,158,46,0.05)", border: "1px solid rgba(214,158,46,0.25)" }}
-                  >
+                >
                   <h3 className="font-bold text-sm mb-3 flex items-center gap-2" style={{ color: "#D69E2E" }}>
                     <Lightbulb size={14} /> {t("hints")}
                   </h3>
                   <ul className="space-y-2">
-                    {selected.hints.map((h, i) => (
+                    {localizeScenario(selected).hints.map((h, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "rgba(31,41,55,0.75)" }}>
                         <span className="flex-shrink-0 mt-0.5" style={{ color: "#D69E2E" }}>•</span> {h}
                       </li>

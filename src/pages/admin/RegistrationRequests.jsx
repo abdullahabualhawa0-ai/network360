@@ -143,17 +143,7 @@ export default function RegistrationRequests() {
           contact_phone: req.phone, country: req.country, expected_students: req.expected_students,
         });
         schoolId = school.id;
-
-        // تعيين صاحب الطلب كمشرف المدرسة تلقائياً
-        let users = await base44.entities.User.filter({ email: req.email });
-        if (!users || users.length === 0) {
-          // لا يوجد حساب → دعوة المستخدم ثم تعيينه مشرفاً
-          try { await base44.users.inviteUser(req.email, "user"); } catch (e) { console.log("invite failed:", e?.message); }
-          users = await base44.entities.User.filter({ email: req.email });
-        }
-        if (users && users.length > 0) {
-          await base44.entities.User.update(users[0].id, { role: "school_admin", school_id: schoolId });
-        }
+        // المشرف يدخل برمز المدرسة ورمز المشرف — لا حاجة لإنشاء حساب Base44
       }
       await base44.entities.RegistrationRequest.update(req.id, {
         status: "accepted",
