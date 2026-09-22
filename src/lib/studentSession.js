@@ -41,7 +41,7 @@ export function useStudentSession() {
   return session;
 }
 
-/** تسجيل دخول الطالب عبر رمز المدرسة + رمز الطالب */
+/** تسجيل دخول الطالب — رمز المدرسة + رمز الطالب (مدرسي) أو رمز الطالب فقط (فردي) */
 export async function studentLogin(schoolCode, studentCode) {
   const res = await base44.functions.invoke("studentLogin", { schoolCode, studentCode });
   return res.data;

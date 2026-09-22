@@ -63,6 +63,15 @@ const T = {
   errNotApproved: { ar: "الحساب غير معتمد. يرجى التواصل مع إدارة المدرسة.", en: "Account not approved. Please contact the school administration.", he: "החשבון לא מאושר. פנו להנהלת בית הספר." },
   errTaken: { ar: "هذا الرمز مستخدم ومسجل مسبقاً — تواصل مع إدارة مدرستك", en: "This code is already registered — contact your school administration", he: "הקוד כבר רשום — פנו להנהלת בית הספר" },
   errUnexpected: { ar: "حدث خطأ غير متوقع — تأكد من الاتصال وحاول مجدداً", en: "Unexpected error — check your connection and try again", he: "שגיאה לא צפויה — בדקו את החיבור ונסו שוב" },
+  errInvalidCode: { ar: "الرمز غير صحيح.", en: "Invalid code.", he: "הקוד שגוי." },
+
+  /* ─── دخول فردي (رمز واحد) ─── */
+  individualLoginLink: { ar: "دخول فردي", en: "Individual Login", he: "התחברות אישית" },
+  individualLoginSubtitle: { ar: "أدخل رمز الطالب الفردي للدخول إلى حسابك الشخصي", en: "Enter your individual student code to access your personal account", he: "הזינו את קוד התלמיד האישי לכניסה לחשבון" },
+  individualCode: { ar: "رمز الطالب الفردي", en: "Individual Student Code", he: "קוד תלמיד אישי" },
+  individualCodePlaceholder: { ar: "IND-XXXXX", en: "IND-XXXXX", he: "IND-XXXXX" },
+  mailIndividualCodeLabel: { ar: "رمز الطالب الخاص بك", en: "Your Student Code", he: "קוד התלמיד שלך" },
+  mailIndividualLoginNote: { ar: "استخدم هذا الرمز للدخول عبر «دخول فردي» في صفحة الدخول.", en: "Use this code to login via 'Individual Login' on the login page.", he: "השתמשו בקוד זה להתחברות דרך 'התחברות אישית' בעמוד הכניסה." },
 
   /* ─── شاشات حالة الحساب ─── */
   pendingTitle: { ar: "الحساب بانتظار موافقة إدارة المدرسة.", en: "Account awaiting school administration approval.", he: "החשבון ממתין לאישור הנהלת בית הספר." },

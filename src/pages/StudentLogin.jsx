@@ -30,7 +30,10 @@ export default function StudentLogin() {
   const [tTeacherCode, setTTeacherCode] = useState("");
   // حقول المشرف — رمز واحد فقط
   const [aAdminCode, setAAdminCode] = useState("");
+  // حقول الطالب الفردي — رمز واحد فقط
+  const [iStudentCode, setIStudentCode] = useState("");
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [showIndividualLogin, setShowIndividualLogin] = useState(false);
 
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -64,6 +67,23 @@ export default function StudentLogin() {
     setError(null);
     try {
       const session = await studentLogin(sSchoolCode, sStudentCode);
+      clearTeacherSession();
+      clearSchoolAdminSession();
+      setStudentSession(session);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err?.data?.error || err?.message || t("errUnexpected"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitIndividual = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const session = await studentLogin(null, iStudentCode);
       clearTeacherSession();
       clearSchoolAdminSession();
       setStudentSession(session);
@@ -123,9 +143,18 @@ export default function StudentLogin() {
           <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: "#173F5F" }}>
             <BookOpen className="text-white" size={24} />
           </div>
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             <h1 className="font-black text-lg" style={{ color: "#173F5F" }}>{t("appName")}</h1>
-            <button type="button" onClick={() => { setShowAdminLogin(!showAdminLogin); setTab("student"); setError(null); }}
+            <button type="button" onClick={() => { setShowIndividualLogin(!showIndividualLogin); setShowAdminLogin(false); setTab("student"); setError(null); }}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all"
+              style={{
+                background: showIndividualLogin ? "#2E7D5B" : "rgba(46,125,91,0.06)",
+                color: showIndividualLogin ? "#fff" : "hsl(var(--muted-foreground))",
+                border: "1px solid rgba(46,125,91,0.2)",
+              }}>
+              <User size={10} /> {t("individualLoginLink")}
+            </button>
+            <button type="button" onClick={() => { setShowAdminLogin(!showAdminLogin); setShowIndividualLogin(false); setTab("student"); setError(null); }}
               className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all"
               style={{
                 background: showAdminLogin ? "#173F5F" : "rgba(23,63,95,0.06)",
@@ -135,11 +164,13 @@ export default function StudentLogin() {
               <Shield size={10} /> {t("adminLoginLink")}
             </button>
           </div>
-          <p className="text-xs mt-1 text-muted-foreground">{showAdminLogin ? t("loginAdminSubtitle") : t("loginSubtitle")}</p>
+          <p className="text-xs mt-1 text-muted-foreground">
+            {showAdminLogin ? t("loginAdminSubtitle") : showIndividualLogin ? t("individualLoginSubtitle") : t("loginSubtitle")}
+          </p>
         </div>
 
-        {/* Tabs — تُخفى عند تفعيل دخول المشرف */}
-        {!showAdminLogin && (
+        {/* Tabs — تُخفى عند تفعيل دخول المشرف أو الدخول الفردي */}
+        {!showAdminLogin && !showIndividualLogin && (
         <div className="flex gap-1 p-1 rounded-xl mb-4" style={{ background: "rgba(23,63,95,0.05)" }}>
           <TabButton id="student" active={tab === "student"} icon={KeyRound} label={t("loginTabStudent")} onClick={() => { setTab("student"); setError(null); }} />
           <TabButton id="teacher" active={tab === "teacher"} icon={GraduationCap} label={t("loginTabTeacher")} onClick={() => { setTab("teacher"); setError(null); }} />
@@ -161,8 +192,22 @@ export default function StudentLogin() {
           </form>
         )}
 
+        {/* Individual login — رمز واحد فقط للخطة الشخصية */}
+        {showIndividualLogin && (
+          <form onSubmit={submitIndividual} className="space-y-3">
+            <button type="button" onClick={() => { setShowIndividualLogin(false); setError(null); }}
+              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all" style={{ color: "#2E7D5B" }}>
+              <ArrowLeft size={12} className="rotate-180" /> {t("back")}
+            </button>
+            <LoginField value={iStudentCode} onChange={setIStudentCode} label={t("individualCode")} placeholder={t("individualCodePlaceholder")} />
+            {error && <ErrorBox text={error} />}
+            <SubmitButton busy={busy} />
+            <p className="text-[10px] text-center text-muted-foreground leading-relaxed">{t("individualLoginSubtitle")}</p>
+          </form>
+        )}
+
         {/* Student tab */}
-        {tab === "student" && !showAdminLogin && (
+        {tab === "student" && !showAdminLogin && !showIndividualLogin && (
           <form onSubmit={submitStudent} className="space-y-3">
             <LoginField value={sSchoolCode} onChange={setSSchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
             <LoginField value={sStudentCode} onChange={setSStudentCode} label={t("studentCode")} placeholder="ST10025" />
@@ -173,7 +218,7 @@ export default function StudentLogin() {
         )}
 
         {/* Teacher tab */}
-        {tab === "teacher" && !showAdminLogin && (
+        {tab === "teacher" && !showAdminLogin && !showIndividualLogin && (
           <form onSubmit={submitTeacher} className="space-y-3">
             <LoginField value={tSchoolCode} onChange={setTSchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
             <LoginField value={tTeacherCode} onChange={setTTeacherCode} label={t("teacherCode")} placeholder={t("teacherCodePlaceholder")} />
@@ -184,7 +229,7 @@ export default function StudentLogin() {
         )}
 
         {/* Create account tab */}
-        {tab === "create" && !showAdminLogin && (
+        {tab === "create" && !showAdminLogin && !showIndividualLogin && (
           <div className="space-y-3">
             <div className="rounded-xl p-4 text-center" style={{ background: "rgba(47,102,144,0.06)", border: "1px solid rgba(47,102,144,0.2)" }}>
               <UserPlus size={22} className="mx-auto mb-2" style={{ color: "#2F6690" }} />

@@ -40,7 +40,7 @@ export default function RegistrationRequests() {
     if (!isLoadingAuth && isOwner) load();
   }, [isLoadingAuth, isOwner]);
 
-  const notifyUser = async (req, accepted, schoolCode, adminCode) => {
+  const notifyUser = async (req, accepted, schoolCode, adminCode, individualCode) => {
     const isSchool = req.request_type === "school";
     const lang = getLang();
     const dirAttr = LANG_DIR[lang] || "rtl";
@@ -58,11 +58,15 @@ export default function RegistrationRequests() {
         ? `${t("mailRejectedBodySchool", lang)} «${req.school_name || ""}».`
         : t("mailRejectedBodyIndividual", lang));
     const footer = accepted ? t("mailAcceptedFooter", lang) : t("mailRejectedFooter", lang);
-    const codeLines = (isSchool && schoolCode)
-      ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailSchoolCodeLabel", lang)}: <b dir="ltr">${schoolCode}</b></p>`
+    let codeLines = "";
+    if (accepted && isSchool && schoolCode) {
+      codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailSchoolCodeLabel", lang)}: <b dir="ltr">${schoolCode}</b></p>`
         + (adminCode ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminCodeLabel", lang)}: <b dir="ltr">${adminCode}</b></p>` : "")
-        + (adminCode ? `<p style="margin:0 0 12px;font-size:13px;color:#2F6690;">${t("mailAdminAssignedNote", lang)}</p>` : "")
-      : "";
+        + (adminCode ? `<p style="margin:0 0 12px;font-size:13px;color:#2F6690;">${t("mailAdminAssignedNote", lang)}</p>` : "");
+    } else if (accepted && !isSchool && individualCode) {
+      codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailIndividualCodeLabel", lang)}: <b dir="ltr">${individualCode}</b></p>`
+        + `<p style="margin:0 0 12px;font-size:13px;color:#2E7D5B;">${t("mailIndividualLoginNote", lang)}</p>`;
+    }
     const html = `<div dir="${dirAttr}" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #F7F9FC; border-radius: 16px;">
         <div style="background: ${headerColor}; color: #fff; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
           <h2 style="margin: 0; font-size: 18px;">${title}</h2>
@@ -130,6 +134,7 @@ export default function RegistrationRequests() {
       let schoolCode = null;
       let schoolId = null;
       let adminCode = null;
+      let individualCode = null;
       if (req.request_type === "school" && req.status !== "accepted") {
         schoolCode = `SCH-${Date.now().toString().slice(-6)}`;
         const dup = await base44.entities.School.filter({ code: schoolCode });
@@ -144,12 +149,34 @@ export default function RegistrationRequests() {
         });
         schoolId = school.id;
         // المشرف يدخل برمز المدرسة ورمز المشرف — لا حاجة لإنشاء حساب Base44
+      } else if (req.request_type === "individual" && req.status !== "accepted") {
+        // إنشاء مدرسة بخطة شخصية + ملف طالب برمز فريد — الطالب يدخل برمز واحد فقط
+        schoolCode = `SCH-${Date.now().toString().slice(-6)}`;
+        const dup = await base44.entities.School.filter({ code: schoolCode });
+        if (dup && dup.length > 0) throw new Error("Code collision");
+        individualCode = generateIndividualCode();
+        const school = await base44.entities.School.create({
+          name: req.full_name || "Individual", code: schoolCode, is_active: true, created_by_id: user.id,
+          subscription_plan: "personal_monthly", student_limit: 1, teacher_limit: 0,
+          current_student_count: 1, subscription_status: "active",
+          admin_name: req.full_name, admin_email: req.email, contact_phone: req.phone, country: req.country,
+        });
+        await base44.entities.StudentProfile.create({
+          school_id: school.id,
+          student_code: individualCode,
+          full_name: req.full_name || "",
+          email: req.email || "",
+          status: "approved",
+          preferred_language: "ar",
+          phone: req.phone || "",
+          country: req.country || "",
+        });
       }
       await base44.entities.RegistrationRequest.update(req.id, {
         status: "accepted",
-        notes: schoolCode ? `School activated: ${schoolCode}` : "Accepted",
+        notes: schoolCode ? `Activated: ${schoolCode}` : "Accepted",
       });
-      const emailed = await notifyUser(req, true, schoolCode, adminCode);
+      const emailed = await notifyUser(req, true, schoolCode, adminCode, individualCode);
       // حذف الطلب نهائياً بعد القبول — المدرسة أصبحت في صفحة المدارس
       await base44.entities.RegistrationRequest.delete(req.id);
       setActivateMsg({ id: req.id, ok: true, text: emailed ? t("reqAcceptedMsg") : t("reqNotifyErr") });
@@ -322,6 +349,13 @@ export default function RegistrationRequests() {
 function generateAdminCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "ADM-";
+  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function generateIndividualCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "IND-";
   for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
   return code;
 }
