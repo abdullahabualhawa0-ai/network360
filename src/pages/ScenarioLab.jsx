@@ -12,7 +12,7 @@ import {
 } from "../lib/scenarios";
 import { useStudentSession, studentApi } from "@/lib/studentSession";
 import { ensureLabRecord, markTaskCompleted } from "../lib/labTracking";
-import { t, useLang } from "@/lib/i18n";
+import { t, useLang, getLang } from "@/lib/i18n";
 import { topicTitleById } from "@/lib/courseI18n";
 import { localizeScenario, scenarioFeedback } from "@/lib/scenarioI18n";
 
@@ -157,18 +157,23 @@ export default function ScenarioLab() {
     if (!selected) return;
     setLoadingTip(true);
     setAiTip("");
+    const lang = getLang();
     try {
       const { nodes, connections } = getSimNetwork(selected.id);
-      const prompt = `أنا طالب أحاول إكمال سيناريو: "${selected.title}".
-الأهداف: ${selected.objectives.join(", ")}
-شبكتي الحالية: ${nodes.length} جهاز، ${connections.length} اتصال.
-الأجهزة: ${nodes.map((n) => `${n.type}(${n.label})`).join(", ")}
+      const sc = localizeScenario(selected);
+      const langName = { ar: "Arabic", en: "English", he: "Hebrew" }[lang] || "Arabic";
+      const prompt = `I am a student trying to complete a networking scenario: "${sc.title}".
+Objectives: ${sc.objectives.join(", ")}
+My current network: ${nodes.length} devices, ${connections.length} connections.
+Devices: ${nodes.map((n) => `${n.type}(${n.label})`).join(", ")}
 
-أعطني تلميحاً واحداً مفيداً بدون إفساد الحل كاملاً. جملتين فقط بالعربية.`;
+Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, in ${langName}.`;
       const tip = await base44.integrations.Core.InvokeLLM({ prompt });
       setAiTip(tip);
     } catch {
-      setAiTip("تعذر الاتصال بالمساعد. تحقق من الاتصال.");
+      setAiTip(lang === "ar" ? "تعذر الاتصال بالمساعد. تحقق من الاتصال."
+        : lang === "he" ? "לא ניתן להתחבר לעוזר. בדקו את החיבור."
+        : "Could not connect to the assistant. Check your connection.");
     } finally {
       setLoadingTip(false);
     }

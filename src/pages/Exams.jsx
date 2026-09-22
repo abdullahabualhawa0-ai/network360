@@ -6,6 +6,7 @@ import moment from "moment";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { GENERAL_SCHOOL } from "@/lib/schoolUtils";
 import { t, useLang, useDir } from "@/lib/i18n";
+import { useExamsListTranslation } from "@/lib/useExamTranslation";
 
 const REQ_STATUS = {
   pending: { key: "accessPending", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
@@ -45,13 +46,16 @@ export default function Exams() {
     })();
   }, [session?.student_id, session?.is_personal]);
 
-  // الطالب الفردي (خطة شخصية) لا يصل للامتحانات — إعادة توجيه للرئيسية
-  if (session?.is_personal) return <Navigate to="/" replace />;
-
   // عزل المدارس: الطالب يرى امتحانات مدرسته أو العامة فقط
   const visibleExams = exams.filter(
     (e) => !e.school_id || e.school_id === GENERAL_SCHOOL || e.school_id === schoolId
   );
+
+  // ترجمة عناوين الامتحانات دفعة واحدة عند اختيار لغة غير العربية
+  const { titles: trTitles } = useExamsListTranslation(visibleExams);
+
+  // الطالب الفردي (خطة شخصية) لا يصل للامتحانات — إعادة توجيه للرئيسية
+  if (session?.is_personal) return <Navigate to="/" replace />;
 
   const requestAccess = async (exam) => {
     setRequesting(exam.id);
@@ -136,7 +140,7 @@ export default function Exams() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-bold text-sm">{exam.title}</span>
+                    <span className="font-bold text-sm">{trTitles[exam.id] || exam.title}</span>
                     {exam.section_title && (
                       <span className="text-[10px] text-muted-foreground">{exam.section_title} › {exam.topic_title}</span>
                     )}

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FileCheck, Award, Loader2, Calendar, CheckCircle2, XCircle } from "lucide-react";
 import { useStudentSession, studentApi } from "@/lib/studentSession";
-import { t, useLang } from "@/lib/i18n";
+import { t, useLang, getLang } from "@/lib/i18n";
+import { useExamsListTranslation } from "@/lib/useExamTranslation";
 
 const BRAND = {
   primary: "#173F5F",
@@ -32,6 +33,11 @@ export default function ExamResultsSection() {
       .catch(() => setResults([]))
       .finally(() => setLoading(false));
   }, [session]);
+
+  // ترجمة عناوين الامتحانات في النتائج عند اختيار لغة غير العربية
+  const examLikeList = (results || []).filter(r => r.exam_id).map(r => ({ id: r.exam_id, title: r.exam_title }));
+  const { titles: trTitles } = useExamsListTranslation(examLikeList);
+  const lang = getLang();
 
   if (!session) return null;
 
@@ -72,7 +78,7 @@ export default function ExamResultsSection() {
                   </div>
                   <div className="min-w-0">
                     <div className="text-sm font-bold truncate" style={{ color: BRAND.primary }}>
-                      {r.exam_title || "—"}
+                      {trTitles[r.exam_id] || r.exam_title || "—"}
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
                       <span className="flex items-center gap-1">
@@ -80,7 +86,7 @@ export default function ExamResultsSection() {
                       </span>
                       {r.submission_time && (
                         <span className="flex items-center gap-1">
-                          <Calendar size={9} /> {new Date(r.submission_time).toLocaleDateString("ar")}
+                          <Calendar size={9} /> {new Date(r.submission_time).toLocaleDateString(lang === "ar" ? "ar" : lang === "he" ? "he" : "en")}
                         </span>
                       )}
                     </div>

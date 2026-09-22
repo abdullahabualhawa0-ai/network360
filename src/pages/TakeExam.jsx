@@ -3,7 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock, Loader2, AlertTriangle, Send, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
-import { t, useLang, useDir } from "@/lib/i18n";
+import { t, useLang, useDir, getLang, LANG_DIR } from "@/lib/i18n";
+import useExamTranslation from "@/lib/useExamTranslation";
 
 const norm = (s) => (s || "").toString().trim().replace(/\s+/g, " ").toLowerCase();
 
@@ -26,6 +27,10 @@ export default function TakeExam() {
   const [result, setResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [schoolId, setSchoolId] = useState("general");
+
+  // ترجمة محتوى الامتحان آلياً عند اختيار لغة غير العربية
+  const { exam: trExam, translating: examTranslating } = useExamTranslation(exam);
+  const displayExam = trExam || exam;
 
   const answersRef = useRef({});
   const submittingRef = useRef(false);
@@ -180,7 +185,7 @@ export default function TakeExam() {
 
           <h3 className="font-black text-sm mb-3">{t("takeExamReviewTitle")}</h3>
           <div className="space-y-2 mb-6">
-            {(exam.questions || []).map((q, i) => {
+            {(displayExam.questions || []).map((q, i) => {
               const r = result.review[String(i)];
               const ok = r?.is_correct;
               return (
@@ -218,7 +223,7 @@ export default function TakeExam() {
   }
 
   // ─── شاشة الامتحان ──────────────────────────────
-  const qs = exam.questions || [];
+  const qs = displayExam.questions || [];
   const answeredCount = Object.keys(answers).length;
   const timeDanger = secondsLeft !== null && secondsLeft <= 60;
 
@@ -228,7 +233,7 @@ export default function TakeExam() {
       <div className="sticky top-0 z-20 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
         style={{ background: "#173F5F", borderBottom: "1px solid rgba(47,102,144,0.3)" }}>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-black text-xs truncate text-white">{exam.title}</span>
+          <span className="font-black text-xs truncate text-white">{displayExam.title}</span>
           <span className="text-[10px] text-white/60">({answeredCount}/{qs.length} {t("takeExamAnsweredCount")})</span>
         </div>
         <div className="flex items-center gap-3">
@@ -250,6 +255,11 @@ export default function TakeExam() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+        {examTranslating && (
+          <div className="rounded-xl p-3 text-center text-xs font-bold" style={{ background: "rgba(47,102,144,0.06)", color: "#2F6690", border: "1px solid rgba(47,102,144,0.2)" }}>
+            {t("quizTranslating")}
+          </div>
+        )}
         {qs.map((q, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
             className="rounded-2xl p-5 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
