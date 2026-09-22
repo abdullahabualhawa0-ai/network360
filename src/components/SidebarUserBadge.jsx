@@ -42,6 +42,14 @@ export default function SidebarUserBadge({ compact = false }) {
       code: studentSession.student_code || "",
       codeLabel: t("studentCode"),
     };
+  } else if (user?.role === "school_admin") {
+    info = {
+      icon: <ShieldCheck size={13} />,
+      roleLabel: t("roleSchoolAdmin"),
+      name: user.full_name || user.email || "",
+      code: user.email || "",
+      codeLabel: t("emailLabel"),
+    };
   } else if (user?.role === "admin") {
     info = {
       icon: <ShieldCheck size={13} />,
