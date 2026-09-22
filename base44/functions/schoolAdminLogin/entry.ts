@@ -10,26 +10,21 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     const svc = base44.asServiceRole;
     const body = await req.json();
-    const { schoolCode, adminCode } = body;
+    const { adminCode } = body;
 
-    if (!schoolCode || !adminCode) {
-      return Response.json({ error: "أدخل رمز المدرسة ورمز المشرف" }, { status: 400 });
+    if (!adminCode) {
+      return Response.json({ error: "أدخل رمز المشرف" }, { status: 400 });
     }
 
-    // 1) التحقق من رمز المدرسة (موجودة ومفعّلة)
+    // 1) البحث عن المدرسة برمز المشرف فقط (رمز فريد لكل مشرف)
     const schools = await svc.entities.School.filter({
-      code: schoolCode.trim(),
+      admin_code: adminCode.trim(),
       is_active: true,
     });
     if (!schools || schools.length === 0) {
-      return Response.json({ error: "رمز المدرسة أو رمز المشرف غير صحيح." }, { status: 404 });
+      return Response.json({ error: "رمز المشرف غير صحيح." }, { status: 404 });
     }
     const school = schools[0];
-
-    // 2) التحقق من رمز المشرف
-    if (!school.admin_code || school.admin_code.trim() !== adminCode.trim()) {
-      return Response.json({ error: "رمز المدرسة أو رمز المشرف غير صحيح." }, { status: 404 });
-    }
 
     // 3) التحقق من حالة الاشتراك
     if (school.subscription_status === "expired") {

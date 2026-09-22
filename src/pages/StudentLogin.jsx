@@ -28,8 +28,7 @@ export default function StudentLogin() {
   // حقول الأستاذ
   const [tSchoolCode, setTSchoolCode] = useState("");
   const [tTeacherCode, setTTeacherCode] = useState("");
-  // حقول المشرف
-  const [aSchoolCode, setASchoolCode] = useState("");
+  // حقول المشرف — رمز واحد فقط
   const [aAdminCode, setAAdminCode] = useState("");
   const [showAdminLogin, setShowAdminLogin] = useState(false);
 
@@ -98,7 +97,7 @@ export default function StudentLogin() {
     setBusy(true);
     setError(null);
     try {
-      const session = await schoolAdminLogin(aSchoolCode, aAdminCode);
+      const session = await schoolAdminLogin(aAdminCode);
       clearStudentSession();
       clearTeacherSession();
       setSchoolAdminSession(session);
@@ -155,7 +154,6 @@ export default function StudentLogin() {
               className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all" style={{ color: "#2F6690" }}>
               <ArrowLeft size={12} className="rotate-180" /> {t("back")}
             </button>
-            <LoginField value={aSchoolCode} onChange={setASchoolCode} label={t("schoolCode")} placeholder="SCH2026A" />
             <LoginField value={aAdminCode} onChange={setAAdminCode} label={t("adminCode")} placeholder={t("adminCodePlaceholder")} />
             {error && <ErrorBox text={error} />}
             <SubmitButton busy={busy} />

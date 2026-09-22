@@ -41,9 +41,9 @@ export function useSchoolAdminSession() {
   return session;
 }
 
-/** تسجيل دخول مشرف المدرسة عبر رمز المدرسة + رمز المشرف */
-export async function schoolAdminLogin(schoolCode, adminCode) {
-  const res = await base44.functions.invoke("schoolAdminLogin", { schoolCode, adminCode });
+/** تسجيل دخول مشرف المدرسة عبر رمز المشرف فقط (رمز فريد) */
+export async function schoolAdminLogin(adminCode) {
+  const res = await base44.functions.invoke("schoolAdminLogin", { adminCode });
   return res.data;
 }
 
