@@ -2,9 +2,13 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { syncProgressToServer } from "@/lib/progressSync";
-import { CheckCircle2, XCircle, RotateCcw, Trophy, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, XCircle, RotateCcw, Trophy, BookOpen, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { t, useLang } from "@/lib/i18n";
+import useQuizTranslation from "@/lib/useQuizTranslation";
 
-export default function QuizSection({ quiz }) {
+export default function QuizSection({ quiz: sourceQuiz }) {
+  useLang();
+  const { quiz, translating } = useQuizTranslation(sourceQuiz);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [showExplanations, setShowExplanations] = useState({});
@@ -27,7 +31,6 @@ export default function QuizSection({ quiz }) {
     const finalScore = Math.round((quiz.questions.filter((q, i) => answers[i] === q.correct).length / totalQuestions) * 100);
     setSubmitted(true);
 
-    // Save quiz result to localStorage for dashboard
     try {
       const quizId = quiz.id;
       if (quizId) {
@@ -37,7 +40,6 @@ export default function QuizSection({ quiz }) {
       }
     } catch {}
 
-    // Event tracking: log successful quiz completion
     base44.analytics.track({
       eventName: "quiz_completed",
       properties: {
@@ -48,9 +50,7 @@ export default function QuizSection({ quiz }) {
       }
     });
 
-    // Sync progress to server (for admin dashboard — students only)
     syncProgressToServer();
-
     window.scrollTo({ top: document.querySelector('#quiz-section')?.offsetTop - 100, behavior: 'smooth' });
   };
 
@@ -65,9 +65,9 @@ export default function QuizSection({ quiz }) {
   };
 
   const getScoreInfo = () => {
-    if (score >= 80) return { label: "ممتاز! 🎉", color: "text-success", bg: "bg-success/10", border: "border-success/25", ring: "bg-success" };
-    if (score >= 60) return { label: "جيد! استمر في التحسن", color: "text-warning", bg: "bg-warning/10", border: "border-warning/25", ring: "bg-warning" };
-    return { label: "راجع الدرس مرة أخرى", color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/25", ring: "bg-destructive" };
+    if (score >= 80) return { label: t("quizExcellent"), color: "text-success", bg: "bg-success/10", border: "border-success/25", ring: "bg-success" };
+    if (score >= 60) return { label: t("quizGood"), color: "text-warning", bg: "bg-warning/10", border: "border-warning/25", ring: "bg-warning" };
+    return { label: t("quizReview"), color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/25", ring: "bg-destructive" };
   };
 
   const scoreInfo = getScoreInfo();
@@ -81,9 +81,17 @@ export default function QuizSection({ quiz }) {
         </div>
         <div>
           <h2 className="text-lg font-bold text-foreground">{quiz.title}</h2>
-          <p className="text-xs text-muted-foreground">{totalQuestions} أسئلة اختيار من متعدد</p>
+          <p className="text-xs text-muted-foreground">{totalQuestions} {t("quizQuestionsCount")}</p>
         </div>
       </div>
+
+      {/* Translating indicator */}
+      {translating && (
+        <div className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 size={14} className="animate-spin" />
+          <span>{t("quizTranslating")}</span>
+        </div>
+      )}
 
       {/* Score Result */}
       <AnimatePresence>
@@ -100,7 +108,7 @@ export default function QuizSection({ quiz }) {
               <div>
                 <p className={`text-lg font-bold ${scoreInfo.color}`}>{scoreInfo.label}</p>
                 <p className="text-sm text-muted-foreground">
-                  أجبت بشكل صحيح على <strong>{correctAnswers}</strong> من <strong>{totalQuestions}</strong> سؤال
+                  {t("quizCorrectOutOf")} <strong>{correctAnswers}</strong> {t("quizOutOf")} <strong>{totalQuestions}</strong> {t("quizQuestionsWord")}
                 </p>
               </div>
               <button
@@ -108,7 +116,7 @@ export default function QuizSection({ quiz }) {
                 className="mr-auto flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-white/70 px-3 py-2 rounded-lg border border-border"
               >
                 <RotateCcw size={14} />
-                <span>إعادة</span>
+                <span>{t("quizRetake")}</span>
               </button>
             </div>
           </motion.div>
@@ -128,8 +136,8 @@ export default function QuizSection({ quiz }) {
               key={qIndex}
               className={`bg-card border rounded-2xl overflow-hidden transition-all ${
                 submitted
-                  ? isCorrect ? "border-success/40 shadow-md" 
-                  : isWrong ? "border-destructive/40 shadow-md" 
+                  ? isCorrect ? "border-success/40 shadow-md"
+                  : isWrong ? "border-destructive/40 shadow-md"
                   : "border-border opacity-70"
                   : "border-border"
               }`}
@@ -139,8 +147,8 @@ export default function QuizSection({ quiz }) {
                 <div className="flex items-start gap-3 mb-4">
                   <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                     submitted
-                      ? isCorrect ? "bg-success/10 text-success" 
-                      : isWrong ? "bg-destructive/10 text-destructive" 
+                      ? isCorrect ? "bg-success/10 text-success"
+                      : isWrong ? "bg-destructive/10 text-destructive"
                       : "bg-muted text-muted-foreground"
                       : "bg-primary/10 text-primary"
                   }`}>
@@ -199,7 +207,7 @@ export default function QuizSection({ quiz }) {
                       }`}
                     >
                       {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                      <span>شرح الإجابة</span>
+                      <span>{t("quizExplanation")}</span>
                     </button>
                     <AnimatePresence>
                       {isExpanded && (
@@ -229,7 +237,7 @@ export default function QuizSection({ quiz }) {
       {!submitted && (
         <div className="mt-6 flex items-center justify-between">
           <span className="text-sm text-muted-foreground">
-            {Object.keys(answers).length}/{totalQuestions} تم الإجابة عليها
+            {Object.keys(answers).length}/{totalQuestions} {t("quizAnswered")}
           </span>
           <button
             onClick={handleSubmit}
@@ -241,7 +249,7 @@ export default function QuizSection({ quiz }) {
             }`}
           >
             <Trophy size={16} />
-            <span>تحقق من إجاباتي</span>
+            <span>{t("quizCheckAnswers")}</span>
           </button>
         </div>
       )}

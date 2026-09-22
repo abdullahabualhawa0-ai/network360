@@ -641,6 +641,20 @@ const T = {
   teacherStudentsRejected: { ar: "مرفوض", en: "Rejected", he: "נדחה" },
   teacherStudentsDisabled: { ar: "معطّل", en: "Disabled", he: "מושבת" },
 
+  /* ─── الاختبارات (QuizSection) ─── */
+  quizQuestionsCount: { ar: "أسئلة اختيار من متعدد", en: "multiple choice questions", he: "שאלות אמריקאיות" },
+  quizExcellent: { ar: "ممتاز! 🎉", en: "Excellent! 🎉", he: "מעולה! 🎉" },
+  quizGood: { ar: "جيد! استمر في التحسن", en: "Good! Keep improving", he: "טוב! המשיכו להשתפר" },
+  quizReview: { ar: "راجع الدرس مرة أخرى", en: "Review the lesson again", he: "חזרו על השיעור שוב" },
+  quizCorrectOutOf: { ar: "أجبت بشكل صحيح على", en: "You answered correctly", he: "עניתם נכון על" },
+  quizOutOf: { ar: "من", en: "out of", he: "מתוך" },
+  quizQuestionsWord: { ar: "سؤال", en: "questions", he: "שאלות" },
+  quizRetake: { ar: "إعادة", en: "Retake", he: "נסה שוב" },
+  quizExplanation: { ar: "شرح الإجابة", en: "Answer explanation", he: "הסבר התשובה" },
+  quizCheckAnswers: { ar: "تحقق من إجاباتي", en: "Check my answers", he: "בדוק את התשובות" },
+  quizAnswered: { ar: "تم الإجابة عليها", en: "answered", he: "נענו" },
+  quizTranslating: { ar: "جارٍ ترجمة الاختبار آلياً...", en: "Translating quiz automatically...", he: "מתרגם את הבחינה אוטומטית..." },
+
   /* ─── صفحة نتائج الأستاذ ─── */
   teacherResultsTitle: { ar: "نتائج الطلاب", en: "Student Results", he: "תוצאות תלמידים" },
   teacherResultsPageDesc: { ar: "نتائج امتحانات طلاب مدرستك", en: "Exam results for your school's students", he: "תוצאות בחינות של תלמידי בית-הספר" },

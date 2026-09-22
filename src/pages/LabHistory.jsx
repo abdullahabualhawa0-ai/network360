@@ -21,6 +21,11 @@ function formatDate(d) {
   return moment(d).format("YYYY/MM/DD — HH:mm");
 }
 
+const DIFF_KEYS = { beginner: "diffBeginner", easy: "diffEasy", medium: "diffMedium", hard: "diffHard", advanced: "diffAdvanced" };
+function diffLabel(d) {
+  return t(DIFF_KEYS[d] || "diffMedium");
+}
+
 export default function LabHistory() {
   const session = useStudentSession();
   useLang();
@@ -137,13 +142,13 @@ export default function LabHistory() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-bold text-sm truncate">{r.scenario_title || scenario?.title || r.scenario_id}</span>
+                      <span className="font-bold text-sm truncate">{scenarioTitle(scenario) || r.scenario_title || r.scenario_id}</span>
                       <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
                         style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
                         {t(st.key)}
                       </span>
                       {r.scenario_difficulty && (
-                        <span className="text-[9px] text-muted-foreground">{r.scenario_difficulty}</span>
+                        <span className="text-[9px] text-muted-foreground">{diffLabel(r.scenario_difficulty)}</span>
                       )}
                       {lesson && (
                         <span className="text-[9px] text-muted-foreground">📖 {t("lessonLabel")}: {topicTitleById(lesson.lessonId, lesson.lessonTitle)}</span>
