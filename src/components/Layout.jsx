@@ -4,6 +4,7 @@ import ContactUsButton from "./ContactUsButton";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { t, useLang } from "@/lib/i18n";
+import SidebarUserBadge from "@/components/SidebarUserBadge";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,12 +26,15 @@ export default function Layout() {
         >
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ background: "#173F5F" }}>
             <span className="text-white text-xs font-black">ش</span>
           </div>
-          <span className="font-black text-sm text-primary">{t("appName")}</span>
+          <span className="font-black text-sm text-primary flex-shrink-0">{t("appName")}</span>
+          <div className="hidden sm:block flex-1 min-w-0 max-w-[200px]">
+            <SidebarUserBadge compact />
+          </div>
         </div>
         <div className="w-10" />
       </div>

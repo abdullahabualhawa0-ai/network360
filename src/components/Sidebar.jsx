@@ -10,6 +10,7 @@ import { useTeacherSession } from "@/lib/teacherSession";
 import { useSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { clearSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang } from "@/lib/i18n";
+import SidebarUserBadge from "@/components/SidebarUserBadge";
 
 export default function Sidebar({ onClose }) {
   const location = useLocation();
@@ -66,6 +67,7 @@ export default function Sidebar({ onClose }) {
             <p className="text-[11px] text-muted-foreground">{t("appTagline")}</p>
           </div>
         </Link>
+        <SidebarUserBadge />
       </div>
 
       {/* Nav links — الدروس متاحة من الصفحة الرئيسية فقط */}
