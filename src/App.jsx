@@ -99,11 +99,13 @@ const AuthenticatedApp = () => {
 
       {/* مسارات الأستاذ — جلسة الأستاذ (TeacherGuard)، بدون Base44 Authentication */}
       <Route element={<TeacherGuard />}>
-        <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-        <Route path="/teacher/exams" element={<TeacherExams />} />
-        <Route path="/teacher/students" element={<TeacherStudents />} />
-        <Route path="/teacher/results" element={<TeacherResults />} />
-        <Route path="/teacher/settings" element={<Settings />} />
+        <Route element={<Layout />}>
+          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+          <Route path="/teacher/exams" element={<TeacherExams />} />
+          <Route path="/teacher/students" element={<TeacherStudents />} />
+          <Route path="/teacher/results" element={<TeacherResults />} />
+          <Route path="/teacher/settings" element={<Settings />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
