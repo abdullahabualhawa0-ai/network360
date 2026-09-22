@@ -40,7 +40,7 @@ function useActiveRole() {
     return { role: "school_admin", code: null, name: user.full_name || user.email, email: user.email, schoolId: user.data?.school_id };
   }
   if (schoolAdminSession) {
-    return { role: "school_admin", code: schoolAdminSession.admin_code, name: schoolAdminSession.school_name, email: null, schoolId: schoolAdminSession.school_id, schoolName: schoolAdminSession.school_name };
+    return { role: "school_admin", code: schoolAdminSession.admin_code, name: schoolAdminSession.school_name, email: null, schoolId: schoolAdminSession.school_id, schoolName: schoolAdminSession.school_name, schoolCode: schoolAdminSession.school_code };
   }
   if (teacherSession) {
     return { role: "teacher", code: teacherSession.teacher_code, name: teacherSession.teacher_name, email: null, schoolId: teacherSession.school_id, schoolCode: teacherSession.school_code, subject: teacherSession.subject };
@@ -215,6 +215,12 @@ export default function Settings() {
               <div className="text-[10px] text-muted-foreground mb-1">{codeLabel}</div>
               <div className="font-bold truncate" dir="ltr">{codeValue}</div>
             </div>
+            {(isSchoolAdmin || isTeacher) && active.schoolCode && (
+              <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
+                <div className="text-[10px] text-muted-foreground mb-1">{t("schoolCode")}</div>
+                <div className="font-bold truncate" dir="ltr">{active.schoolCode}</div>
+              </div>
+            )}
             <div className="rounded-xl p-3" style={{ background: "rgba(23,63,95,0.03)" }}>
               <div className="text-[10px] text-muted-foreground mb-1">{t("roleLabel")}</div>
               <div className="font-bold flex items-center gap-1.5">
