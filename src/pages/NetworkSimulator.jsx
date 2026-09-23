@@ -16,6 +16,7 @@ import { CABLE_TYPES } from "../lib/ports";
 import ConnectionDialog from "../components/network-sim/ConnectionDialog";
 import { Activity, ChevronLeft, AlertTriangle } from "lucide-react";
 import { AnimatePresence as AP, motion } from "framer-motion";
+import { t, useLang } from "@/lib/i18n";
 
 const STORAGE_KEY = "network-simulator-state";
 
@@ -81,6 +82,7 @@ function generatePacketSegments(path, connections, nodes, protocol) {
 }
 
 export default function NetworkSimulator() {
+  useLang();
   // جلسة المحاكاة — تُحسب مرة واحدة عند الفتح (مفتاح خاص لكل سيناريو)
   const [session] = useState(loadState);
   const [nodes, setNodes] = useState(session.state.nodes);
@@ -172,7 +174,7 @@ export default function NetworkSimulator() {
                 // Chain done
                 if (chain.segments.length > 0) {
                   const lastSeg = chain.segments[chain.segments.length - 1];
-                  setStatusMsg({ text: `✅ تم الاستلام — ${lastSeg.protocol}`, type: "success" });
+                  setStatusMsg({ text: `✅ ${t("simPacketReceived")} — ${lastSeg.protocol}`, type: "success" });
                   setTimeout(() => setStatusMsg(null), 2000);
                 }
                 pendingChains.current.splice(chainIdx, 1);
@@ -296,15 +298,15 @@ export default function NetworkSimulator() {
         if (fromNode && toNode) {
           const path = findPath(packetFrom, id, connections);
           if (!path) {
-            showError(`❌ لا يوجد مسار بين "${fromNode.label}" و"${toNode.label}" — تحقق من الاتصالات`);
+            showError(`❌ ${t("simErrNoPath")} "${fromNode.label}" → "${toNode.label}"`);
           } else {
             const segments = generatePacketSegments(path, connections, nodes, selectedProtocol);
-            if (segments.length === 0) { showError("لا توجد قطاعات للإرسال"); return; }
+            if (segments.length === 0) { showError(t("simErrNoSegments")); return; }
 
             // Random packet loss (10%)
             const lostIdx = Math.random() < 0.1 ? Math.floor(Math.random() * segments.length) : -1;
             if (lostIdx !== -1) {
-              showError(`⚠️ Packet Lost عند الـ Hop ${lostIdx + 1}! إعادة الإرسال...`);
+              showError(`⚠️ ${t("simErrPacketLost")} ${lostIdx + 1}! ${t("simErrRetransmit")}`);
               segments.splice(lostIdx);
               if (segments.length === 0) return;
             }
@@ -346,7 +348,7 @@ export default function NetworkSimulator() {
           // افتح نافذة اختيار نوع الكابل والمنافذ
           setPendingConnection({ fromId: connectFrom, toId: id });
         } else {
-          showError("الاتصال موجود مسبقاً بين الجهازين");
+          showError(t("simErrConnExists"));
         }
         setConnectFrom(null);
         setActiveTool(null);
@@ -405,7 +407,7 @@ export default function NetworkSimulator() {
             style={{ color: "rgba(31,41,55,0.55)" }}
             onMouseEnter={(e) => e.currentTarget.style.color = "#173F5F"}
             onMouseLeave={(e) => e.currentTarget.style.color = "rgba(31,41,55,0.55)"}>
-            <ChevronLeft size={12} /> الرئيسية
+            <ChevronLeft size={12} /> {t("simBackHome")}
           </Link>
           <div className="w-px h-4" style={{ background: "#E2E8F0" }} />
           <div className="flex items-center gap-2">
@@ -414,8 +416,8 @@ export default function NetworkSimulator() {
               <Activity size={12} className="text-white" />
             </div>
             <span className="font-black text-sm" style={{ color: "#173F5F" }}>
-              Network Simulator
-            </span>
+               {t("simTitle")}
+             </span>
           </div>
           {/* Active tool indicator */}
           {activeTool && (
@@ -427,10 +429,10 @@ export default function NetworkSimulator() {
               }}>
               <div className="w-1.5 h-1.5 rounded-full bg-current" />
               {connectMode
-                ? (connectFrom ? "انقر الجهاز الثاني" : "انقر الجهاز الأول")
-                : packetMode
-                  ? (packetFrom ? "انقر الوجهة" : "انقر المصدر")
-                  : "وضع الحذف — انقر جهازاً"}
+                 ? (connectFrom ? t("simClickSecond") : t("simClickFirst"))
+                 : packetMode
+                   ? (packetFrom ? t("simClickDest") : t("simClickSource"))
+                   : t("simDeleteMode")}
             </div>
           )}
         </div>

@@ -749,6 +749,91 @@ const T = {
   simErrRetransmit: { ar: "إعادة الإرسال...", en: "Retransmitting...", he: "משדר מחדש..." },
   simErrConnExists: { ar: "الاتصال موجود مسبقاً بين الجهازين", en: "Connection already exists between devices", he: "החיבור כבר קיים בין המכשירים" },
   simPacketReceived: { ar: "تم الاستلام", en: "Received", he: "התקבל" },
+
+  /* ─── نافذة التوصيل (ConnectionDialog) ─── */
+  simConnDialogTitle: { ar: "توصيل", en: "Connect", he: "חבר" },
+  simConnDialogDesc: { ar: "اختر نوع الكابل ثم المنفذ في كل جهاز", en: "Select cable type then port on each device", he: "בחרו סוג כבל ואז פתחה בכל מכשיר" },
+  simConnIncompatible: { ar: "نوع الكابل غير متوافق مع", en: "Cable type incompatible with", he: "סוג כבל לא תואם עם" },
+  simConnWirelessNote: { ar: "📶 اتصال لاسلكي — لا يحتاج اختيار منفذ فيزيائي", en: "📶 Wireless — no physical port needed", he: "📶 חיבור אלחוטי — לא דורש פתחה פיזית" },
+  simConnCancel: { ar: "إلغاء", en: "Cancel", he: "בטל" },
+  simConnConfirm: { ar: "إنشاء الاتصال", en: "Create connection", he: "צור חיבור" },
+  simConnSelectPrompt: { ar: "اختر الكابل والمنافذ", en: "Select cable and ports", he: "בחר כבל ופתחות" },
+  simConnFrom: { ar: "من", en: "From", he: "מ" },
+  simConnTo: { ar: "إلى", en: "To", he: "אל" },
+  simConnAnd: { ar: "و", en: "and", he: "ו" },
+
+  /* ─── أنواع الكابلات ─── */
+  simCableUtp: { ar: "UTP", en: "UTP", he: "UTP" },
+  simCableStp: { ar: "STP", en: "STP", he: "STP" },
+  simCableFiber: { ar: "Fiber", en: "Fiber", he: "סיב אופטי" },
+  simCableWifi: { ar: "Wi-Fi", en: "Wi-Fi", he: "Wi-Fi" },
+  simCableUtpDesc: { ar: "كابل نحاسي غير محمي — الأكثر شيوعاً في الشبكات المحلية", en: "Unshielded twisted pair — most common in LANs", he: "כבל נחושת לא מוגן — נפוץ ברשתות מקומיות" },
+  simCableStpDesc: { ar: "كابل نحاسي محمي ضد التشويش الكهرومغناطيسي", en: "Shielded twisted pair — EMI protected", he: "כבל נחושת מוגן מהפרעות אלקטרומגנטיות" },
+  simCableFiberDesc: { ar: "ألياف ضوئية — سرعة عالية جداً ومسافات طويلة", en: "Optical fiber — very high speed, long distances", he: "סיב אופטי — מהירות גבוהה מאוד ומרחקים ארוכים" },
+  simCableWifiDesc: { ar: "اتصال لاسلكي — لا يحتاج منفذاً فيزيائياً", en: "Wireless — no physical port needed", he: "חיבור אלחוטי — לא דורש פתחה פיזית" },
+
+  /* ─── حالة المنافذ ─── */
+  simPortAvailable: { ar: "متاح", en: "Available", he: "פנוי" },
+  simPortConnected: { ar: "متصل", en: "Connected", he: "מחובר" },
+  simPortDisabled: { ar: "معطّل", en: "Disabled", he: "מושבת" },
+
+  /* ─── مراقب الحزم (PacketSniffer) ─── */
+  simSnifferTitle: { ar: "PACKET SNIFFER", en: "PACKET SNIFFER", he: "מאזין חבילות" },
+  simSnifferEmpty: { ar: "لا توجد packets بعد...", en: "No packets yet...", he: "אין חבילות עדיין..." },
+  simSnifferDelivered: { ar: "✓ تم الاستلام", en: "✓ DELIVERED", he: "✓ נמסר" },
+  simSnifferFailed: { ar: "✗ فشل", en: "✗ FAILED", he: "✗ נכשל" },
+  simSnifferTransit: { ar: "⏳ جاري", en: "⏳ TRANSIT", he: "⏳ בדרך" },
+  simSnifferPackets: { ar: "packets", en: "packets", he: "חבילות" },
+
+  /* ─── المساعد الذكي (AIAssistant) ─── */
+  simAiTitle: { ar: "مساعد الشبكات", en: "Network Assistant", he: "עוזר רשתות" },
+  simAiOnline: { ar: "متصل", en: "Online", he: "מחובר" },
+  simAiPlaceholder: { ar: "اسأل عن الشبكات...", en: "Ask about networks...", he: "שאל על רשתות..." },
+  simAiEmpty: { ar: "اسألني عن شبكتك أو أي مفهوم", en: "Ask me about your network or any concept", he: "שאל אותי על הרשת שלך או כל מושג" },
+  simAiError: { ar: "عذراً، حدث خطأ. حاول مرة أخرى.", en: "Sorry, an error occurred. Try again.", he: "מצטערים, אירעה שגיאה. נסה שוב." },
+  simAiSuggestion1: { ar: "ما الفرق بين Router و Switch؟", en: "What's the difference between Router and Switch?", he: "מה ההבדל בין Router ל-Switch?" },
+  simAiSuggestion2: { ar: "كيف أعرّف VLAN؟", en: "How do I configure a VLAN?", he: "איך מגדירים VLAN?" },
+  simAiSuggestion3: { ar: "ما هو DHCP؟", en: "What is DHCP?", he: "מה זה DHCP?" },
+  simAiSuggestion4: { ar: "لماذا فشل الـ Ping؟", en: "Why did the Ping fail?", he: "למה ה-Ping נכשל?" },
+  simAiContextDevices: { ar: "الشبكة الحالية تحتوي على", en: "Current network contains", he: "הרשת הנוכחית מכילה" },
+  simAiContextDevice: { ar: "جهاز", en: "devices", he: "מכשירים" },
+  simAiContextConnections: { ar: "عدد الاتصالات", en: "Connections", he: "חיבורים" },
+  simAiContextUnset: { ar: "غير محدد", en: "not set", he: "לא מוגדר" },
+  simAiPromptRole: {
+    ar: "أنت مساعد ذكي متخصص في شبكات الحاسوب (CCNA level). تساعد الطلاب بشرح المفاهيم، تشخيص الأخطاء، واقتراح الحلول. أجب باللغة العربية دائماً بشكل واضح ومختصر.",
+    en: "You are a smart assistant specialized in computer networks (CCNA level). You help students explain concepts, diagnose errors, and suggest solutions. Always answer in English clearly and concisely.",
+    he: "אתה עוזר חכם המתמחה ברשתות מחשבים (רמת CCNA). אתה עוזר לתלמידים להסביר מושגים, לאבחן שגיאות ולהציע פתרונות. ענה תמיד בעברית בבהירות ובקצרה.",
+  },
+  simAiPromptContext: { ar: "سياق الشبكة الحالية", en: "Current network context", he: "הקשר הרשת הנוכחית" },
+  simAiPromptHistory: { ar: "سجل المحادثة", en: "Chat history", he: "היסטוריית צ'אט" },
+  simAiPromptQuestion: { ar: "سؤال الطالب", en: "Student question", he: "שאלת התלמיד" },
+  simAiPromptInstruction: { ar: "أجب بشكل تعليمي، استخدم أمثلة عملية عند الحاجة.", en: "Answer in an educational way, use practical examples when needed.", he: "ענה באופן חינוכי, השתמש בדוגמאות מעשיות בעת הצורך." },
+  simAiRoleUser: { ar: "المستخدم", en: "User", he: "משתמש" },
+  simAiRoleAssistant: { ar: "المساعد", en: "Assistant", he: "עוזר" },
+
+  /* ─── لوحة السيناريو (ScenarioPanel) ─── */
+  simScenarioProgress: { ar: "التقدم", en: "Progress", he: "התקדמות" },
+  simScenarioTasks: { ar: "مهمة", en: "tasks", he: "משימות" },
+  simScenarioHints: { ar: "تلميحات", en: "Hints", he: "רמזים" },
+  simScenarioSaved: { ar: "محفوظة — منجزة سابقاً", en: "Saved — completed earlier", he: "נשמר — הושלם קודם" },
+  simScenarioSuccess: { ar: "🎉 أحسنت! أكملت السيناريو", en: "🎉 Well done! Scenario completed", he: "🎉 כל הכבוד! התרחיש הושלם" },
+  simScenarioXpEarned: { ar: "XP مكتسبة — تم حفظ التقدم في سجلك", en: "XP earned — progress saved to your record", he: "XP הושגו — ההתקדמות נשמרה ברשומה" },
+
+  /* ─── شريط التحفيز (GamificationBar) ─── */
+  simLevelBeginner: { ar: "مبتدئ", en: "Beginner", he: "מתחיל" },
+  simLevelLearner: { ar: "متعلم", en: "Learner", he: "לומד" },
+  simLevelAdvanced: { ar: "متقدم", en: "Advanced", he: "מתקדם" },
+  simLevelExpert: { ar: "خبير", en: "Expert", he: "מומחה" },
+  simLevelPro: { ar: "محترف", en: "Pro", he: "מקצוען" },
+  simBadgeFirstNode: { ar: "أول جهاز", en: "First Device", he: "מכשיר ראשון" },
+  simBadgeFirstConnection: { ar: "أول ربط", en: "First Link", he: "חיבור ראשון" },
+  simBadgeFiveNodes: { ar: "شبكة صغيرة", en: "Small Network", he: "רשת קטנה" },
+  simBadgeFirstPing: { ar: "أول Ping", en: "First Ping", he: "Ping ראשון" },
+  simBadgeScenarioDone: { ar: "سيناريو مكتمل", en: "Scenario Complete", he: "תרחיש הושלם" },
+  simXpEarned: { ar: "+XP مكتسبة!", en: "+XP earned!", he: "+XP הושגו!" },
+
+  /* ─── Serial port note ─── */
+  simSerialNote: { ar: "يتطلب no shutdown + clock rate", en: "Requires no shutdown + clock rate", he: "דורש no shutdown + clock rate" },
 };
 
 export function getLang() {

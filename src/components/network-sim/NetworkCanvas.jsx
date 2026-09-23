@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import NetworkNode from "./NetworkNode";
 import ConnectionLines from "./ConnectionLines";
 import PacketAnimation from "./PacketAnimation";
+import { t, useLang } from "@/lib/i18n";
 
 export default function NetworkCanvas({
   nodes, connections, zoom, pan, setPan,
@@ -11,6 +12,7 @@ export default function NetworkCanvas({
   highlightNodeId, activeTool,
   selectedDeviceType, clearSelectedDevice,
 }) {
+  useLang();
   const canvasRef = useRef(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
@@ -135,8 +137,8 @@ export default function NetworkCanvas({
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <div className="text-center opacity-20">
             <div className="text-5xl mb-3">🖧</div>
-            <p className="font-bold text-sm" style={{ color: "#2F6690" }}>اسحب الأجهزة من الشريط الجانبي</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(47,102,144,0.6)" }}>وأفلتها هنا لبدء بناء شبكتك</p>
+            <p className="font-bold text-sm" style={{ color: "#2F6690" }}>{t("simEmptyDrag")}</p>
+            <p className="text-xs mt-1" style={{ color: "rgba(47,102,144,0.6)" }}>{t("simEmptyDrop")}</p>
           </div>
         </div>
       )}
@@ -147,7 +149,7 @@ export default function NetworkCanvas({
           style={{ border: "2px dashed rgba(47,102,144,0.5)", background: "rgba(47,102,144,0.03)" }}>
           <div className="px-4 py-2 rounded-xl text-sm font-bold animate-pulse"
             style={{ background: "#FFFFFF", border: "1px solid rgba(47,102,144,0.4)", color: "#2F6690" }}>
-            👆 اضغط هنا لوضع الجهاز
+            {t("simTapHere")}
           </div>
         </div>
       )}
@@ -157,7 +159,7 @@ export default function NetworkCanvas({
           style={{ border: "2px dashed rgba(47,102,144,0.5)" }}>
           <div className="px-4 py-2 rounded-xl text-sm font-bold"
             style={{ background: "#FFFFFF", border: "1px solid rgba(47,102,144,0.4)", color: "#2F6690" }}>
-            أفلت الجهاز هنا
+            {t("simDropHere")}
           </div>
         </div>
       )}

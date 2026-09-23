@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, X, Send, Sparkles, ChevronDown } from "lucide-react";
+import { X, Send, Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ReactMarkdown from "react-markdown";
+import { t, useLang, getLang } from "@/lib/i18n";
 
 const MEMORY_KEY = "net-ai-memory";
 
@@ -20,6 +21,8 @@ function saveMemory(msgs) {
 }
 
 export default function AIAssistant({ nodes, connections, onClose }) {
+  useLang();
+  const lang = getLang();
   const [messages, setMessages] = useState(() => loadMemory());
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,11 +32,16 @@ export default function AIAssistant({ nodes, connections, onClose }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const networkContext = `
-الشبكة الحالية تحتوي على ${nodes.length} جهاز:
-${nodes.map((n) => `- ${n.type} "${n.label}" IP: ${n.ip || "غير محدد"}`).join("\n")}
-عدد الاتصالات: ${connections.length}
-  `.trim();
+  const networkContext = `${t("simAiContextDevices")} ${nodes.length} ${t("simAiContextDevice")}:
+${nodes.map((n) => `- ${n.type} "${n.label}" IP: ${n.ip || t("simAiContextUnset")}`).join("\n")}
+${t("simAiContextConnections")}: ${connections.length}`;
+
+  const suggestions = [
+    t("simAiSuggestion1"),
+    t("simAiSuggestion2"),
+    t("simAiSuggestion3"),
+    t("simAiSuggestion4"),
+  ];
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -45,22 +53,20 @@ ${nodes.map((n) => `- ${n.type} "${n.label}" IP: ${n.ip || "غير محدد"}`).
 
     const historyText = messages
       .slice(-6)
-      .map((m) => `${m.role === "user" ? "المستخدم" : "المساعد"}: ${m.content}`)
+      .map((m) => `${m.role === "user" ? t("simAiRoleUser") : t("simAiRoleAssistant")}: ${m.content}`)
       .join("\n");
 
-    const prompt = `أنت مساعد ذكي متخصص في شبكات الحاسوب (CCNA level).
-تساعد الطلاب بشرح المفاهيم، تشخيص الأخطاء، واقتراح الحلول.
-أجب باللغة العربية دائماً بشكل واضح ومختصر.
+    const prompt = `${t("simAiPromptRole")}
 
-سياق الشبكة الحالية:
+${t("simAiPromptContext")}:
 ${networkContext}
 
-سجل المحادثة:
+${t("simAiPromptHistory")}:
 ${historyText}
 
-سؤال الطالب: ${userMsg.content}
+${t("simAiPromptQuestion")}: ${userMsg.content}
 
-أجب بشكل تعليمي، استخدم أمثلة عملية عند الحاجة.`;
+${t("simAiPromptInstruction")}`;
 
     try {
       const response = await base44.integrations.Core.InvokeLLM({ prompt });
@@ -71,20 +77,13 @@ ${historyText}
     } catch {
       const errMsg = {
         role: "assistant",
-        content: "عذراً، حدث خطأ. حاول مرة أخرى.",
+        content: t("simAiError"),
       };
       setMessages([...history, errMsg]);
     } finally {
       setLoading(false);
     }
   };
-
-  const suggestions = [
-    "ما الفرق بين Router و Switch؟",
-    "كيف أعرّف VLAN؟",
-    "ما هو DHCP؟",
-    "لماذا فشل الـ Ping؟",
-  ];
 
   return (
     <motion.div
@@ -98,7 +97,7 @@ ${historyText}
         boxShadow: "0 12px 32px rgba(23,63,95,0.18)",
         height: "420px",
       }}
-      >
+    >
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
@@ -109,10 +108,10 @@ ${historyText}
             <Sparkles size={13} className="text-white" />
           </div>
           <div>
-            <span className="font-bold text-xs" style={{ color: "#173F5F" }}>مساعد الشبكات</span>
+            <span className="font-bold text-xs" style={{ color: "#173F5F" }}>{t("simAiTitle")}</span>
             <div className="flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#2E7D5B" }} />
-              <span className="text-[9px] text-success">متصل</span>
+              <span className="text-[9px] text-success">{t("simAiOnline")}</span>
             </div>
           </div>
         </div>
@@ -128,7 +127,7 @@ ${historyText}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="text-center py-4">
-            <div className="text-muted-foreground text-xs mb-3">اسألني عن شبكتك أو أي مفهوم</div>
+            <div className="text-muted-foreground text-xs mb-3">{t("simAiEmpty")}</div>
             <div className="space-y-2">
               {suggestions.map((s) => (
                 <button
@@ -186,14 +185,14 @@ ${historyText}
       <div
         className="px-3 py-3 border-t flex gap-2 flex-shrink-0"
         style={{ borderColor: "#E2E8F0" }}
-        >
+      >
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="اسأل عن الشبكات..."
+          placeholder={t("simAiPlaceholder")}
           className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-secondary"
-          dir="rtl"
+          dir={lang === "en" ? "ltr" : "rtl"}
         />
         <button
           onClick={sendMessage}

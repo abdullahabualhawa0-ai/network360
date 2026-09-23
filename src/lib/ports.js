@@ -16,8 +16,8 @@ export const PORT_TEMPLATES = {
   Router: [
     { name: "GigabitEthernet0/0" },
     { name: "GigabitEthernet0/1" },
-    { name: "Serial0/0/0", disabled: true, note: "يتطلب no shutdown + clock rate" },
-    { name: "Serial0/0/1", disabled: true, note: "يتطلب no shutdown + clock rate" },
+    { name: "Serial0/0/0", disabled: true, noteKey: "simSerialNote" },
+    { name: "Serial0/0/1", disabled: true, noteKey: "simSerialNote" },
   ],
   PC: [{ name: "FastEthernet0/1" }],
   Laptop: [{ name: "FastEthernet0/1" }, { name: "Wlan0" }],
@@ -37,14 +37,10 @@ export function getPortsForDevice(type) {
 
 // ── أنواع الكابلات ────────────────────────────────
 export const CABLE_TYPES = [
-  { id: "utp",  label: "UTP",  icon: "🔌", color: "#D69E2E",
-    desc: "كابل نحاسي غير محمي — الأكثر شيوعاً في الشبكات المحلية" },
-  { id: "stp",  label: "STP",  icon: "🛡️", color: "#173F5F",
-    desc: "كابل نحاسي محمي ضد التشويش الكهرومغناطيسي" },
-  { id: "fiber", label: "Fiber", icon: "💠", color: "#3A86A8",
-    desc: "ألياف ضوئية — سرعة عالية جداً ومسافات طويلة" },
-  { id: "wifi", label: "Wi-Fi", icon: "📶", color: "#2E7D5B",
-    desc: "اتصال لاسلكي — لا يحتاج منفذاً فيزيائياً" },
+  { id: "utp",  labelKey: "simCableUtp",  icon: "🔌", color: "#D69E2E", descKey: "simCableUtpDesc" },
+  { id: "stp",  labelKey: "simCableStp",  icon: "🛡️", color: "#173F5F", descKey: "simCableStpDesc" },
+  { id: "fiber", labelKey: "simCableFiber", icon: "💠", color: "#3A86A8", descKey: "simCableFiberDesc" },
+  { id: "wifi", labelKey: "simCableWifi", icon: "📶", color: "#2E7D5B", descKey: "simCableWifiDesc" },
 ];
 
 // ── قواعد التوافق ────────────────────────────────
@@ -84,7 +80,7 @@ export function getPortStatus(port, usedPorts) {
 }
 
 export const PORT_STATUS_LABELS = {
-  available: { label: "متاح", color: "#2E7D5B" },
-  connected: { label: "متصل", color: "#D69E2E" },
-  disabled: { label: "معطّل", color: "#C94C4C" },
+  available: { labelKey: "simPortAvailable", color: "#2E7D5B" },
+  connected: { labelKey: "simPortConnected", color: "#D69E2E" },
+  disabled: { labelKey: "simPortDisabled", color: "#C94C4C" },
 };

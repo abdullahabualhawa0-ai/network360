@@ -1,23 +1,24 @@
 import { useState, useEffect } from "react";
-import { Zap, Star, Trophy, Target } from "lucide-react";
+import { Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { t, useLang } from "@/lib/i18n";
 
 const STORAGE_KEY = "net-gamification";
 
-const BADGES = [
-  { id: "first_node", icon: "🖥️", name: "أول جهاز", desc: "أضف جهازك الأول", xp: 10 },
-  { id: "first_connection", icon: "🔗", name: "أول ربط", desc: "اربط جهازين", xp: 20 },
-  { id: "five_nodes", icon: "🌐", name: "شبكة صغيرة", desc: "أضف 5 أجهزة", xp: 50 },
-  { id: "first_ping", icon: "📡", name: "أول Ping", desc: "أرسل packet ناجح", xp: 30 },
-  { id: "scenario_done", icon: "🏆", name: "سيناريو مكتمل", desc: "أكمل سيناريو", xp: 100 },
+const BADGE_KEYS = [
+  { id: "first_node", icon: "🖥️", nameKey: "simBadgeFirstNode" },
+  { id: "first_connection", icon: "🔗", nameKey: "simBadgeFirstConnection" },
+  { id: "five_nodes", icon: "🌐", nameKey: "simBadgeFiveNodes" },
+  { id: "first_ping", icon: "📡", nameKey: "simBadgeFirstPing" },
+  { id: "scenario_done", icon: "🏆", nameKey: "simBadgeScenarioDone" },
 ];
 
-const LEVELS = [
-  { min: 0, name: "مبتدئ", color: "#64748B" },
-  { min: 50, name: "متعلم", color: "#2F6690" },
-  { min: 150, name: "متقدم", color: "#3A86A8" },
-  { min: 350, name: "خبير", color: "#D69E2E" },
-  { min: 700, name: "محترف", color: "#173F5F" },
+const LEVEL_KEYS = [
+  { min: 0, nameKey: "simLevelBeginner", color: "#64748B" },
+  { min: 50, nameKey: "simLevelLearner", color: "#2F6690" },
+  { min: 150, nameKey: "simLevelAdvanced", color: "#3A86A8" },
+  { min: 350, nameKey: "simLevelExpert", color: "#D69E2E" },
+  { min: 700, nameKey: "simLevelPro", color: "#173F5F" },
 ];
 
 export function loadGamification() {
@@ -42,21 +43,22 @@ export function awardXP(amount, badgeId) {
 }
 
 export default function GamificationBar() {
+  useLang();
   const [gdata, setGdata] = useState(loadGamification);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
     const handler = (e) => {
       setGdata(e.detail);
-      setToast(`+XP earned!`);
+      setToast(t("simXpEarned"));
       setTimeout(() => setToast(null), 2500);
     };
     window.addEventListener("gamification-update", handler);
     return () => window.removeEventListener("gamification-update", handler);
   }, []);
 
-  const level = [...LEVELS].reverse().find((l) => gdata.xp >= l.min) || LEVELS[0];
-  const nextLevel = LEVELS[LEVELS.indexOf(level) + 1];
+  const level = [...LEVEL_KEYS].reverse().find((l) => gdata.xp >= l.min) || LEVEL_KEYS[0];
+  const nextLevel = LEVEL_KEYS[LEVEL_KEYS.indexOf(level) + 1];
   const progress = nextLevel
     ? ((gdata.xp - level.min) / (nextLevel.min - level.min)) * 100
     : 100;
@@ -72,7 +74,7 @@ export default function GamificationBar() {
       <Zap size={13} style={{ color: level.color }} />
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-bold" style={{ color: level.color }}>
-          {level.name}
+          {t(level.nameKey)}
         </span>
         <div
           className="w-20 h-1.5 rounded-full overflow-hidden"
@@ -89,8 +91,8 @@ export default function GamificationBar() {
         <span className="text-[10px] text-muted-foreground font-mono">{gdata.xp} XP</span>
       </div>
       <div className="flex gap-1">
-        {BADGES.filter((b) => gdata.badges.includes(b.id)).map((b) => (
-          <span key={b.id} title={b.name} className="text-sm cursor-default">
+        {BADGE_KEYS.filter((b) => gdata.badges.includes(b.id)).map((b) => (
+          <span key={b.id} title={t(b.nameKey)} className="text-sm cursor-default">
             {b.icon}
           </span>
         ))}

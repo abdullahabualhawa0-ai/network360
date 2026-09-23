@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { X, Wifi, Filter, Trash2, Download } from "lucide-react";
+import { X, Wifi } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { t, useLang } from "@/lib/i18n";
 
 const PROTOCOL_COLORS = {
   ICMP: "text-warning bg-warning/10",
@@ -12,6 +13,7 @@ const PROTOCOL_COLORS = {
 };
 
 export default function PacketSniffer({ packets, onClose }) {
+  useLang();
   const [filter, setFilter] = useState("ALL");
 
   const protocols = ["ALL", "ICMP", "TCP", "UDP", "ARP", "DNS", "HTTP"];
@@ -35,14 +37,14 @@ export default function PacketSniffer({ packets, onClose }) {
       <div
         className="flex items-center justify-between px-4 py-2 border-b"
         style={{ borderColor: "#E2E8F0" }}
-        >
+      >
         <div className="flex items-center gap-2">
           <Wifi size={14} className="text-secondary" />
           <span className="text-secondary font-mono text-xs font-bold">
-            PACKET SNIFFER
+            {t("simSnifferTitle")}
           </span>
           <span className="text-muted-foreground text-xs font-mono">
-            [{filtered.length} packets]
+            [{filtered.length} {t("simSnifferPackets")}]
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -92,7 +94,7 @@ export default function PacketSniffer({ packets, onClose }) {
         <AnimatePresence>
           {filtered.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground font-mono text-xs">
-              لا توجد packets بعد...
+              {t("simSnifferEmpty")}
             </div>
           ) : (
             [...filtered].reverse().map((p, i) => (
@@ -105,7 +107,7 @@ export default function PacketSniffer({ packets, onClose }) {
                   gridTemplateColumns: "60px 1fr 1fr 60px 50px 60px 80px",
                   borderBottom: "1px solid #F1F5F9",
                 }}
-                >
+              >
                 <span className="text-muted-foreground font-mono text-[9px]">
                   {String(filtered.length - i).padStart(4, "0")}
                 </span>
@@ -138,10 +140,10 @@ export default function PacketSniffer({ packets, onClose }) {
                   }`}
                 >
                   {p.status === "delivered"
-                    ? "✓ DELIVERED"
+                    ? t("simSnifferDelivered")
                     : p.status === "failed"
-                    ? "✗ FAILED"
-                    : "⏳ TRANSIT"}
+                    ? t("simSnifferFailed")
+                    : t("simSnifferTransit")}
                 </span>
               </motion.div>
             ))

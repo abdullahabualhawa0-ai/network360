@@ -6,10 +6,12 @@ import {
   ensureLabRecord, loadTaskStatuses,
   syncLabCounters, markTaskCompleted,
 } from "@/lib/labTracking";
+import { t, useLang } from "@/lib/i18n";
 
-const safe = (p) => p.catch((e) => console.warn("تخطي حفظ تقدم السيناريو:", e?.message));
+const safe = (p) => p.catch((e) => console.warn("skip scenario save:", e?.message));
 
 export default function ScenarioPanel({ scenario, nodes, connections, onClose, onComplete }) {
+  useLang();
   const [showHints, setShowHints] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const session = useStudentSession();
@@ -98,7 +100,7 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
         border: "1px solid #E2E8F0",
         boxShadow: "0 12px 32px rgba(23,63,95,0.15)",
       }}
-      >
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3"
         style={{ borderBottom: "1px solid #E2E8F0", background: "rgba(47,102,144,0.05)" }}>
@@ -120,9 +122,9 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
       {/* Progress Bar */}
       <div className="px-4 pt-3 pb-2">
         <div className="flex justify-between text-[9px] mb-1.5" style={{ color: "rgba(31,41,55,0.6)" }}>
-          <span>التقدم {trackingReady && <Save size={8} className="inline" style={{ color: "#2E7D5B" }} />}</span>
+          <span>{t("simScenarioProgress")} {trackingReady && <Save size={8} className="inline" style={{ color: "#2E7D5B" }} />}</span>
           <span className="font-bold" style={{ color: allDone ? "#2E7D5B" : "#2F6690" }}>
-            {completedCount}/{totalCount} مهمة
+            {completedCount}/{totalCount} {t("simScenarioTasks")}
           </span>
         </div>
         <div className="h-1.5 rounded-full" style={{ background: "rgba(23,63,95,0.08)" }}>
@@ -149,7 +151,7 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
                 border: `1px solid ${done ? "rgba(46,125,91,0.25)" : "#E2E8F0"}`,
               }}
               animate={{ opacity: 1 }}
-              >
+            >
               {done ? (
                 <CheckCircle2 size={13} className="text-success flex-shrink-0 mt-0.5" />
               ) : (
@@ -159,7 +161,7 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
                 {task.label}
                 {savedOnly && (
                   <span className="block text-[8px] mt-0.5 flex items-center gap-0.5" style={{ color: "rgba(46,125,91,0.6)" }}>
-                    <Save size={7} /> محفوظة — منجزة سابقاً
+                    <Save size={7} /> {t("simScenarioSaved")}
                   </span>
                 )}
               </span>
@@ -181,7 +183,7 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
         >
           <div className="flex items-center gap-1.5">
             <Lightbulb size={11} />
-            <span>تلميحات</span>
+            <span>{t("simScenarioHints")}</span>
           </div>
           {showHints ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
         </button>
@@ -214,10 +216,10 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
             animate={{ opacity: 1, scale: 1 }}
             className="mx-4 mb-4 rounded-xl p-3 text-center"
             style={{ background: "rgba(46,125,91,0.1)", border: "1px solid rgba(46,125,91,0.4)" }}
-            >
+          >
             <Trophy size={20} className="text-warning mx-auto mb-1" />
-            <div className="text-sm font-black text-success">🎉 أحسنت! أكملت السيناريو</div>
-            <div className="text-[10px] text-success mt-0.5">+{scenario.xp} XP مكتسبة — تم حفظ التقدم في سجلك</div>
+            <div className="text-sm font-black text-success">{t("simScenarioSuccess")}</div>
+            <div className="text-[10px] text-success mt-0.5">+{scenario.xp} {t("simScenarioXpEarned")}</div>
           </motion.div>
         )}
       </AnimatePresence>

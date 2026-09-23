@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Settings, Save } from "lucide-react";
 import { motion } from "framer-motion";
+import { t, useLang } from "@/lib/i18n";
 
 const DEVICE_DEFAULTS = {
   Router:      { ip: "192.168.1.1",   subnet: "255.255.255.0", gateway: "" },
@@ -19,6 +20,7 @@ const DEVICE_GLOW = {
 };
 
 export default function NodeConfigPanel({ node, onUpdate, onClose }) {
+  useLang();
   const defaults = DEVICE_DEFAULTS[node.type] || {};
   const [label, setLabel] = useState(node.label || "");
   const [ip, setIp] = useState(node.ip || defaults.ip || "");
@@ -75,7 +77,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
             className="w-2 h-2 rounded-full animate-pulse"
             style={{ background: glow }}
           />
-          <span className="text-xs font-bold" style={{ color: "#173F5F" }}>إعدادات الجهاز</span>
+          <span className="text-xs font-bold" style={{ color: "#173F5F" }}>{t("simNodeConfig")}</span>
           <span
             className="text-[9px] font-bold px-1.5 py-0.5 rounded-md"
             style={{
@@ -99,7 +101,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
       <div className="px-4 py-3 space-y-3">
         <div>
           <label className="block text-[10px] font-bold mb-1" style={{ color: "rgba(6,182,212,0.7)" }}>
-            اسم الجهاز
+            {t("simNodeName")}
           </label>
           <input
             value={label}
@@ -116,7 +118,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
           <>
             <div>
               <label className="block text-[10px] font-bold mb-1" style={{ color: "#2F6690" }}>
-                عنوان IP
+                {t("simIpAddr")}
               </label>
               <input
                 value={ip}
@@ -130,7 +132,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
             </div>
             <div>
               <label className="block text-[10px] font-bold mb-1" style={{ color: "#2F6690" }}>
-                Subnet Mask
+                {t("simSubnetMask")}
               </label>
               <input
                 value={subnet}
@@ -145,7 +147,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
             {node.type !== "Router" && node.type !== "Firewall" && (
               <div>
                 <label className="block text-[10px] font-bold mb-1" style={{ color: "#2F6690" }}>
-                  Default Gateway
+                  {t("simDefaultGateway")}
                 </label>
                 <input
                   value={gateway}
@@ -174,7 +176,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }) {
           }}
         >
           <Save size={13} />
-          حفظ الإعدادات
+          {t("simSaveConfig")}
         </button>
       </div>
     </motion.div>

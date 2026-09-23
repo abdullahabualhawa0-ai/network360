@@ -5,8 +5,10 @@ import {
   CABLE_TYPES, isCableCompatible, getPortsForDevice,
   getUsedPorts, getPortStatus, PORT_STATUS_LABELS,
 } from "../../lib/ports";
+import { t, useLang } from "@/lib/i18n";
 
 function PortList({ node, connections, selected, onSelect }) {
+  useLang();
   const ports = useMemo(() => (node ? getPortsForDevice(node.type) : []), [node]);
   const used = useMemo(() => (node ? getUsedPorts(connections, node.id) : new Set()), [connections, node]);
 
@@ -26,6 +28,9 @@ function PortList({ node, connections, selected, onSelect }) {
         {ports.map((port) => {
           const status = getPortStatus(port, used);
           const st = PORT_STATUS_LABELS[status];
+          const stLabel = t(st.labelKey);
+          const stColor = st.color;
+          const noteText = port.noteKey ? t(port.noteKey) : (port.note || "");
           const selectable = status === "available";
           const isSel = selected === port.name;
           return (
@@ -33,18 +38,18 @@ function PortList({ node, connections, selected, onSelect }) {
               key={port.name}
               disabled={!selectable}
               onClick={() => onSelect(port.name)}
-              title={port.note || st.label}
+              title={noteText || stLabel}
               className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[10px] font-mono transition-all disabled:cursor-not-allowed"
               style={{
                 background: isSel ? "rgba(47,102,144,0.12)" : "rgba(23,63,95,0.03)",
                 border: `1px solid ${isSel ? "#2F6690" : "#E2E8F0"}`,
                 opacity: selectable ? 1 : 0.55,
               }}
-              >
+            >
               <span style={{ color: isSel ? "#2F6690" : "rgba(31,41,55,0.75)" }}>{port.name}</span>
               <span className="flex items-center gap-1 font-sans">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.color }} />
-                <span style={{ color: st.color }}>{st.label}</span>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: stColor }} />
+                <span style={{ color: stColor }}>{stLabel}</span>
               </span>
             </button>
           );
@@ -55,6 +60,7 @@ function PortList({ node, connections, selected, onSelect }) {
 }
 
 export default function ConnectionDialog({ fromNode, toNode, connections, onConfirm, onCancel }) {
+  useLang();
   const [cableId, setCableId] = useState(null);
   const [fromPort, setFromPort] = useState(null);
   const [toPort, setToPort] = useState(null);
@@ -64,6 +70,8 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
   const canConfirm = cableId && !incompatible && (isWireless || (fromPort && toPort));
 
   const selectedCable = CABLE_TYPES.find((c) => c.id === cableId);
+  const cableLabel = selectedCable ? t(selectedCable.labelKey) : "";
+  const cableDesc = selectedCable ? t(selectedCable.descKey) : "";
 
   return (
     <motion.div
@@ -87,10 +95,10 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-black" style={{ color: "#173F5F" }}>
-              🔗 توصيل {fromNode?.label} → {toNode?.label}
+              🔗 {t("simConnDialogTitle")} {fromNode?.label} → {toNode?.label}
             </h3>
             <p className="text-[10px] mt-0.5" style={{ color: "rgba(31,41,55,0.55)" }}>
-              اختر نوع الكابل ثم المنفذ في كل جهاز
+              {t("simConnDialogDesc")}
             </p>
             </div>
             <button onClick={onCancel}
@@ -104,6 +112,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
           {CABLE_TYPES.map((cable) => {
             const ok = isCableCompatible(cable.id, fromNode?.type, toNode?.type);
             const active = cableId === cable.id;
+            const label = t(cable.labelKey);
             return (
               <button
                 key={cable.id}
@@ -114,10 +123,10 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
                   background: active ? `${cable.color}1A` : "rgba(23,63,95,0.03)",
                   border: `1px solid ${active ? cable.color : "#E2E8F0"}`,
                 }}
-                >
+              >
                 <span className="text-lg leading-none">{cable.icon}</span>
                 <span className="text-[10px] font-bold" style={{ color: active ? cable.color : "rgba(31,41,55,0.7)" }}>
-                  {cable.label}
+                  {label}
                 </span>
               </button>
             );
@@ -129,23 +138,23 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3 text-[11px] font-bold"
             style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
             <AlertTriangle size={13} />
-            نوع الكابل «{selectedCable?.label}» غير متوافق مع {fromNode?.type} و {toNode?.type}
+            {t("simConnIncompatible")} {fromNode?.type} {t("simConnAnd")} {toNode?.type}
           </div>
         )}
 
         {/* Cable description */}
         {cableId && !incompatible && (
           <p className="text-[10px] mb-3 px-1" style={{ color: `${selectedCable?.color}` }}>
-            {selectedCable?.icon} {selectedCable?.desc}
+            {selectedCable?.icon} {cableDesc}
           </p>
         )}
 
         {/* Ports */}
         {cableId && !incompatible && !isWireless && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-            <PortList title="من" node={fromNode} connections={connections}
+            <PortList node={fromNode} connections={connections}
               selected={fromPort} onSelect={setFromPort} />
-            <PortList title="إلى" node={toNode} connections={connections}
+            <PortList node={toNode} connections={connections}
               selected={toPort} onSelect={setToPort} />
           </div>
         )}
@@ -154,7 +163,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
         {isWireless && (
           <div className="px-3 py-2.5 rounded-xl mb-4 text-[11px]"
             style={{ background: "rgba(46,125,91,0.08)", border: "1px solid rgba(46,125,91,0.3)", color: "#2E7D5B" }}>
-            📶 اتصال لاسلكي — لا يحتاج اختيار منفذ فيزيائي
+            {t("simConnWirelessNote")}
           </div>
         )}
 
@@ -163,7 +172,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
           <button onClick={onCancel}
             className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-muted"
             style={{ border: "1px solid #E2E8F0", color: "rgba(31,41,55,0.65)" }}>
-            إلغاء
+            {t("simConnCancel")}
           </button>
           <button
             disabled={!canConfirm}
@@ -175,7 +184,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
               color: "#fff",
             }}
           >
-            {canConfirm ? "إنشاء الاتصال" : "اختر الكابل والمنافذ"}
+            {canConfirm ? t("simConnConfirm") : t("simConnSelectPrompt")}
           </button>
         </div>
       </motion.div>

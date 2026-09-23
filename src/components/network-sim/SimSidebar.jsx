@@ -345,19 +345,19 @@ export default function SimSidebar({
                 <button onClick={redo}
                   className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted"
                   style={{ border: "1px solid #E2E8F0" }}>
-                  <Redo2 size={11} /> إعادة
-                </button>
-              </div>
-              <button onClick={resetView}
-                className="w-full py-1.5 rounded-xl text-[10px] font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted"
-                style={{ border: "1px solid #E2E8F0" }}>
-                إعادة ضبط العرض
-              </button>
-              <button onClick={reset}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-[10px] font-bold transition-all"
-                style={{ background: "rgba(201,76,76,0.06)", border: "1px solid rgba(201,76,76,0.25)", color: "#C94C4C" }}>
-                <RotateCcw size={11} /> مسح الكل
-              </button>
+                  <Redo2 size={11} /> {t("simRedo")}
+                  </button>
+                  </div>
+                  <button onClick={resetView}
+                  className="w-full py-1.5 rounded-xl text-[10px] font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted"
+                  style={{ border: "1px solid #E2E8F0" }}>
+                  {t("simResetView")}
+                  </button>
+                  <button onClick={reset}
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+                  style={{ background: "rgba(201,76,76,0.06)", border: "1px solid rgba(201,76,76,0.25)", color: "#C94C4C" }}>
+                  <RotateCcw size={11} /> {t("simClearAll")}
+                  </button>
             </div>
           </div>
         </div>
