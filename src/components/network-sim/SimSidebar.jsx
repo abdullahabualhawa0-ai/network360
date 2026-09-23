@@ -6,16 +6,17 @@ import {
   Bot, Settings, RotateCcw, Undo2, Redo2, ZoomIn, ZoomOut,
   Activity, FlaskConical, Wifi, Play, Square, Trash2, Grid3x3
 } from "lucide-react";
+import { t, useLang } from "@/lib/i18n";
 
-const DEVICES = [
-  { type: "Router",      label: "راوتر",     glow: "#173F5F", icon: "🔀" },
-  { type: "Switch",      label: "سويتش",    glow: "#2E7D5B", icon: "🔌" },
-  { type: "PC",          label: "حاسوب",    glow: "#2F6690", icon: "🖥️" },
-  { type: "Server",      label: "سيرفر",    glow: "#3A86A8", icon: "🗄️" },
-  { type: "Firewall",    label: "جدار ناري", glow: "#C94C4C", icon: "🛡️" },
-  { type: "AccessPoint", label: "Wi-Fi",    glow: "#D69E2E", icon: "📡" },
-  { type: "Cloud",       label: "إنترنت",   glow: "#64748B", icon: "☁️" },
-  { type: "Laptop",      label: "لابتوب",   glow: "#2F6690", icon: "💻" },
+const DEVICE_TYPES = [
+  { type: "Router",      labelKey: "simDevRouter",    glow: "#173F5F", icon: "🔀" },
+  { type: "Switch",      labelKey: "simDevSwitch",    glow: "#2E7D5B", icon: "🔌" },
+  { type: "PC",          labelKey: "simDevPC",        glow: "#2F6690", icon: "🖥️" },
+  { type: "Server",      labelKey: "simDevServer",    glow: "#3A86A8", icon: "🗄️" },
+  { type: "Firewall",    labelKey: "simDevFirewall",  glow: "#C94C4C", icon: "🛡️" },
+  { type: "AccessPoint", labelKey: "simDevWifi",      glow: "#D69E2E", icon: "📡" },
+  { type: "Cloud",       labelKey: "simDevInternet",  glow: "#64748B", icon: "☁️" },
+  { type: "Laptop",      labelKey: "simDevLaptop",    glow: "#2F6690", icon: "💻" },
 ];
 
 const PROTOCOLS = ["ICMP", "TCP", "UDP", "DNS", "HTTP", "ARP"];
@@ -95,6 +96,8 @@ export default function SimSidebar({
   selectedDeviceType, onSelectDevice, onCancelPlacement,
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  useLang();
+  const DEVICES = DEVICE_TYPES.map((d) => ({ ...d, label: t(d.labelKey) }));
 
   const connectMode = activeTool === "connect";
   const packetMode = activeTool === "packet";
@@ -146,23 +149,23 @@ export default function SimSidebar({
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#2E7D5B" }} />
               <span className="text-[11px] font-black tracking-wide" style={{ color: "#173F5F" }}>
-                SIM TOOLS
+                {t("simTools")}
               </span>
             </div>
             <div className="flex gap-2 mt-1.5 text-[9px] font-mono" style={{ color: "rgba(47,102,144,0.6)" }}>
               <span className="flex items-center gap-1">
                 <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#3A86A8" }} />
-                {nodes?.length || 0} أجهزة
+                {nodes?.length || 0} {t("simDevicesCount")}
               </span>
               <span style={{ color: "#E2E8F0" }}>|</span>
-              <span>{connections?.length || 0} روابط</span>
+              <span>{connections?.length || 0} {t("simLinksCount")}</span>
             </div>
           </div>
 
           <div className="flex-1 py-2 space-y-0.5 px-1">
 
             {/* DEVICES */}
-            <SectionLabel label="الأجهزة" />
+            <SectionLabel label={t("simDevicesSection")} />
             <div className="grid grid-cols-2 gap-1 px-1 pb-2">
               {DEVICES.map((device) => (
                 <div
@@ -177,7 +180,7 @@ export default function SimSidebar({
                   }}
                   onMouseEnter={(e) => { if (selectedDeviceType !== device.type) { e.currentTarget.style.background = `rgba(${hexToRgb(device.glow)},0.13)`; e.currentTarget.style.borderColor = `rgba(${hexToRgb(device.glow)},0.35)`; } }}
                   onMouseLeave={(e) => { if (selectedDeviceType !== device.type) { e.currentTarget.style.background = `rgba(${hexToRgb(device.glow)},0.05)`; e.currentTarget.style.borderColor = `rgba(${hexToRgb(device.glow)},0.12)`; } }}
-                  title={`اسحب أو اضغط ${device.label}`}
+                  title={`${t("simTapToSelect")} ${device.label}`}
                 >
                   <span className="text-base leading-none">{device.icon}</span>
                   <span className="text-[9px] font-medium text-center leading-tight" style={{ color: selectedDeviceType === device.type ? device.glow : "rgba(31,41,55,0.65)" }}>{device.label}</span>
@@ -190,7 +193,7 @@ export default function SimSidebar({
               <div className="flex items-center justify-between gap-2 px-2 py-1.5 mb-1 rounded-lg"
                 style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)" }}>
                 <span className="text-[9px] font-bold" style={{ color: "#2F6690" }}>
-                  👆 {DEVICES.find(d => d.type === selectedDeviceType)?.label} — اضغط اللوحة
+                  👆 {DEVICES.find(d => d.type === selectedDeviceType)?.label} — {t("simTapCanvas")}
                 </span>
                 <button onClick={(e) => { e.stopPropagation(); onCancelPlacement?.(); }}
                   className="text-[9px] font-bold px-1.5 py-0.5 rounded"
@@ -203,18 +206,18 @@ export default function SimSidebar({
             <Divider />
 
             {/* TOOLS */}
-            <SectionLabel label="الأدوات" color="#2F6690" />
+            <SectionLabel label={t("simToolsSection")} color="#2F6690" />
             <div className="space-y-1 px-1">
               <ToolBtn
                 icon={LinkIcon}
-                label={connectMode ? (connectFrom ? "الجهاز الثاني..." : "الجهاز الأول...") : "ربط أجهزة"}
+                label={connectMode ? (connectFrom ? t("simConnectSecond") : t("simConnectFirst")) : t("simConnect")}
                 active={connectMode}
                 onClick={() => setTool("connect")}
                 color="#2F6690"
               />
               <ToolBtn
                 icon={packetMode ? Square : Play}
-                label={packetMode ? (packetFrom ? "اختر الوجهة..." : "اختر المصدر...") : "إرسال Packet"}
+                label={packetMode ? (packetFrom ? t("simSelectDest") : t("simSelectSource")) : t("simSendPacket")}
                 active={packetMode}
                 onClick={() => setTool("packet")}
                 color="#3A86A8"
@@ -222,7 +225,7 @@ export default function SimSidebar({
               />
               <ToolBtn
                 icon={Trash2}
-                label="حذف جهاز"
+                label={t("simDeleteDevice")}
                 active={deleteMode}
                 onClick={() => setTool("delete")}
                 color="#C94C4C"
@@ -231,7 +234,7 @@ export default function SimSidebar({
 
             {/* Speed control */}
             <div className="px-1 pt-1 pb-1">
-              <div className="text-[8px] font-bold px-2 mb-1.5" style={{ color: "rgba(46,125,91,0.65)" }}>سرعة الإرسال</div>
+              <div className="text-[8px] font-bold px-2 mb-1.5" style={{ color: "rgba(46,125,91,0.65)" }}>{t("simSendSpeed")}</div>
               <div className="grid grid-cols-4 gap-1 px-1">
                 {[{ v: 0.5, l: "0.5x" }, { v: 1, l: "1x" }, { v: 2, l: "2x" }, { v: 3, l: "3x" }].map(({ v, l }) => (
                   <button
@@ -274,18 +277,18 @@ export default function SimSidebar({
             <Divider />
 
             {/* SIMULATION */}
-            <SectionLabel label="المحاكاة" color="#2E7D5B" />
+            <SectionLabel label={t("simSimulationSection")} color="#2E7D5B" />
             <div className="space-y-1 px-1">
               <ToolBtn
                 icon={Wifi}
-                label={`مراقب الحزم${snifferCount > 0 ? ` (${snifferCount})` : ""}`}
+                label={`${t("simPacketSniffer")}${snifferCount > 0 ? ` (${snifferCount})` : ""}`}
                 active={showSniffer}
                 onClick={() => setShowSniffer(!showSniffer)}
                 color="#2F6690"
               />
               <ToolBtn
                 icon={Grid3x3}
-                label="ترتيب تلقائي"
+                label={t("simAutoArrange")}
                 active={false}
                 onClick={autoArrange}
                 color="#2E7D5B"
@@ -296,11 +299,11 @@ export default function SimSidebar({
             <Divider />
 
             {/* AI & LAB */}
-            <SectionLabel label="الذكاء والمختبر" color="#3A86A8" />
+            <SectionLabel label={t("simAiLabSection")} color="#3A86A8" />
             <div className="space-y-1 px-1">
               <ToolBtn
                 icon={Bot}
-                label="مساعد ذكي"
+                label={t("simAiAssistant")}
                 active={showAI}
                 onClick={() => setShowAI(!showAI)}
                 color="#3A86A8"
@@ -308,7 +311,7 @@ export default function SimSidebar({
               <Link to="/scenario-lab" className="block">
                 <ToolBtn
                   icon={FlaskConical}
-                  label="مختبر السيناريوهات"
+                  label={t("simScenarioLabLink")}
                   active={false}
                   onClick={() => {}}
                   color="#2F6690"
@@ -319,7 +322,7 @@ export default function SimSidebar({
             <Divider />
 
             {/* VIEW & HISTORY */}
-            <SectionLabel label="العرض والسجل" />
+            <SectionLabel label={t("simViewHistorySection")} />
             <div className="space-y-1.5 px-1 pb-2">
               {/* Zoom */}
               <div className="flex items-center justify-between px-2 py-1.5 rounded-xl"
@@ -337,7 +340,7 @@ export default function SimSidebar({
                 <button onClick={undo}
                   className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted"
                   style={{ border: "1px solid #E2E8F0" }}>
-                  <Undo2 size={11} /> تراجع
+                  <Undo2 size={11} /> {t("simUndo")}
                 </button>
                 <button onClick={redo}
                   className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-muted"
