@@ -7,11 +7,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const { requestType, fullName, email, phone, country, schoolName, expectedStudents, expectedTeachers, expectedUsers } = body;
 
-    const admins = await base44.asServiceRole.entities.User.filter({ role: "admin" });
-    if (!admins || admins.length === 0) return Response.json({ sent: 0 });
+    const ADMIN_EMAILS = [
+      "ismailshihadeh@gmail.com",
+      "abdullahabualhawa0@gmail.com",
+      "amerdraweesh@gmail.com",
+    ];
 
     const isSchool = requestType === "school";
     const subject = isSchool
@@ -46,14 +49,12 @@ export default async function(req) {
     `;
 
     let sent = 0;
-    for (const admin of admins) {
-      if (admin.email) {
-        try {
-          await base44.integrations.Core.SendEmail({ to: admin.email, subject, html });
-          sent++;
-        } catch (e) {
-          console.log("SendEmail failed for", admin.email, e?.message);
-        }
+    for (const emailAddr of ADMIN_EMAILS) {
+      try {
+        await base44.integrations.Core.SendEmail({ to: emailAddr, subject, html });
+        sent++;
+      } catch (e) {
+        console.log("SendEmail failed for", emailAddr, e?.message);
       }
     }
     return Response.json({ sent });
