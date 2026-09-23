@@ -194,7 +194,9 @@ export function localizeScenario(scenario) {
     hints: tr.hints || scenario.hints,
     expected: tr.expected || scenario.expected,
     time: tr.time || scenario.time,
-    checks: scenario.checks?.map((c, i) => ({ ...c, label: tr.checks?.[i] || c.label })),
+    // lab() تزيل checks من الكائن وتخزنها في closure — نستخدم tasks الموجودة فعلاً
+    tasks: tr.checks || scenario.tasks,
+    checks: scenario.tasks?.map((taskLabel, i) => ({ label: tr.checks?.[i] || taskLabel })),
   };
 }
 
