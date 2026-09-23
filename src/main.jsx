@@ -3,14 +3,16 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 
-// On page refresh, redirect to home
-if (window.performance && window.performance.getEntriesByType) {
-  const navEntries = window.performance.getEntriesByType("navigation");
-  if (navEntries.length > 0 && navEntries[0].type === "reload") {
-    if (window.location.pathname !== "/") {
-      window.location.replace("/");
-    }
-  }
+// مزامنة الوضع الداكن مع تفضيل النظام (system-preference dark mode sync)
+function syncDarkMode() {
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.classList.toggle('dark', prefersDark);
+}
+syncDarkMode();
+if (window.matchMedia) {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if (mq.addEventListener) mq.addEventListener('change', syncDarkMode);
+  else if (mq.addListener) mq.addListener(syncDarkMode);
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

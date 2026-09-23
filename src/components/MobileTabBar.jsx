@@ -11,6 +11,9 @@ import { t, useLang } from "@/lib/i18n";
  * يعرض الروابط الحرجة: الرئيسية، المحاكي، لوحة التقدم، الإعدادات.
  * يراعي الدور النشط لتحديد مسار الإعدادات الصحيح.
  */
+// Module-level scroll position cache for tab preservation across navigation
+const scrollCache = {};
+
 export default function MobileTabBar() {
   const location = useLocation();
   useLang();
@@ -41,6 +44,16 @@ export default function MobileTabBar() {
     { to: settingsPath, icon: Settings, label: t("tabSettings") },
   ];
 
+  // حفظ واستعادة موضع التمرير عند التبديل بين التبويبات
+  const handleTabClick = (path) => {
+    scrollCache[location.pathname] = window.scrollY;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollCache[path] || 0, behavior: "instant" });
+      });
+    });
+  };
+
   return (
     <nav
       className="md:hidden fixed bottom-0 right-0 left-0 z-50 flex items-stretch justify-around safe-area-bottom"
@@ -58,6 +71,7 @@ export default function MobileTabBar() {
           <Link
             key={tab.to}
             to={tab.to}
+            onClick={() => handleTabClick(tab.to)}
             className="flex flex-col items-center justify-center gap-0.5 py-2 flex-1 transition-all"
             style={{ color: isActive ? "#173F5F" : "rgba(31,41,55,0.5)" }}
           >

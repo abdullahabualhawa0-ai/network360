@@ -230,8 +230,8 @@ export default function TakeExam() {
   return (
     <div className="min-h-screen bg-background text-foreground" dir={direction}>
       {/* Sticky bar */}
-      <div className="sticky top-0 z-20 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
-        style={{ background: "#173F5F", borderBottom: "1px solid rgba(47,102,144,0.3)" }}>
+      <div className="sticky top-0 z-20 px-4 py-3 safe-area-top flex items-center justify-between gap-3 flex-wrap"
+        style={{ background: "#173F5F", borderBottom: "1px solid rgba(47,102,144,0.3)", paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}>
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-black text-xs truncate text-white">{displayExam.title}</span>
           <span className="text-[10px] text-white/60">({answeredCount}/{qs.length} {t("takeExamAnsweredCount")})</span>

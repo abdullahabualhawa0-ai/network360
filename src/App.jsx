@@ -1,7 +1,9 @@
 import { Toaster } from "@/components/ui/toaster"
+import { useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import Layout from './components/Layout';
@@ -39,6 +41,23 @@ import RegistrationRequests from './pages/admin/RegistrationRequests';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings } = useAuth();
+  const location = useLocation();
+
+  // Navigation direction tracking for push/pop slide transitions
+  const historyStack = useRef([location.pathname]);
+  const lastDir = useRef(1);
+  const idx = historyStack.current.lastIndexOf(location.pathname);
+  let navDir;
+  if (idx === -1) {
+    historyStack.current.push(location.pathname);
+    navDir = 1;
+  } else if (idx < historyStack.current.length - 1) {
+    historyStack.current = historyStack.current.slice(0, idx + 1);
+    navDir = -1;
+  } else {
+    navDir = lastDir.current;
+  }
+  lastDir.current = navDir;
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -54,7 +73,16 @@ const AuthenticatedApp = () => {
   return (
     <>
     <ScrollToTop />
-    <Routes>
+    <AnimatePresence mode="wait" custom={navDir}>
+      <motion.div
+        key={location.pathname}
+        custom={navDir}
+        initial={(d) => ({ opacity: 0, x: 32 * d })}
+        animate={{ opacity: 1, x: 0 }}
+        exit={(d) => ({ opacity: 0, x: -32 * d })}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+      >
+      <Routes location={location}>
       {/* دخول الطالب — الرموز فقط، لا Base44 Authentication — الصفحة الرئيسية للدخول */}
       <Route path="/login" element={<StudentLogin />} />
       <Route path="/student-login" element={<StudentLogin />} />
@@ -109,7 +137,9 @@ const AuthenticatedApp = () => {
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
-    </Routes>
+      </Routes>
+      </motion.div>
+    </AnimatePresence>
     </>
   );
 };
