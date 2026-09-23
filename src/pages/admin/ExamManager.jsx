@@ -8,6 +8,8 @@ import {
 import { useAdminAuth } from "@/lib/useAdminAuth";
 import { adminList, adminDelete, adminUpdate, adminCreate } from "@/lib/adminData";
 import { t, useLang, useDir } from "@/lib/i18n";
+import { sectionTitle, topicTitleById } from "@/lib/courseI18n";
+import courseData from "../../lib/courseData";
 import ExamEditor from "../../components/exams/ExamEditor";
 import ExamPreview from "../../components/exams/ExamPreview";
 
@@ -201,9 +203,12 @@ export default function ExamManager() {
                   <div>
                     <h3 className="font-black text-base" style={{ color: "#173F5F" }}>{exam.title}</h3>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
-                      {exam.topic_title && (
+                      {exam.topic_id && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <BookOpen size={10} /> {exam.section_title} › {exam.topic_title}
+                          <BookOpen size={10} /> {(() => {
+                            const sec = courseData.find(s => s.topics.some(tp => tp.id === exam.topic_id));
+                            return `${sec ? sectionTitle(sec) : (exam.section_title || "")} › ${topicTitleById(exam.topic_id, exam.topic_title || "")}`;
+                          })()}
                         </span>
                       )}
                       <span className="text-xs text-muted-foreground flex items-center gap-1">

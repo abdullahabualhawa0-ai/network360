@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import courseData from "../../lib/courseData";
-import { sectionTitle, topicTitle } from "@/lib/courseI18n";
+import { sectionTitle as sectionTitleTr, topicTitle as topicTitleTr } from "@/lib/courseI18n";
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
 
 const BRAND = {
@@ -55,8 +55,8 @@ export default function ExamEditor({ exam, onSave, onCancel }) {
   const allTopics = courseData.flatMap((section) =>
     section.topics.map((topic) => ({
       id: topic.id,
-      title: topic.title,
-      sectionTitle: section.title,
+      title: topicTitleTr(topic),
+      sectionTitle: sectionTitleTr(section),
       content: topic.content,
     }))
   );
@@ -84,23 +84,24 @@ export default function ExamEditor({ exam, onSave, onCancel }) {
     }
     setGenerating(true);
     try {
-      const typesDesc = selectedTypes.map((v) => QUESTION_TYPES.find((qt) => qt.value === v)?.labelKey).map((k) => t(k)).join("، ");
-      const prompt = `أنت أستاذ شبكات حاسوب متخصص. أنشئ ${questionCount} سؤال امتحان باللغة العربية حول الموضوع التالي:
+      const lang = getLang();
+      const typesDesc = selectedTypes.map((v) => QUESTION_TYPES.find((qt) => qt.value === v)?.labelKey).map((k) => t(k)).join(lang === "ar" ? "، " : ", ");
+      const prompt = `${t("aiGenPromptRole", lang).replace("{count}", questionCount)}
 
-الموضوع: ${selectedTopic.title}
-المحتوى: ${selectedTopic.content.slice(0, 1500)}
+${t("aiGenPromptTopic", lang)}: ${selectedTopic.title}
+${t("aiGenPromptContent", lang)}: ${selectedTopic.content.slice(0, 1500)}
 
-المطلوب: ${questionCount} سؤال من الأنواع التالية: ${typesDesc}.
-وزّع الأسئلة بشكل متناسب بين الأنواع المختارة.
-- أسئلة اختيار من متعدد: 4 خيارات لكل سؤال.
-- أسئلة صح/خطأ: خياران فقط.
-- أسئلة إجابة قصيرة: options فارغة.
+${t("aiGenPromptReq", lang)}: ${questionCount} → ${typesDesc}.
+${t("aiGenPromptDistribute", lang)}
+- ${t("aiGenPromptMcqNote", lang)}
+- ${t("aiGenPromptTFNote", lang)}
+- ${t("aiGenPromptShortNote", lang)}
 
-أجب بـ JSON فقط بهذا الشكل:
+${t("aiGenPromptJsonFormat", lang)}
 [
-  {"text": "نص السؤال", "type": "mcq", "options": ["أ", "ب", "ج", "د"], "answer": "الإجابة الصحيحة"},
-  {"text": "نص السؤال", "type": "truefalse", "options": ["صح", "خطأ"], "answer": "صح"},
-  {"text": "نص السؤال", "type": "short", "options": [], "answer": "الإجابة النموذجية"}
+  {"text": "...", "type": "mcq", "options": ["...", "...", "...", "..."], "answer": "..."},
+  {"text": "...", "type": "truefalse", "options": ["...", "..."], "answer": "..."},
+  {"text": "...", "type": "short", "options": [], "answer": "..."}
 ]`;
 
       const raw = await base44.integrations.Core.InvokeLLM({
@@ -291,10 +292,10 @@ export default function ExamEditor({ exam, onSave, onCancel }) {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[10px] text-muted-foreground truncate">{section.title}</div>
+                      <div className="text-[10px] text-muted-foreground truncate">{sectionTitleTr(section)}</div>
                       <div className="text-xs font-bold truncate"
                         style={{ color: active ? BRAND.primary : BRAND.text }}>
-                        {topic.title}
+                        {topicTitleTr(topic)}
                       </div>
                     </div>
                   </button>
