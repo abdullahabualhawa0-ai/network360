@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import courseData from "../lib/courseData";
 import quizData from "../lib/quizData";
 import { Link } from "react-router-dom";
@@ -10,6 +10,7 @@ import {
 import { t, useLang } from "@/lib/i18n";
 import { sectionTitle, topicTitle } from "@/lib/courseI18n";
 import ExamResultsSection from "@/components/dashboard/ExamResultsSection";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const PROGRESS_KEY = "topic-progress";
 const QUIZ_KEY = "quiz-results";
@@ -50,6 +51,11 @@ export default function Dashboard() {
     };
   }, []);
 
+  const refreshData = useCallback(() => {
+    setProgress(loadProgress());
+    setQuizResults(loadQuizResults());
+  }, []);
+
   const totalTopics = courseData.reduce((s, sec) => s + sec.topics.length, 0);
   const visitedTopics = Object.keys(progress).filter(k => progress[k]?.visited).length;
   const completedQuizzes = Object.keys(quizResults).length;
@@ -70,6 +76,7 @@ export default function Dashboard() {
   });
 
   return (
+    <PullToRefresh onRefresh={refreshData}>
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="relative overflow-hidden border-b border-border" style={{ background: "#F7F9FC" }}>
@@ -270,5 +277,6 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+    </PullToRefresh>
   );
 }

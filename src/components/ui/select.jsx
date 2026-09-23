@@ -5,6 +5,8 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 
 const Select = SelectPrimitive.Root
 
@@ -49,8 +51,38 @@ const SelectScrollDownButton = React.forwardRef(({ className, ...props }, ref) =
 SelectScrollDownButton.displayName =
   SelectPrimitive.ScrollDownButton.displayName
 
-const SelectContent = React.forwardRef(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
+const SelectContent = React.forwardRef(({ className, children, position = "popper", ...props }, ref) => {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <Drawer open={true} onOpenChange={(open) => {
+        if (!open) {
+          const trigger = document.querySelector('[role="combobox"][aria-expanded="true"]');
+          if (trigger) trigger.click();
+        }
+      }}>
+        <DrawerContent className="max-h-[70vh]">
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="text-xs text-muted-foreground font-medium">Select</DrawerTitle>
+          </DrawerHeader>
+          <SelectPrimitive.Content
+            ref={ref}
+            position="popper"
+            className={cn("!static !transform-none bg-transparent border-0 shadow-none rounded-none p-0 overflow-visible", className)}
+            style={{ maxHeight: "none" }}
+            {...props}>
+            <SelectPrimitive.Viewport className="p-1 max-h-[55vh] overflow-y-auto w-full">
+              {children}
+            </SelectPrimitive.Viewport>
+          </SelectPrimitive.Content>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
@@ -70,7 +102,8 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
       <SelectScrollDownButton />
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
-))
+  );
+})
 SelectContent.displayName = SelectPrimitive.Content.displayName
 
 const SelectLabel = React.forwardRef(({ className, ...props }, ref) => (

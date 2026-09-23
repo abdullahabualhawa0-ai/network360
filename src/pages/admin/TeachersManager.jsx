@@ -53,19 +53,25 @@ export default function TeachersManager() {
     setFormError(null);
     try {
       if (editId) {
-        await base44.functions.invoke("manageTeachers", {
-          action: "update",
-          id: editId,
-          session,
-          data: {
-            full_name: form.full_name.trim(),
-            email: form.email.trim(),
-            phone: form.phone.trim(),
-            subject: form.subject.trim(),
-          },
-        });
+        const updatedData = {
+          full_name: form.full_name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          subject: form.subject.trim(),
+        };
+        const prev = teachers;
+        setTeachers(prev => (prev || []).map(tc => tc.id === editId ? { ...tc, ...updatedData } : tc));
+        setForm({ full_name: "", email: "", phone: "", subject: "", teacher_code: "" });
+        setEditId(null);
+        setShowForm(false);
+        try {
+          await base44.functions.invoke("manageTeachers", { action: "update", id: editId, session, data: updatedData });
+        } catch (err) {
+          setTeachers(prev);
+          setFormError(err?.data?.error || err?.message || t("regErrSubmit"));
+        }
       } else {
-        await base44.functions.invoke("manageTeachers", {
+        const res = await base44.functions.invoke("manageTeachers", {
           action: "create",
           session,
           data: {
@@ -76,11 +82,15 @@ export default function TeachersManager() {
             teacher_code: form.teacher_code.trim() || undefined,
           },
         });
+        const newTeacher = res?.data?.teacher || (res?.data?.id ? res.data : null);
+        if (newTeacher?.id) {
+          setTeachers(prev => [...(prev || []), newTeacher]);
+        } else {
+          load();
+        }
+        setForm({ full_name: "", email: "", phone: "", subject: "", teacher_code: "" });
+        setShowForm(false);
       }
-      setForm({ full_name: "", email: "", phone: "", subject: "", teacher_code: "" });
-      setEditId(null);
-      setShowForm(false);
-      load();
     } catch (err) {
       setFormError(err?.data?.error || err?.message || t("regErrSubmit"));
     } finally {
@@ -89,20 +99,24 @@ export default function TeachersManager() {
   };
 
   const toggleStatus = async (id) => {
+    const prev = teachers;
+    setTeachers(prev => (prev || []).map(tc => tc.id === id ? { ...tc, status: tc.status === "active" ? "disabled" : "active" } : tc));
     try {
       await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id, session });
-      load();
     } catch (err) {
+      setTeachers(prev);
       alert(err?.data?.error || err?.message);
     }
   };
 
-  const deleteTeacher = async (t) => {
+  const deleteTeacher = async (tc) => {
     if (!confirm(t("teacherConfirmDelete"))) return;
+    const prev = teachers;
+    setTeachers(prev => (prev || []).filter(item => item.id !== tc.id));
     try {
-      await base44.functions.invoke("manageTeachers", { action: "delete", id: t.id, session });
-      load();
+      await base44.functions.invoke("manageTeachers", { action: "delete", id: tc.id, session });
     } catch (err) {
+      setTeachers(prev);
       alert(err?.data?.error || err?.message);
     }
   };

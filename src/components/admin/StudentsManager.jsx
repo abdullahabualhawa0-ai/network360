@@ -41,46 +41,49 @@ export default function StudentsManager({ school, onBack }) {
     e.preventDefault();
     const code = form.code.trim();
     if (!form.name.trim() || !code) { setFormError("أدخل اسم الطالب ورمزه"); return; }
+    // تحقق محلي من الحد والفرادة — استجابة فورية بدون انتظار الشبكة
+    const limit = school.student_limit || 0;
+    if (limit > 0 && (students || []).length >= limit) {
+      setFormError(STUDENT_LIMIT_MSG);
+      return;
+    }
+    if ((students || []).some((s) => s.student_code === code)) {
+      setFormError("رمز الطالب مستخدم مسبقاً داخل هذه المدرسة");
+      return;
+    }
     setBusy(true);
     setFormError(null);
-    // عدد الطلاب الحالي — فحص مباشر من قاعدة البيانات
-    const all = await base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 500);
-    // 1) حد عدد الطلاب في خطة الاشتراك
-    const limit = school.student_limit || 0;
-    if (limit > 0 && (all || []).length >= limit) {
-      setFormError(STUDENT_LIMIT_MSG);
+    try {
+      const created = await base44.entities.StudentProfile.create({
+        school_id: school.id,
+        student_code: code,
+        full_name: form.name.trim(),
+        email: form.email.trim() || null,
+        status: "approved",
+        user_id: UNCLAIMED,
+      });
+      // تحديث محلي فوري بدلاً من إعادة تحميل القائمة كاملة
+      setStudents(prev => [...(prev || []), created]);
+      base44.entities.School.update(school.id, { current_student_count: (students || []).length + 1 }).catch(() => {});
+      setForm({ name: "", code: "", email: "" });
+      setShowForm(false);
+    } catch (err) {
+      setFormError(err?.message || "تعذر إنشاء الطالب");
+    } finally {
       setBusy(false);
-      return;
     }
-    // 2) فرادة رمز الطالب داخل المدرسة
-    if ((all || []).some((s) => s.student_code === code)) {
-      setFormError("رمز الطالب مستخدم مسبقاً داخل هذه المدرسة");
-      setBusy(false);
-      return;
-    }
-    await base44.entities.StudentProfile.create({
-      school_id: school.id,
-      student_code: code,
-      full_name: form.name.trim(),
-      email: form.email.trim() || null,
-      status: "approved",
-      user_id: UNCLAIMED,
-    });
-    // مزامنة عداد الطلاب على سجل المدرسة (تنجح للمالك، وتُتجاهل بهدوء لغيره)
-    base44.entities.School.update(school.id, { current_student_count: (all || []).length + 1 }).catch(() => {});
-    setForm({ name: "", code: "", email: "" });
-    setShowForm(false);
-    setBusy(false);
-    load();
   };
 
   const setStatus = async (s, status) => {
-    await base44.entities.StudentProfile.update(s.id, {
-      status,
-      approved_by: user.email,
-      approved_at: new Date().toISOString(),
-    });
-    load();
+    const prev = students;
+    const now = new Date().toISOString();
+    // تحديث محلي فوري
+    setStudents(prev => (prev || []).map(st => st.id === s.id ? { ...st, status, approved_by: user.email, approved_at: now } : st));
+    try {
+      await base44.entities.StudentProfile.update(s.id, { status, approved_by: user.email, approved_at: now });
+    } catch (err) {
+      setStudents(prev); // تراجع عند الفشل
+    }
   };
 
   const importExcel = async (e) => {
@@ -159,12 +162,18 @@ export default function StudentsManager({ school, onBack }) {
 
   const deleteStudent = async (s) => {
     if (!confirm(`حذف الطالب "${s.full_name}" (${s.student_code})؟`)) return;
-    await base44.entities.StudentProfile.delete(s.id);
-    // مزامنة عداد الطلاب بعد الحذف
-    base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 500)
-      .then((rows) => base44.entities.School.update(school.id, { current_student_count: (rows || []).length }).catch(() => {}))
-      .catch(() => {});
-    load();
+    const prev = students;
+    // حذف محلي فوري
+    setStudents(prev => (prev || []).filter(st => st.id !== s.id));
+    try {
+      await base44.entities.StudentProfile.delete(s.id);
+      // مزامنة عداد الطلاب بعد الحذف
+      base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 500)
+        .then((rows) => base44.entities.School.update(school.id, { current_student_count: (rows || []).length }).catch(() => {}))
+        .catch(() => {});
+    } catch (err) {
+      setStudents(prev); // تراجع عند الفشل
+    }
   };
 
   if (!school) return <FullSpinnerLocal />;

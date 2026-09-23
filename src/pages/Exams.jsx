@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ClipboardList, Clock, Loader2, Send, CheckCircle2, Trophy, Ban, FileQuestion } from "lucide-react";
@@ -7,6 +7,7 @@ import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { GENERAL_SCHOOL } from "@/lib/schoolUtils";
 import { t, useLang, useDir } from "@/lib/i18n";
 import { useExamsListTranslation } from "@/lib/useExamTranslation";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const REQ_STATUS = {
   pending: { key: "accessPending", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
@@ -25,26 +26,28 @@ export default function Exams() {
   const [schoolId, setSchoolId] = useState(GENERAL_SCHOOL);
   const [requesting, setRequesting] = useState(null);
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (session?.is_personal) return; // الطالب الفردي لا يحتاج لتحميل الامتحانات
-    (async () => {
-      try {
-        const sid = session?.school_id || GENERAL_SCHOOL;
-        setSchoolId(sid);
-        const [ex, rq, rs] = await Promise.all([
-          studentApi("filter", "Exam", { query: {}, sort: "-created_date", limit: 100 }),
-          studentApi("filter", "ExamAccessRequest", { query: {} }),
-          studentApi("filter", "ExamResult", { query: {}, sort: "-submission_time", limit: 100 }),
-        ]);
-        setExams(ex || []);
-        setRequests(rq || []);
-        setResults(rs || []);
-      } catch {
-        setExams([]);
-      }
-      setLoading(false);
-    })();
+    try {
+      const sid = session?.school_id || GENERAL_SCHOOL;
+      setSchoolId(sid);
+      const [ex, rq, rs] = await Promise.all([
+        studentApi("filter", "Exam", { query: {}, sort: "-created_date", limit: 100 }),
+        studentApi("filter", "ExamAccessRequest", { query: {} }),
+        studentApi("filter", "ExamResult", { query: {}, sort: "-submission_time", limit: 100 }),
+      ]);
+      setExams(ex || []);
+      setRequests(rq || []);
+      setResults(rs || []);
+    } catch {
+      setExams([]);
+    }
+    setLoading(false);
   }, [session?.student_id, session?.is_personal]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // عزل المدارس: الطالب يرى امتحانات مدرسته أو العامة فقط
   const visibleExams = exams.filter(
@@ -83,6 +86,7 @@ export default function Exams() {
   }
 
   return (
+    <PullToRefresh onRefresh={loadData}>
     <div className="min-h-screen bg-background text-foreground" dir={direction}>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
@@ -216,5 +220,6 @@ export default function Exams() {
         </div>
       </div>
     </div>
+    </PullToRefresh>
   );
 }
