@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, BookOpen, ChevronDown, CheckCircle2 } from "lucide-react";
+import { t, useLang } from "@/lib/i18n";
 
 function calcReadTime(text) {
   const words = text?.split(/\s+/).length || 0;
@@ -11,6 +12,7 @@ function calcReadTime(text) {
 }
 
 export default function ReadingGate({ content, children }) {
+  useLang();
   const readTime = calcReadTime(content);
   const [elapsed, setElapsed] = useState(0);
   const [unlocked, setUnlocked] = useState(false);
@@ -52,7 +54,7 @@ export default function ReadingGate({ content, children }) {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <BookOpen size={14} className="text-primary" />
-                <span>اقرأ الشرح أولاً قبل الأسئلة</span>
+                <span>{t("readGateHint")}</span>
               </div>
               <div className="flex items-center gap-1.5 text-sm font-mono text-primary">
                 <Clock size={13} />
@@ -80,7 +82,7 @@ export default function ReadingGate({ content, children }) {
           >
             <div className="flex items-center gap-2 text-sm text-success mb-3">
               <CheckCircle2 size={16} />
-              <span>انتهى وقت القراءة — أنت مستعد للاختبار!</span>
+              <span>{t("readGateReady")}</span>
             </div>
             <motion.button
               onClick={() => setShowQuiz(true)}
@@ -89,7 +91,7 @@ export default function ReadingGate({ content, children }) {
               className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-bold text-base hover:shadow-lg transition-shadow"
             >
               <CheckCircle2 size={18} />
-              اختبر نفسك
+              {t("readGateStartQuiz")}
               <ChevronDown size={16} className="rotate-[-90deg]" />
             </motion.button>
           </motion.div>

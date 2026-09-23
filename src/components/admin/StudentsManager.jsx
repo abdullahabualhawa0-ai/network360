@@ -8,12 +8,20 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { UNCLAIMED } from "@/lib/registrationUtils";
 import { STUDENT_LIMIT_MSG } from "@/lib/plans";
+import { t, useLang, useDir, getLang } from "@/lib/i18n";
+
+const STATUS_KEYS = {
+  pending: "smStatusPending",
+  approved: "smStatusApproved",
+  rejected: "smStatusRejected",
+  disabled: "smStatusDisabled",
+};
 
 const STATUS_UI = {
-  pending: { label: "بانتظار الموافقة", color: "#fbbf24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.35)" },
-  approved: { label: "فعّال ✓", color: "#34d399", bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.35)" },
-  rejected: { label: "مرفوض", color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)" },
-  disabled: { label: "معطّل", color: "#94a3b8", bg: "rgba(148,163,184,0.1)", border: "rgba(148,163,184,0.3)" },
+  pending: { color: "#fbbf24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.35)" },
+  approved: { color: "#34d399", bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.35)" },
+  rejected: { color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)" },
+  disabled: { color: "#94a3b8", bg: "rgba(148,163,184,0.1)", border: "rgba(148,163,184,0.3)" },
 };
 
 /**
@@ -22,6 +30,8 @@ const STATUS_UI = {
  */
 export default function StudentsManager({ school, onBack }) {
   const { user } = useAuth();
+  useLang();
+  const direction = useDir();
   const [students, setStudents] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", code: "", email: "" });
@@ -40,7 +50,7 @@ export default function StudentsManager({ school, onBack }) {
   const addStudent = async (e) => {
     e.preventDefault();
     const code = form.code.trim();
-    if (!form.name.trim() || !code) { setFormError("أدخل اسم الطالب ورمزه"); return; }
+    if (!form.name.trim() || !code) { setFormError(t("smErrNameCode")); return; }
     // تحقق محلي من الحد والفرادة — استجابة فورية بدون انتظار الشبكة
     const limit = school.student_limit || 0;
     if (limit > 0 && (students || []).length >= limit) {
@@ -48,7 +58,7 @@ export default function StudentsManager({ school, onBack }) {
       return;
     }
     if ((students || []).some((s) => s.student_code === code)) {
-      setFormError("رمز الطالب مستخدم مسبقاً داخل هذه المدرسة");
+      setFormError(t("smErrDupCode"));
       return;
     }
     setBusy(true);
@@ -68,7 +78,7 @@ export default function StudentsManager({ school, onBack }) {
       setForm({ name: "", code: "", email: "" });
       setShowForm(false);
     } catch (err) {
-      setFormError(err?.message || "تعذر إنشاء الطالب");
+      setFormError(err?.message || t("smErrCreate"));
     } finally {
       setBusy(false);
     }
@@ -115,9 +125,9 @@ export default function StudentsManager({ school, onBack }) {
           required: ["students"],
         },
       });
-      const students = result?.output?.students || [];
-      if (!students.length) {
-        setImportMsg({ type: "error", text: "لم يتم العثور على بيانات طلاب في الملف" });
+      const imported = result?.output?.students || [];
+      if (!imported.length) {
+        setImportMsg({ type: "error", text: t("smImportNoData") });
         setImporting(false);
         return;
       }
@@ -126,7 +136,7 @@ export default function StudentsManager({ school, onBack }) {
       const existingCodes = new Set((existing || []).map((s) => s.student_code));
       const limit = school.student_limit || 0;
       const toCreate = [];
-      for (const s of students) {
+      for (const s of imported) {
         const code = String(s.student_code || "").trim();
         const name = String(s.full_name || "").trim();
         if (!code || !name) continue;
@@ -143,7 +153,7 @@ export default function StudentsManager({ school, onBack }) {
         });
       }
       if (!toCreate.length) {
-        setImportMsg({ type: "error", text: "كل الأكواد موجودة مسبقاً أو بلغت الحد الأقصى" });
+        setImportMsg({ type: "error", text: t("smImportAllDup") });
         setImporting(false);
         return;
       }
@@ -151,17 +161,17 @@ export default function StudentsManager({ school, onBack }) {
       base44.entities.School.update(school.id, {
         current_student_count: (existing || []).length + toCreate.length,
       }).catch(() => {});
-      setImportMsg({ type: "success", text: `تم استيراد ${toCreate.length} طالب بنجاح` });
+      setImportMsg({ type: "success", text: t("smImportSuccess", getLang()).replace("{count}", toCreate.length) });
       load();
     } catch (err) {
-      setImportMsg({ type: "error", text: "تعذر استيراد الملف — تأكد من صيغة Excel (أعمدة: الاسم، الرمز، البريد)" });
+      setImportMsg({ type: "error", text: t("smImportError") });
     } finally {
       setImporting(false);
     }
   };
 
   const deleteStudent = async (s) => {
-    if (!confirm(`حذف الطالب "${s.full_name}" (${s.student_code})؟`)) return;
+    if (!confirm(`${t("smDeleteConfirm")}: "${s.full_name}" (${s.student_code})?`)) return;
     const prev = students;
     // حذف محلي فوري
     setStudents(prev => (prev || []).filter(st => st.id !== s.id));
@@ -182,7 +192,7 @@ export default function StudentsManager({ school, onBack }) {
   const pendingCount = claimed.filter((s) => s.status === "pending").length;
 
   return (
-    <div dir="rtl">
+    <div dir={direction}>
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-5">
         <div className="flex items-center gap-3 min-w-0">
@@ -190,13 +200,13 @@ export default function StudentsManager({ school, onBack }) {
             <button onClick={onBack}
               className="px-3 py-1.5 rounded-xl text-xs font-bold"
               style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
-              رجوع
+              {t("smBack")}
             </button>
           )}
           <div className="min-w-0">
-            <h2 className="font-black text-base truncate">طلاب مدرسة {school.name}</h2>
+            <h2 className="font-black text-base truncate">{t("smStudentsOf")} {school.name}</h2>
             <p className="text-[10px] text-muted-foreground">
-              {students?.length || 0}{school.student_limit > 0 ? ` / ${school.student_limit}` : ""} طالب • {pendingCount} بانتظار الموافقة • رمز المدرسة: {school.code}
+              {students?.length || 0}{school.student_limit > 0 ? ` / ${school.student_limit}` : ""} {t("smStudentWord")} • {pendingCount} {t("smPendingApproval")} • {t("smSchoolCodeLabel")}: {school.code}
             </p>
           </div>
         </div>
@@ -208,13 +218,13 @@ export default function StudentsManager({ school, onBack }) {
           <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white"
             style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
-            <UserPlus size={13} /> إضافة طالب
+            <UserPlus size={13} /> {t("smAddStudent")}
           </button>
           <button onClick={() => fileRef.current?.click()} disabled={importing}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-60"
             style={{ border: "1px solid rgba(46,125,91,0.4)", color: "#2E7D5B", background: "rgba(46,125,91,0.06)" }}>
             {importing ? <Loader2 size={13} className="animate-spin" /> : <FileSpreadsheet size={13} />}
-            {importing ? "جاري الاستيراد..." : "استيراد من Excel"}
+            {importing ? t("smImporting") : t("smImportExcel")}
           </button>
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={importExcel} className="hidden" />
         </div>
@@ -235,20 +245,20 @@ export default function StudentsManager({ school, onBack }) {
           className="rounded-2xl p-4 mb-4 grid sm:grid-cols-4 gap-3 items-end bg-card"
           style={{ border: "1px solid rgba(6,182,212,0.3)" }}>
           <div>
-            <label className="block text-[10px] font-bold text-muted-foreground mb-1">اسم الطالب *</label>
+            <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentName")}</label>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-              dir="rtl" className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
+              dir={direction} className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
               style={{ border: "1px solid hsl(var(--border))" }} />
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-muted-foreground mb-1">رمز الطالب *</label>
+            <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentCode")}</label>
             <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })}
               placeholder="ST10025" dir="ltr"
               className="w-full px-3 py-2 rounded-xl text-xs font-mono bg-transparent focus:outline-none"
               style={{ border: "1px solid hsl(var(--border))" }} />
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-muted-foreground mb-1">Email (اختياري)</label>
+            <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smEmailOptional")}</label>
             <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
               dir="ltr" className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
               style={{ border: "1px solid hsl(var(--border))" }} />
@@ -257,7 +267,7 @@ export default function StudentsManager({ school, onBack }) {
             <button type="submit" disabled={busy}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-60"
               style={{ background: "linear-gradient(90deg,#059669,#10b981)" }}>
-              {busy ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} حفظ
+              {busy ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} {t("smSave")}
             </button>
             <button type="button" onClick={() => setShowForm(false)}
               className="px-3 py-2 rounded-xl text-xs" style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
@@ -279,12 +289,13 @@ export default function StudentsManager({ school, onBack }) {
       ) : students.length === 0 ? (
         <div className="rounded-2xl p-10 text-center bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
           <KeyRound size={36} className="mx-auto mb-3 opacity-40" style={{ color: "hsl(var(--primary))" }} />
-          <p className="text-xs text-muted-foreground">لا يوجد طلاب — أضف أول طالب برمزه الخاص</p>
+          <p className="text-xs text-muted-foreground">{t("smEmpty")}</p>
         </div>
       ) : (
         <div className="space-y-2">
           {students.map((s, i) => {
             const isClaimed = s.user_id && s.user_id !== UNCLAIMED;
+            const stKey = STATUS_KEYS[s.status] || "smStatusPending";
             const st = STATUS_UI[s.status] || STATUS_UI.pending;
             return (
               <motion.div key={s.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}
@@ -292,18 +303,18 @@ export default function StudentsManager({ school, onBack }) {
                 style={{ border: "1px solid hsl(var(--border))" }}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold truncate">{s.full_name || "بدون اسم"}</span>
+                    <span className="text-sm font-bold truncate">{s.full_name || t("smNoName")}</span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg"
                       style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
                       {s.student_code}
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
                       style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
-                      {isClaimed ? st.label : "رمز غير مُفعّل بعد"}
+                      {isClaimed ? t(stKey) : t("smCodeNotActivated")}
                     </span>
                   </div>
                   <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                    {s.email || "بدون بريد"} {isClaimed ? "• حساب مرتبط" : "• بانتظار تفعيل الطالب لرمزه"}
+                    {s.email || t("smNoEmail")} {isClaimed ? `• ${t("smAccountLinked")}` : `• ${t("smAwaitingActivation")}`}
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -311,28 +322,28 @@ export default function StudentsManager({ school, onBack }) {
                     <button onClick={() => setStatus(s, "approved")}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white"
                       style={{ background: "linear-gradient(90deg,#059669,#10b981)" }}>
-                      <Check size={11} /> موافقة
+                      <Check size={11} /> {t("smApprove")}
                     </button>
                   )}
                   {isClaimed && s.status === "approved" && (
                     <button onClick={() => setStatus(s, "disabled")}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold"
                       style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
-                      <Ban size={11} /> تعطيل
+                      <Ban size={11} /> {t("smDisable")}
                     </button>
                   )}
                   {isClaimed && (s.status === "rejected" || s.status === "disabled") && (
                     <button onClick={() => setStatus(s, "approved")}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold"
                       style={{ border: "1px solid rgba(52,211,153,0.35)", color: "#34d399" }}>
-                      <Check size={11} /> إعادة تفعيل
+                      <Check size={11} /> {t("smReactivate")}
                     </button>
                   )}
                   {isClaimed && s.status === "pending" && (
                     <button onClick={() => setStatus(s, "rejected")}
                       className="px-3 py-1.5 rounded-xl text-[11px] font-bold"
                       style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.3)", color: "#f87171" }}>
-                      رفض
+                      {t("smReject")}
                     </button>
                   )}
                   <button onClick={() => deleteStudent(s)}

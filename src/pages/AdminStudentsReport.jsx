@@ -8,11 +8,14 @@ import {
   Users, ChevronLeft, Award, BookOpen, BarChart2,
   TrendingUp, CheckCircle2, Clock, RefreshCw, ShieldAlert, Search
 } from "lucide-react";
+import { t, useLang, useDir, getLang } from "@/lib/i18n";
 
 const totalTopics = courseData.reduce((s, sec) => s + sec.topics.length, 0);
 const totalQuizzes = Object.keys(quizData).length;
 
 export default function AdminStudentsReport() {
+  useLang();
+  const direction = useDir();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(null);
@@ -61,9 +64,9 @@ export default function AdminStudentsReport() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <ShieldAlert size={48} className="text-red-400" />
-        <h2 className="text-xl font-bold text-foreground">غير مصرح لك بالوصول</h2>
-        <p className="text-muted-foreground text-sm">هذه الصفحة للمشرفين فقط.</p>
-        <Link to="/" className="text-primary hover:underline text-sm">العودة للرئيسية</Link>
+        <h2 className="text-xl font-bold text-foreground">{t("srNotAuthorized")}</h2>
+        <p className="text-muted-foreground text-sm">{t("restrictedAdminOnly")}</p>
+        <Link to="/" className="text-primary hover:underline text-sm">{t("backHome")}</Link>
       </div>
     );
   }
@@ -74,6 +77,7 @@ export default function AdminStudentsReport() {
   );
 
   const selectedStudent = selected ? students.find(s => s.id === selected) : null;
+  const locale = getLang() === "ar" ? "ar" : getLang() === "he" ? "he-IL" : "en";
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,21 +90,21 @@ export default function AdminStudentsReport() {
         <div className="relative max-w-6xl mx-auto px-6 py-10">
           <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center gap-2 text-purple-300/70 text-sm mb-2">
-              <Link to="/" className="hover:text-purple-200 transition-colors">الرئيسية</Link>
+              <Link to="/" className="hover:text-purple-200 transition-colors">{t("navHome")}</Link>
               <ChevronLeft size={13} />
-              <span className="text-purple-200">تقارير الطلاب</span>
+              <span className="text-purple-200">{t("srBreadcrumb")}</span>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-black text-white mb-1">تقارير الطلاب</h1>
-                <p className="text-slate-400 text-sm">{students.length} طالب مسجل — يتحدث تلقائياً</p>
+                <h1 className="text-3xl font-black text-white mb-1">{t("srTitle")}</h1>
+                <p className="text-slate-400 text-sm">{students.length} {t("srSubtitle")}</p>
               </div>
               <button
                 onClick={refresh}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 text-white text-sm hover:bg-white/20 transition-all"
               >
                 <RefreshCw size={14} />
-                <span>تحديث</span>
+                <span>{t("srRefresh")}</span>
               </button>
             </div>
           </motion.div>
@@ -111,7 +115,7 @@ export default function AdminStudentsReport() {
         {students.length === 0 ? (
           <div className="text-center py-16">
             <Users size={48} className="text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground">لا يوجد طلاب قاموا بمزامنة تقدمهم بعد.</p>
+            <p className="text-muted-foreground">{t("srEmpty")}</p>
           </div>
         ) : (
           <div className="flex gap-6">
@@ -123,7 +127,7 @@ export default function AdminStudentsReport() {
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="ابحث عن طالب..."
+                  placeholder={t("srSearchPlaceholder")}
                   className="w-full bg-card border border-border rounded-xl px-4 py-2.5 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               </div>
@@ -154,8 +158,8 @@ export default function AdminStudentsReport() {
                     </div>
                     <div className="text-xs text-muted-foreground text-right">{student.student_email}</div>
                     <div className="flex items-center justify-end gap-3 mt-2 text-xs text-muted-foreground">
-                      <span>{student.total_quizzes_completed || 0}/{totalQuizzes} اختبار</span>
-                      <span>{student.total_topics_visited || 0}/{totalTopics} درس</span>
+                      <span>{student.total_quizzes_completed || 0}/{totalQuizzes} {t("srQuizWord")}</span>
+                      <span>{student.total_topics_visited || 0}/{totalTopics} {t("srLessonWord")}</span>
                     </div>
                     {/* Mini progress bar */}
                     <div className="h-1 bg-muted rounded-full mt-2 overflow-hidden">
@@ -182,7 +186,7 @@ export default function AdminStudentsReport() {
                   onClick={() => setSelected(null)}
                   className="sm:hidden flex items-center gap-1 text-sm text-muted-foreground mb-4"
                 >
-                  <ChevronLeft size={14} /> عودة للقائمة
+                  <ChevronLeft size={14} /> {t("srBackToList")}
                 </button>
 
                 <div className="bg-card border border-border rounded-2xl p-6 mb-4">
@@ -193,7 +197,7 @@ export default function AdminStudentsReport() {
                       {selectedStudent.last_synced_at && (
                         <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                           <Clock size={11} />
-                          آخر تزامن: {new Date(selectedStudent.last_synced_at).toLocaleString("ar-SA")}
+                          {t("srLastSync")}: {new Date(selectedStudent.last_synced_at).toLocaleString(locale)}
                         </p>
                       )}
                     </div>
@@ -202,10 +206,10 @@ export default function AdminStudentsReport() {
                   {/* Stats */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { icon: BookOpen, label: "الدروس", val: `${selectedStudent.total_topics_visited || 0}/${totalTopics}`, color: "text-blue-500", bg: "bg-blue-50" },
-                      { icon: CheckCircle2, label: "الاختبارات", val: `${selectedStudent.total_quizzes_completed || 0}/${totalQuizzes}`, color: "text-green-500", bg: "bg-green-50" },
-                      { icon: Award, label: "متوسط الدرجات", val: selectedStudent.avg_quiz_score ? `${selectedStudent.avg_quiz_score}%` : "—", color: "text-amber-500", bg: "bg-amber-50" },
-                      { icon: TrendingUp, label: "نسبة التقدم", val: `${totalTopics ? Math.round((selectedStudent.total_topics_visited || 0) / totalTopics * 100) : 0}%`, color: "text-purple-500", bg: "bg-purple-50" },
+                      { icon: BookOpen, label: t("srLessonsLabel"), val: `${selectedStudent.total_topics_visited || 0}/${totalTopics}`, color: "text-blue-500", bg: "bg-blue-50" },
+                      { icon: CheckCircle2, label: t("srQuizzesLabel"), val: `${selectedStudent.total_quizzes_completed || 0}/${totalQuizzes}`, color: "text-green-500", bg: "bg-green-50" },
+                      { icon: Award, label: t("srAvgScoreLabel"), val: selectedStudent.avg_quiz_score ? `${selectedStudent.avg_quiz_score}%` : "—", color: "text-amber-500", bg: "bg-amber-50" },
+                      { icon: TrendingUp, label: t("srProgressLabel"), val: `${totalTopics ? Math.round((selectedStudent.total_topics_visited || 0) / totalTopics * 100) : 0}%`, color: "text-purple-500", bg: "bg-purple-50" },
                     ].map(({ icon: Icon, label, val, color, bg }, i) => (
                       <div key={i} className={`rounded-xl p-3 ${bg}`}>
                         <Icon size={16} className={`${color} mb-1`} />
@@ -221,7 +225,7 @@ export default function AdminStudentsReport() {
                   <div className="bg-card border border-border rounded-2xl overflow-hidden mb-4">
                     <div className="px-5 py-3 border-b border-border flex items-center gap-2">
                       <BarChart2 size={15} className="text-primary" />
-                      <span className="font-semibold text-sm text-foreground">نتائج الاختبارات</span>
+                      <span className="font-semibold text-sm text-foreground">{t("srQuizResults")}</span>
                     </div>
                     <div className="divide-y divide-border">
                       {Object.entries(selectedStudent.quiz_results).map(([topicId, result]) => {
@@ -256,7 +260,7 @@ export default function AdminStudentsReport() {
                   <div className="bg-card border border-border rounded-2xl overflow-hidden">
                     <div className="px-5 py-3 border-b border-border flex items-center gap-2">
                       <BookOpen size={15} className="text-secondary" />
-                      <span className="font-semibold text-sm text-foreground">المواضيع المدروسة</span>
+                      <span className="font-semibold text-sm text-foreground">{t("srStudiedTopics")}</span>
                     </div>
                     <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {courseData.map(sec => {

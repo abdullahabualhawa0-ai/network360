@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import StudentsManager from "../../components/admin/StudentsManager";
 import { planLabel } from "@/lib/plans";
+import { t, useLang, useDir } from "@/lib/i18n";
 
 /**
  * شاشة المدارس — Super Admin فقط (role = admin)
@@ -16,6 +17,8 @@ import { planLabel } from "@/lib/plans";
  */
 export default function SchoolsManager() {
   const { user, isLoadingAuth } = useAuth();
+  useLang();
+  const direction = useDir();
   const [schools, setSchools] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", code: "", plan: "school_50" });
@@ -37,13 +40,13 @@ export default function SchoolsManager() {
   const addSchool = async (e) => {
     e.preventDefault();
     const code = form.code.trim();
-    if (!form.name.trim() || !code) {setFormError("أدخل اسم المدرسة ورمزها");return;}
+    if (!form.name.trim() || !code) {setFormError(t("schoolsErrNameCode"));return;}
     setBusy(true);
     setFormError(null);
     // فرادة رمز المدرسة
     const dup = await base44.entities.School.filter({ code });
     if (dup && dup.length > 0) {
-      setFormError(`رمز المدرسة "${code}" مستخدم مسبقاً — لا يمكن تكراره`);
+      setFormError(t("schoolsErrDupCode"));
       setBusy(false);
       return;
     }
@@ -82,24 +85,24 @@ export default function SchoolsManager() {
     setAssignMsg((m) => ({ ...m, [school.id]: null }));
     const users = await base44.entities.User.filter({ email });
     if (!users || users.length === 0) {
-      setAssignMsg((m) => ({ ...m, [school.id]: { ok: false, text: "لا يوجد مستخدم بهذا البريد — يجب أن يسجل دخوله للتطبيق أولاً" } }));
+      setAssignMsg((m) => ({ ...m, [school.id]: { ok: false, text: t("schoolsErrNoUser") } }));
       return;
     }
     await base44.entities.User.update(users[0].id, { role: "school_admin", school_id: school.id });
     setAssignEmail((m) => ({ ...m, [school.id]: "" }));
-    setAssignMsg((m) => ({ ...m, [school.id]: { ok: true, text: "تم تعيينه مشرفاً لهذه المدرسة ✓" } }));
+    setAssignMsg((m) => ({ ...m, [school.id]: { ok: true, text: t("schoolsAssignedOk") } }));
   };
 
   if (isLoadingAuth) return <FullSpinner />;
 
   if (!isSuperAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-background" dir={direction}>
         <div className="text-center">
           <AlertTriangle size={36} className="text-red-400 mx-auto mb-3" />
-          <h2 className="font-black text-lg mb-2">وصول مقيّد</h2>
-          <p className="text-xs text-muted-foreground mb-5">هذه الشاشة للمالك (Owner) فقط.</p>
-          <Link to="/" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>العودة للرئيسية</Link>
+          <h2 className="font-black text-lg mb-2">{t("restrictedAccess")}</h2>
+          <p className="text-xs text-muted-foreground mb-5">{t("restrictedOwnerOnly")}</p>
+          <Link to="/" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>{t("backHome")}</Link>
         </div>
       </div>);
 
@@ -108,7 +111,7 @@ export default function SchoolsManager() {
   // إدارة طلاب مدرسة محددة
   if (view === "students" && selectedSchool) {
     return (
-      <div className="min-h-screen bg-background text-foreground" dir="rtl">
+      <div className="min-h-screen bg-background text-foreground" dir={direction}>
         <div className="max-w-5xl mx-auto px-4 py-8">
           <StudentsManager school={selectedSchool} onBack={() => {setView("list");setSelectedSchool(null);}} />
         </div>
@@ -117,7 +120,7 @@ export default function SchoolsManager() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground" dir={direction}>
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
@@ -127,10 +130,7 @@ export default function SchoolsManager() {
               <SchoolIcon className="text-white" size={20} />
             </div>
             <div>
-              <h1 className="font-black text-xl">المدارس</h1>
-              
-
-              
+              <h1 className="font-black text-xl">{t("schoolsTitle")}</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export default function SchoolsManager() {
             <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white"
             style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
-              <Plus size={14} /> Add School
+              <Plus size={14} /> {t("schoolsAddBtn")}
             </button>
           </div>
         </div>
@@ -152,22 +152,22 @@ export default function SchoolsManager() {
         className="rounded-2xl p-4 mb-5 grid sm:grid-cols-4 gap-3 items-end bg-card"
         style={{ border: "1px solid rgba(6,182,212,0.3)" }}>
             <div>
-              <label className="block text-[10px] font-bold text-muted-foreground mb-1">School Name *</label>
+              <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("schoolsNameLabel")}</label>
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-            dir="rtl" className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
+            dir={direction} className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
             style={{ border: "1px solid hsl(var(--border))" }} />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-muted-foreground mb-1">School Code *</label>
+              <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("schoolsCodeLabel")}</label>
               <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })}
             placeholder="SCH2026A" dir="ltr"
             className="w-full px-3 py-2 rounded-xl text-xs font-mono bg-transparent focus:outline-none"
             style={{ border: "1px solid hsl(var(--border))" }} />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-muted-foreground mb-1">خطة الاشتراك *</label>
+              <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("schoolsPlanLabel")}</label>
               <input value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })}
-            placeholder="مثال: school_50 أو أي خطة" dir="ltr"
+            placeholder={t("schoolsPlanPlaceholder")} dir="ltr"
             className="w-full px-3 py-2 rounded-xl text-xs font-mono bg-transparent focus:outline-none"
             style={{ border: "1px solid hsl(var(--border))" }} />
             </div>
@@ -175,7 +175,7 @@ export default function SchoolsManager() {
               <button type="submit" disabled={busy}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-60"
             style={{ background: "linear-gradient(90deg,#059669,#10b981)" }}>
-                {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} حفظ المدرسة
+                {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} {t("schoolsSaveBtn")}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
             className="px-3 py-2 rounded-xl text-xs" style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
@@ -197,7 +197,7 @@ export default function SchoolsManager() {
         schools.length === 0 ?
         <div className="rounded-2xl p-10 text-center bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
             <SchoolIcon size={40} className="mx-auto mb-3 opacity-40" style={{ color: "hsl(var(--primary))" }} />
-            <p className="text-xs text-muted-foreground">لا توجد مدارس — أضف أول مدرسة</p>
+            <p className="text-xs text-muted-foreground">{t("schoolsEmpty")}</p>
           </div> :
 
         <div className="space-y-3">
@@ -205,103 +205,103 @@ export default function SchoolsManager() {
           <motion.div key={s.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
           className="rounded-2xl p-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-black text-sm">{s.name}</span>
-                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-lg"
-                  style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
-                        {s.code}
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                  style={s.is_active ?
-                  { background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.35)", color: "#34d399" } :
-                  { background: "rgba(148,163,184,0.1)", border: "1px solid rgba(148,163,184,0.3)", color: "#94a3b8" }}>
-                        {s.is_active ? "Active" : "Inactive"}
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-muted-foreground font-mono mb-1" dir="ltr">school_id: {s.id}</div>
-                    {s.admin_code &&
-                <div className="text-[10px] font-mono mb-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg"
-                style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}
-                dir="ltr">
-                        <ShieldCheck size={9} /> Admin Code: {s.admin_code}
-                      </div>
-                }
-                    <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
-                      <span className="px-2 py-0.5 rounded-full font-bold"
-                  style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", color: "#a78bfa" }}>
-                        {planLabel(s.subscription_plan)}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full font-bold"
-                  style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
-                        الطلاب: {s.current_student_count || 0} / {s.student_limit || "—"}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full font-bold"
-                  style={s.subscription_status === "active" ?
-                  { background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.35)", color: "#34d399" } :
-                  s.subscription_status === "expired" ?
-                  { background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.35)", color: "#f87171" } :
-                  { background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.35)", color: "#fbbf24" }}>
-                        اشتراك: {s.subscription_status === "active" ? "فعّال" : s.subscription_status === "expired" ? "منتهي" : "بانتظار التفعيل"}
-                      </span>
-                      <span className="text-muted-foreground">التسجيل: {new Date(s.created_date).toLocaleDateString("ar")}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <input
-                  key={s.id + (s.subscription_plan || "")}
-                  defaultValue={s.subscription_plan || ""}
-                  placeholder="خطة الاشتراك"
-                  dir="ltr"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {e.preventDefault();changePlan(s, e.target.value);e.target.blur();}
-                  }}
-                  onBlur={(e) => {if (e.target.value.trim() !== (s.subscription_plan || "")) changePlan(s, e.target.value);}}
-                  title="تعديل خطة الاشتراك (Enter للحفظ)"
-                  className="px-2 py-1.5 rounded-xl text-[10px] font-bold font-mono bg-transparent focus:outline-none w-28"
-                  style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }} />
-                    <button onClick={() => {setSelectedSchool(s);setView("students");}}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold"
-                style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.3)", color: "#06b6d4" }}>
-                      <GraduationCap size={13} /> Students
-                    </button>
-                    <button onClick={() => toggleActive(s)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
-                style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
-                      {s.is_active ? <><Ban size={11} /> تعطيل</> : <><Check size={11} /> تفعيل</>}
-                    </button>
-                  </div>
-                </div>
+                   <div className="flex-1 min-w-0">
+                     <div className="flex items-center gap-2 flex-wrap mb-1">
+                       <span className="font-black text-sm">{s.name}</span>
+                       <span className="text-[11px] font-mono px-2 py-0.5 rounded-lg"
+                   style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
+                         {s.code}
+                       </span>
+                       <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                   style={s.is_active ?
+                   { background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.35)", color: "#34d399" } :
+                   { background: "rgba(148,163,184,0.1)", border: "1px solid rgba(148,163,184,0.3)", color: "#94a3b8" }}>
+                         {s.is_active ? t("schoolsActive") : t("schoolsInactive")}
+                       </span>
+                     </div>
+                     <div className="text-[10px] text-muted-foreground font-mono mb-1" dir="ltr">school_id: {s.id}</div>
+                     {s.admin_code &&
+                 <div className="text-[10px] font-mono mb-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg"
+                 style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}
+                 dir="ltr">
+                         <ShieldCheck size={9} /> {t("schoolsAdminCodeLabel")}: {s.admin_code}
+                       </div>
+                 }
+                     <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                       <span className="px-2 py-0.5 rounded-full font-bold"
+                   style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", color: "#a78bfa" }}>
+                         {planLabel(s.subscription_plan)}
+                       </span>
+                       <span className="px-2 py-0.5 rounded-full font-bold"
+                   style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4" }}>
+                         {t("schoolsStudentsCount")}: {s.current_student_count || 0} / {s.student_limit || "—"}
+                       </span>
+                       <span className="px-2 py-0.5 rounded-full font-bold"
+                   style={s.subscription_status === "active" ?
+                   { background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.35)", color: "#34d399" } :
+                   s.subscription_status === "expired" ?
+                   { background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.35)", color: "#f87171" } :
+                   { background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.35)", color: "#fbbf24" }}>
+                         {t("schoolsSubscription")}: {s.subscription_status === "active" ? t("subsActive") : s.subscription_status === "expired" ? t("subsExpired") : t("subsPending")}
+                       </span>
+                       <span className="text-muted-foreground">{t("schoolsRegDate")}: {new Date(s.created_date).toLocaleDateString(direction === "rtl" ? "ar" : "en")}</span>
+                     </div>
+                   </div>
+                   <div className="flex items-center gap-2 flex-shrink-0">
+                     <input
+                   key={s.id + (s.subscription_plan || "")}
+                   defaultValue={s.subscription_plan || ""}
+                   placeholder={t("schoolsPlanLabel")}
+                   dir="ltr"
+                   onKeyDown={(e) => {
+                     if (e.key === "Enter") {e.preventDefault();changePlan(s, e.target.value);e.target.blur();}
+                   }}
+                   onBlur={(e) => {if (e.target.value.trim() !== (s.subscription_plan || "")) changePlan(s, e.target.value);}}
+                   title={t("schoolsEditPlanHint")}
+                   className="px-2 py-1.5 rounded-xl text-[10px] font-bold font-mono bg-transparent focus:outline-none w-28"
+                   style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }} />
+                     <button onClick={() => {setSelectedSchool(s);setView("students");}}
+                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold"
+                 style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.3)", color: "#06b6d4" }}>
+                       <GraduationCap size={13} /> {t("schoolsStudentsBtn")}
+                     </button>
+                     <button onClick={() => toggleActive(s)}
+                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
+                 style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
+                       {s.is_active ? <><Ban size={11} /> {t("schoolsDisable")}</> : <><Check size={11} /> {t("schoolsEnable")}</>}
+                     </button>
+                   </div>
+                 </div>
 
-                {/* تعيين مشرف المدرسة */}
-                <div className="mt-3 pt-3 flex flex-col sm:flex-row sm:items-center gap-2"
-            style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold flex-shrink-0" style={{ color: "#a78bfa" }}>
-                    <ShieldCheck size={12} /> تعيين مشرف المدرسة:
-                  </div>
-                  <div className="flex flex-1 gap-2">
-                    <input value={assignEmail[s.id] || ""} onChange={(e) => setAssignEmail((m) => ({ ...m, [s.id]: e.target.value }))}
-                placeholder="بريد المستخدم (سجل دخوله أولاً)" dir="ltr"
-                className="flex-1 px-3 py-1.5 rounded-xl text-[11px] bg-transparent focus:outline-none"
-                style={{ border: "1px solid hsl(var(--border))" }} />
-                    <button onClick={() => assignAdmin(s)}
-                className="px-3 py-1.5 rounded-xl text-[11px] font-bold text-white"
-                style={{ background: "linear-gradient(90deg,#7c3aed,#0891b2)" }}>
-                      تعيين
-                    </button>
-                  </div>
-                  {assignMsg[s.id] &&
-              <span className="text-[10px] font-bold" style={{ color: assignMsg[s.id].ok ? "#34d399" : "#fca5a5" }}>
-                      {assignMsg[s.id].text}
-                    </span>
-              }
-                </div>
-              </motion.div>
+                 {/* تعيين مشرف المدرسة */}
+                 <div className="mt-3 pt-3 flex flex-col sm:flex-row sm:items-center gap-2"
+             style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                   <div className="flex items-center gap-1.5 text-[11px] font-bold flex-shrink-0" style={{ color: "#a78bfa" }}>
+                     <ShieldCheck size={12} /> {t("schoolsAssignAdmin")}
+                   </div>
+                   <div className="flex flex-1 gap-2">
+                     <input value={assignEmail[s.id] || ""} onChange={(e) => setAssignEmail((m) => ({ ...m, [s.id]: e.target.value }))}
+                 placeholder={t("schoolsAssignPlaceholder")} dir="ltr"
+                 className="flex-1 px-3 py-1.5 rounded-xl text-[11px] bg-transparent focus:outline-none"
+                 style={{ border: "1px solid hsl(var(--border))" }} />
+                     <button onClick={() => assignAdmin(s)}
+                 className="px-3 py-1.5 rounded-xl text-[11px] font-bold text-white"
+                 style={{ background: "linear-gradient(90deg,#7c3aed,#0891b2)" }}>
+                       {t("schoolsAssignBtn")}
+                     </button>
+                   </div>
+                   {assignMsg[s.id] &&
+               <span className="text-[10px] font-bold" style={{ color: assignMsg[s.id].ok ? "#34d399" : "#fca5a5" }}>
+                       {assignMsg[s.id].text}
+                     </span>
+               }
+                 </div>
+               </motion.div>
           )}
-          </div>
-        }
-      </div>
-    </div>);
+           </div>
+         }
+       </div>
+     </div>);
 
 }
 

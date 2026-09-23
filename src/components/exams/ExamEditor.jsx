@@ -6,7 +6,8 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import courseData from "../../lib/courseData";
-import { t, useLang, useDir } from "@/lib/i18n";
+import { sectionTitle, topicTitle } from "@/lib/courseI18n";
+import { t, useLang, useDir, getLang } from "@/lib/i18n";
 
 const BRAND = {
   primary: "#173F5F",
