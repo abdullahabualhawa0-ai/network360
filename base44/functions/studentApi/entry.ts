@@ -136,6 +136,23 @@ export default async function(req) {
         return Response.json(row);
       }
 
+      case "delete": {
+        if (config.readOnly) {
+          return Response.json({ error: "Read-only entity" }, { status: 403 });
+        }
+        // التحقق من الملكية قبل الحذف — الطالب يحذف ملفه فقط
+        if (config.ownerField === "id") {
+          if (id !== sid) return Response.json({ error: "Forbidden" }, { status: 403 });
+        } else if (config.ownerField) {
+          const existing = await svc.entities[entity].get(id);
+          if (!verifyOwnership(existing)) {
+            return Response.json({ error: "Forbidden" }, { status: 403 });
+          }
+        }
+        await svc.entities[entity].delete(id);
+        return Response.json({ ok: true });
+      }
+
       default:
         return Response.json({ error: "Unknown action: " + action }, { status: 400 });
     }

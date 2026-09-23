@@ -102,7 +102,7 @@ const DEVICES = [
 
 export { DEVICES };
 
-export default function NetworkToolbar({ connectMode, setConnectMode, connectFrom, setConnectFrom }) {
+export default function NetworkToolbar({ connectMode, setConnectMode, connectFrom, setConnectFrom, selectedDeviceType, onSelectDevice }) {
   return (
     <div
       className="w-[72px] flex flex-col items-center py-4 gap-1 overflow-y-auto flex-shrink-0"
@@ -118,25 +118,42 @@ export default function NetworkToolbar({ connectMode, setConnectMode, connectFro
         Devices
       </div>
       {DEVICES.map((device) => (
-        <DraggableDevice key={device.type} device={device} />
+        <DraggableDevice
+          key={device.type}
+          device={device}
+          isSelected={selectedDeviceType === device.type}
+          onSelect={() => onSelectDevice?.(device.type)}
+        />
       ))}
     </div>
   );
 }
 
-function DraggableDevice({ device }) {
+function DraggableDevice({ device, isSelected, onSelect }) {
   const handleDragStart = (e) => {
     e.dataTransfer.setData("deviceType", device.type);
     e.dataTransfer.effectAllowed = "copy";
+  };
+
+  // Tap-to-select — لللمس على الموبايل (drag لا يعمل على اللمس)
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onSelect?.();
   };
 
   return (
     <div
       draggable
       onDragStart={handleDragStart}
+      onClick={handleClick}
       title={device.label}
       className="flex flex-col items-center gap-1 p-1.5 rounded-xl cursor-grab active:cursor-grabbing transition-all group w-[60px]"
-      style={{ userSelect: "none" }}
+      style={{
+        userSelect: "none",
+        background: isSelected ? `rgba(${hexToRgb(device.glow)},0.2)` : "transparent",
+        border: isSelected ? `1px solid rgba(${hexToRgb(device.glow)},0.6)` : "1px solid transparent",
+        borderRadius: 12,
+      }}
     >
       <div
         className="w-11 h-11 rounded-xl flex items-center justify-center transition-all group-hover:scale-110"
@@ -159,7 +176,7 @@ function DraggableDevice({ device }) {
       </div>
       <span
         className="text-[8px] font-medium text-center leading-tight transition-colors"
-        style={{ color: "rgba(148,163,184,0.6)" }}
+        style={{ color: isSelected ? `rgba(${hexToRgb(device.glow)},0.9)` : "rgba(148,163,184,0.6)" }}
       >
         {device.label}
       </span>

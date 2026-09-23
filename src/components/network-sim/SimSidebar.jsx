@@ -92,6 +92,7 @@ export default function SimSidebar({
   autoArrange,
   nodes, connections,
   activeScenario, setActiveScenario,
+  selectedDeviceType, onSelectDevice, onCancelPlacement,
 }) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -126,8 +127,12 @@ export default function SimSidebar({
               key={d.type}
               draggable
               onDragStart={(e) => e.dataTransfer.setData("deviceType", d.type)}
+              onClick={(e) => { e.stopPropagation(); onSelectDevice?.(d.type); }}
               className="w-9 h-9 rounded-xl flex items-center justify-center cursor-grab text-base transition-all hover:scale-110"
-              style={{ background: `rgba(${hexToRgb(d.glow)},0.1)`, border: `1px solid rgba(${hexToRgb(d.glow)},0.2)` }}
+              style={{
+                background: selectedDeviceType === d.type ? `rgba(${hexToRgb(d.glow)},0.3)` : `rgba(${hexToRgb(d.glow)},0.1)`,
+                border: selectedDeviceType === d.type ? `1px solid ${d.glow}` : `1px solid rgba(${hexToRgb(d.glow)},0.2)`,
+              }}
               title={d.label}
             >
               {d.icon}
@@ -164,17 +169,36 @@ export default function SimSidebar({
                   key={device.type}
                   draggable
                   onDragStart={(e) => { e.dataTransfer.setData("deviceType", device.type); e.dataTransfer.effectAllowed = "copy"; }}
+                  onClick={(e) => { e.stopPropagation(); onSelectDevice?.(device.type); }}
                   className="flex flex-col items-center gap-1 p-2 rounded-xl cursor-grab active:cursor-grabbing transition-all"
-                  style={{ background: `rgba(${hexToRgb(device.glow)},0.05)`, border: `1px solid rgba(${hexToRgb(device.glow)},0.12)` }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = `rgba(${hexToRgb(device.glow)},0.13)`; e.currentTarget.style.borderColor = `rgba(${hexToRgb(device.glow)},0.35)`; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = `rgba(${hexToRgb(device.glow)},0.05)`; e.currentTarget.style.borderColor = `rgba(${hexToRgb(device.glow)},0.12)`; }}
-                  title={`اسحب ${device.label} للكانفاس`}
+                  style={{
+                    background: selectedDeviceType === device.type ? `rgba(${hexToRgb(device.glow)},0.2)` : `rgba(${hexToRgb(device.glow)},0.05)`,
+                    border: selectedDeviceType === device.type ? `1px solid ${device.glow}` : `1px solid rgba(${hexToRgb(device.glow)},0.12)`,
+                  }}
+                  onMouseEnter={(e) => { if (selectedDeviceType !== device.type) { e.currentTarget.style.background = `rgba(${hexToRgb(device.glow)},0.13)`; e.currentTarget.style.borderColor = `rgba(${hexToRgb(device.glow)},0.35)`; } }}
+                  onMouseLeave={(e) => { if (selectedDeviceType !== device.type) { e.currentTarget.style.background = `rgba(${hexToRgb(device.glow)},0.05)`; e.currentTarget.style.borderColor = `rgba(${hexToRgb(device.glow)},0.12)`; } }}
+                  title={`اسحب أو اضغط ${device.label}`}
                 >
                   <span className="text-base leading-none">{device.icon}</span>
-                  <span className="text-[9px] font-medium text-center leading-tight" style={{ color: "rgba(31,41,55,0.65)" }}>{device.label}</span>
+                  <span className="text-[9px] font-medium text-center leading-tight" style={{ color: selectedDeviceType === device.type ? device.glow : "rgba(31,41,55,0.65)" }}>{device.label}</span>
                 </div>
               ))}
             </div>
+
+            {/* Tap-to-place indicator — يظهر عند اختيار جهاز */}
+            {selectedDeviceType && (
+              <div className="flex items-center justify-between gap-2 px-2 py-1.5 mb-1 rounded-lg"
+                style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)" }}>
+                <span className="text-[9px] font-bold" style={{ color: "#2F6690" }}>
+                  👆 {DEVICES.find(d => d.type === selectedDeviceType)?.label} — اضغط اللوحة
+                </span>
+                <button onClick={(e) => { e.stopPropagation(); onCancelPlacement?.(); }}
+                  className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                  style={{ background: "rgba(201,76,76,0.1)", color: "#C94C4C" }}>
+                  ✕
+                </button>
+              </div>
+            )}
 
             <Divider />
 

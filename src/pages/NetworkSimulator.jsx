@@ -98,6 +98,9 @@ export default function NetworkSimulator() {
   // Selected node (only shown when no tool active)
   const [selectedNode, setSelectedNode] = useState(null);
 
+  // Tap-to-place — الجهاز المحدد للوضع باللمس (موبايل)
+  const [selectedDeviceType, setSelectedDeviceType] = useState(null);
+
   // Packets + Sniffer
   const [activePackets, setActivePackets] = useState([]);
   const [snifferLog, setSnifferLog] = useState([]);
@@ -489,6 +492,9 @@ export default function NetworkSimulator() {
           connections={connections}
           activeScenario={activeScenario}
           setActiveScenario={setActiveScenario}
+          selectedDeviceType={selectedDeviceType}
+          onSelectDevice={(type) => setSelectedDeviceType(prev => prev === type ? null : type)}
+          onCancelPlacement={() => setSelectedDeviceType(null)}
         />
 
         {/* Canvas area */}
@@ -553,6 +559,8 @@ export default function NetworkSimulator() {
             activePackets={activePackets}
             highlightNodeId={packetMode ? packetFrom : connectMode ? connectFrom : null}
             activeTool={activeTool}
+            selectedDeviceType={selectedDeviceType}
+            clearSelectedDevice={() => setSelectedDeviceType(null)}
           />
 
           <AnimatePresence>

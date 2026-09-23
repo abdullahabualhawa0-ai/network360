@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, Mail, LogOut, Shield } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, Mail, LogOut, Shield, Trash2, AlertTriangle, X } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { studentApi, useStudentSession, clearStudentSession } from "@/lib/studentSession";
-import { useTeacherSession, clearTeacherSession } from "@/lib/teacherSession";
+import { useTeacherSession, clearTeacherSession, teacherApi } from "@/lib/teacherSession";
 import { useSchoolAdminSession, clearSchoolAdminSession } from "@/lib/schoolAdminSession";
-import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang, useDir } from "@/lib/i18n";
+import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang, useDir, getLang } from "@/lib/i18n";
 
 const LANGUAGES = [
   { id: "ar", label: "العربية", native: "العربية", flag: "🇸🇦", dir: "rtl" },
@@ -57,6 +57,7 @@ export default function Settings() {
   const direction = useDir();
   const active = useActiveRole();
   const studentSession = useStudentSession();
+  const teacherSession = useTeacherSession();
 
   const isStudent = active.role === "student";
   const isTeacher = active.role === "teacher";
@@ -152,6 +153,36 @@ export default function Settings() {
     else if (isTeacher) { clearTeacherSession(); navigate("/student-login", { replace: true }); }
     else if (isSchoolAdmin && !active.email) { clearSchoolAdminSession(); window.location.href = "/login"; }
     else { base44.auth.logout("/login"); }
+  };
+
+  // ── حذف الحساب ──
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteMsg, setDeleteMsg] = useState(null);
+
+  const canDelete = isStudent || isTeacher;
+  const confirmWord = getLang() === "ar" ? "حذف" : getLang() === "he" ? "מחק" : "DELETE";
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText.trim() !== confirmWord) return;
+    setDeleting(true);
+    setDeleteMsg(null);
+    try {
+      if (isStudent) {
+        await studentApi("delete", "StudentProfile", { id: active.studentId });
+        clearStudentSession();
+      } else if (isTeacher) {
+        await teacherApi("delete", "Teacher", { id: teacherSession.teacher_id });
+        clearTeacherSession();
+      }
+      setDeleteMsg({ ok: true, text: t("deleteAccountSuccess") });
+      setTimeout(() => navigate("/student-login", { replace: true }), 1500);
+    } catch (err) {
+      setDeleteMsg({ ok: false, text: err?.data?.error || err?.message || t("errUnexpected") });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const statusInfo = profile ? (PROFILE_STATUS[profile.status] || PROFILE_STATUS.pending) : null;
@@ -324,12 +355,110 @@ export default function Settings() {
           </div>
         )}
 
+        {/* حذف الحساب — للطلاب والأساتذة فقط */}
+        {canDelete && (
+          <button onClick={() => setShowDeleteDialog(true)}
+            className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
+            style={{ border: "1px solid rgba(201,76,76,0.25)", color: "#C94C4C", background: "transparent" }}>
+            <Trash2 size={12} /> {t("deleteAccount")}
+          </button>
+        )}
+        {!canDelete && (isSchoolAdmin || isOwner) && (
+          <div className="w-full mt-3 py-2.5 px-3 rounded-xl text-[10px] text-center text-muted-foreground"
+            style={{ border: "1px solid hsl(var(--border))" }}>
+            {t("deleteAccountNotAvailable")}
+          </div>
+        )}
+
         {/* تسجيل الخروج — لكل الأدوار */}
         <button onClick={handleLogout}
           className="w-full mt-4 py-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all"
           style={{ border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C", background: "rgba(201,76,76,0.05)" }}>
           <LogOut size={14} /> {t("logout")}
         </button>
+
+        {/* نافذة تأكيد حذف الحساب */}
+        <AnimatePresence>
+          {showDeleteDialog && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+              style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+              onClick={() => !deleting && setShowDeleteDialog(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-2xl p-6 bg-white"
+                style={{ border: "1px solid #E2E8F0", boxShadow: "0 20px 60px rgba(23,63,95,0.2)" }}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(201,76,76,0.1)" }}>
+                      <AlertTriangle size={18} style={{ color: "#C94C4C" }} />
+                    </div>
+                    <h3 className="font-black text-base" style={{ color: "#C94C4C" }}>{t("deleteAccountConfirmTitle")}</h3>
+                  </div>
+                  {!deleting && (
+                    <button onClick={() => setShowDeleteDialog(false)} className="p-1 rounded-lg" style={{ color: "hsl(var(--muted-foreground))" }}>
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Warning */}
+                <p className="text-xs font-bold mb-2" style={{ color: "#1F2937" }}>{t("deleteAccountDesc")}</p>
+                <p className="text-[11px] mb-4 leading-relaxed" style={{ color: "#C94C4C" }}>{t("deleteAccountWarning")}</p>
+
+                {/* Confirmation input */}
+                <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("deleteAccountTypeConfirm")}</label>
+                <input
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  disabled={deleting}
+                  placeholder={confirmWord}
+                  dir="ltr"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm font-mono focus:outline-none mb-3"
+                  style={{ border: `1px solid ${deleteConfirmText.trim() === confirmWord ? "#C94C4C" : "#E2E8F0"}`, background: "#F7F9FC" }}
+                />
+
+                {/* Error/Success message */}
+                {deleteMsg && (
+                  <div className="mb-3 px-3 py-2 rounded-xl text-xs font-bold"
+                    style={{
+                      background: deleteMsg.ok ? "rgba(46,125,91,0.08)" : "rgba(201,76,76,0.08)",
+                      border: `1px solid ${deleteMsg.ok ? "rgba(46,125,91,0.35)" : "rgba(201,76,76,0.35)"}`,
+                      color: deleteMsg.ok ? "#2E7D5B" : "#C94C4C",
+                    }}>
+                    {deleteMsg.text}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowDeleteDialog(false)}
+                    disabled={deleting}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                    style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}
+                  >
+                    {t("cancelBtn")}
+                  </button>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting || deleteConfirmText.trim() !== confirmWord}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-black text-white transition-all disabled:opacity-40 flex items-center justify-center gap-1.5"
+                    style={{ background: "#C94C4C" }}
+                  >
+                    {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    {t("deleteAccountBtn")}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ const ENTITY_CONFIG = {
   Exam: { schoolField: "school_id", writable: true },
   ExamResult: { schoolField: "school_id", readOnly: true },
   StudentProfile: { schoolField: "school_id", readOnly: true },
-  Teacher: { ownerField: "id", schoolField: "school_id", readOnly: true },
+  Teacher: { ownerField: "id", schoolField: "school_id", readOnly: true, selfDeletable: true },
 };
 
 async function validateSession(svc, session) {

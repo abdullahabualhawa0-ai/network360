@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import ContactUsButton from "./ContactUsButton";
+import MobileTabBar from "./MobileTabBar";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { t, useLang } from "@/lib/i18n";
@@ -12,8 +13,8 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-background font-main">
-      {/* Mobile header */}
-      <div className="md:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3"
+      {/* Mobile header — مع مساحات آمنة علوية */}
+      <div className="md:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3 safe-area-top"
         style={{
           background: "rgba(255,255,255,0.97)",
           backdropFilter: "blur(20px)",
@@ -53,8 +54,8 @@ export default function Layout() {
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main content */}
-      <div className="md:mr-80 pt-16 md:pt-0">
+      {/* Main content — padding سفلي لشريط التنقل على الموبايل */}
+      <div className="md:mr-80 pt-16 md:pt-0 pb-16 md:pb-0">
         <Outlet />
       </div>
 
@@ -65,6 +66,9 @@ export default function Layout() {
 
       {/* تواصل معنا — زر عائم في كل الصفحات */}
       <ContactUsButton />
+
+      {/* شريط التنقل السفلي — موبايل فقط */}
+      <MobileTabBar />
     </div>
   );
 }

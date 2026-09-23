@@ -667,6 +667,30 @@ const T = {
   /* ─── صفحة نتائج الأستاذ ─── */
   teacherResultsTitle: { ar: "نتائج الطلاب", en: "Student Results", he: "תוצאות תלמידים" },
   teacherResultsPageDesc: { ar: "نتائج امتحانات طلاب مدرستك", en: "Exam results for your school's students", he: "תוצאות בחינות של תלמידי בית-הספר" },
+
+  /* ─── حذف الحساب ─── */
+  deleteAccount: { ar: "حذف الحساب", en: "Delete Account", he: "מחיקת חשבון" },
+  deleteAccountDesc: { ar: "حذف حسابك نهائياً — لا يمكن التراجع عن هذا الإجراء", en: "Permanently delete your account — this cannot be undone", he: "מחיקת החשבון לצמיתות — לא ניתן לבטל" },
+  deleteAccountWarning: { ar: "تحذير: سيتم حذف جميع بياناتك (التقدم، النتائج، السيناريوهات) نهائياً.", en: "Warning: All your data (progress, results, scenarios) will be permanently deleted.", he: "אזהרה: כל הנתונים שלכם יימחקו לצמיתות." },
+  deleteAccountTypeConfirm: { ar: "اكتب «حذف» لتأكيد الحذف", en: 'Type "DELETE" to confirm', he: 'הקלידו "מחק" לאישור' },
+  deleteAccountPlaceholder: { ar: "حذف", en: "DELETE", he: "מחק" },
+  deleteAccountBtn: { ar: "حذف نهائي", en: "Delete Permanently", he: "מחיקה לצמיתות" },
+  deleteAccountSuccess: { ar: "تم حذف حسابك بنجاح", en: "Your account was deleted successfully", he: "החשבון נמחק בהצלחה" },
+  deleteAccountNotAvailable: { ar: "لحذف هذا الحساب، يرجى التواصل مع الدعم.", en: "To delete this account, please contact support.", he: "למחיקת חשבון זה, צרו קשר עם התמיכה." },
+  deleteAccountConfirmTitle: { ar: "تأكيد حذف الحساب", en: "Confirm Account Deletion", he: "אישור מחיקת חשבון" },
+  cancelBtn: { ar: "إلغاء", en: "Cancel", he: "בטל" },
+
+  /* ─── شريط التنقل السفلي (موبايل) ─── */
+  tabHome: { ar: "الرئيسية", en: "Home", he: "בית" },
+  tabSimulator: { ar: "المحاكي", en: "Simulator", he: "סימולטור" },
+  tabDashboard: { ar: "التقدم", en: "Progress", he: "התקדמות" },
+  tabSettings: { ar: "الإعدادات", en: "Settings", he: "הגדרות" },
+
+  /* ─── المحاكي — لمس ─── */
+  simTapToSelect: { ar: "اضغط للاختيار", en: "Tap to select", he: "הקליקו לבחירה" },
+  simTapToPlace: { ar: "اضغط على اللوحة لوضع الجهاز", en: "Tap the canvas to place the device", he: "הקליקו על הקנבס להצבת המכשיר" },
+  simSelectedDevice: { ar: "محدد", en: "Selected", he: "נבחר" },
+  simCancelPlacement: { ar: "إلغاء", en: "Cancel", he: "בטל" },
 };
 
 export function getLang() {

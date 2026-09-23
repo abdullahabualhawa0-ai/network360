@@ -9,11 +9,13 @@ export default function NetworkCanvas({
   connectMode, connectFrom, packetMode, packetFrom,
   selectedNode, setSelectedNode, activePackets = [],
   highlightNodeId, activeTool,
+  selectedDeviceType, clearSelectedDevice,
 }) {
   const canvasRef = useRef(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [dragOver, setDragOver] = useState(false);
+  const touchMoved = useRef(false);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -24,6 +26,17 @@ export default function NetworkCanvas({
     const x = (e.clientX - rect.left - pan.x) / zoom;
     const y = (e.clientY - rect.top - pan.y) / zoom;
     addNode(type, x, y);
+  };
+
+  // Tap-to-place — يضع الجهاز المحدد عند النقر على اللوحة (للموبايل)
+  const handleCanvasClick = (e) => {
+    if (!selectedDeviceType) return;
+    if (e.target !== canvasRef.current && !e.target.classList.contains("canvas-bg")) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left - pan.x) / zoom;
+    const y = (e.clientY - rect.top - pan.y) / zoom;
+    addNode(selectedDeviceType, x, y);
+    clearSelectedDevice();
   };
 
   const handleMouseDown = (e) => {
@@ -40,6 +53,37 @@ export default function NetworkCanvas({
   };
 
   const handleMouseUp = () => setIsPanning(false);
+
+  // Touch handlers — للتحريك باللمس على الموبايل
+  const handleTouchStart = (e) => {
+    if (e.target === canvasRef.current || e.target.classList.contains("canvas-bg")) {
+      touchMoved.current = false;
+      setSelectedNode(null);
+      setIsPanning(true);
+      const touch = e.touches[0];
+      setPanStart({ x: touch.clientX - pan.x, y: touch.clientY - pan.y });
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isPanning) return;
+    touchMoved.current = true;
+    const touch = e.touches[0];
+    setPan({ x: touch.clientX - panStart.x, y: touch.clientY - panStart.y });
+  };
+
+  const handleTouchEnd = (e) => {
+    setIsPanning(false);
+    // Tap-to-place عند اللمس بدون تحريك
+    if (!touchMoved.current && selectedDeviceType && e.changedTouches.length > 0) {
+      const touch = e.changedTouches[0];
+      const rect = canvasRef.current.getBoundingClientRect();
+      const x = (touch.clientX - rect.left - pan.x) / zoom;
+      const y = (touch.clientY - rect.top - pan.y) / zoom;
+      addNode(selectedDeviceType, x, y);
+      clearSelectedDevice();
+    }
+  };
 
   const cursor = isPanning ? "grabbing"
     : (connectMode || packetMode) ? "crosshair"
@@ -61,6 +105,10 @@ export default function NetworkCanvas({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onClick={handleCanvasClick}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Cyber grid */}
       <div className="canvas-bg absolute inset-0 pointer-events-none"
@@ -83,12 +131,23 @@ export default function NetworkCanvas({
       />
 
       {/* Empty state hint */}
-      {nodes.length === 0 && !dragOver && (
+      {nodes.length === 0 && !dragOver && !selectedDeviceType && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <div className="text-center opacity-20">
             <div className="text-5xl mb-3">🖧</div>
             <p className="font-bold text-sm" style={{ color: "#2F6690" }}>اسحب الأجهزة من الشريط الجانبي</p>
             <p className="text-xs mt-1" style={{ color: "rgba(47,102,144,0.6)" }}>وأفلتها هنا لبدء بناء شبكتك</p>
+          </div>
+        </div>
+      )}
+
+      {/* Tap-to-place indicator — يظهر عند اختيار جهاز على الموبايل */}
+      {selectedDeviceType && (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center"
+          style={{ border: "2px dashed rgba(47,102,144,0.5)", background: "rgba(47,102,144,0.03)" }}>
+          <div className="px-4 py-2 rounded-xl text-sm font-bold animate-pulse"
+            style={{ background: "#FFFFFF", border: "1px solid rgba(47,102,144,0.4)", color: "#2F6690" }}>
+            👆 اضغط هنا لوضع الجهاز
           </div>
         </div>
       )}
