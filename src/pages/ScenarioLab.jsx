@@ -36,10 +36,15 @@ export default function ScenarioLab() {
   const [dbReady, setDbReady] = useState(false);
   const navigate = useNavigate();
   const session = useStudentSession();
-  useLang();
+  const lang = useLang();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const lessonFilter = searchParams.get("lesson");
+
+  // تحديث عنوان الصفحة عند تغيير اللغة
+  useEffect(() => {
+    document.title = `${t("scenarioLabTitle")} | ${t("appName")}`;
+  }, [lang]);
   const lessonInfo = lessonFilter ? getLessonInfo(lessonFilter) : null;
 
   // مزامنة التقدم من قاعدة البيانات — سجل فردي لكل طالب (سجل واحد لكل سيناريو)
@@ -136,13 +141,8 @@ export default function ScenarioLab() {
     const sc = localizeScenario(selected);
     const { nodes, connections } = getSimNetwork(sc.id);
     const res = sc.eval(nodes, connections);
-    // ترجمة رسالة التقييم و labels المهام
-    const tr = localizeScenario(selected);
-    const trDetails = (res.details || []).map((d, i) => ({
-      ...d,
-      label: tr.checks?.[i]?.label || d.label,
-    }));
-    setResult({ ...res, details: trDetails, feedback: scenarioFeedback(res.passed) });
+    // نُخزّن النتيجة الخام — الترجمة تتم وقت العرض لتتغير مع اللغة
+    setResult(res);
     if (res.passed) persistEvaluation(selected, res);
   };
 
@@ -482,7 +482,14 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
 
             {/* Result */}
             <AnimatePresence>
-              {result && (
+              {result && (() => {
+                const tr = localizeScenario(selected);
+                const trDetails = (result.details || []).map((d, i) => ({
+                  ...d,
+                  label: tr.checks?.[i]?.label || d.label,
+                }));
+                const feedback = scenarioFeedback(result.passed);
+                return (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -491,7 +498,7 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                     background: result.passed ? "rgba(46,125,91,0.06)" : "rgba(201,76,76,0.06)",
                     border: `1px solid ${result.passed ? "rgba(46,125,91,0.35)" : "rgba(201,76,76,0.35)"}`,
                   }}
-                  >
+                >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black"
                       style={{ background: result.passed ? "#2E7D5B" : "#C94C4C", color: "white" }}>
@@ -501,7 +508,7 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                       <h3 className="text-lg font-black" style={{ color: result.passed ? "#2E7D5B" : "#C94C4C" }}>
                         {result.passed ? `🎉 ${t("passedMsg")}` : `❌ ${t("failedMsg")}`}
                       </h3>
-                      <p className="text-sm" style={{ color: "rgba(31,41,55,0.75)" }}>{result.feedback}</p>
+                      <p className="text-sm" style={{ color: "rgba(31,41,55,0.75)" }}>{feedback}</p>
                       {result.passed && (
                         <p className="text-[10px] mt-1" style={{ color: "#2E7D5B" }}>
                           → <Link to="/lab-history" className="underline">{t("viewHistory")}</Link>
@@ -510,7 +517,7 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                     </div>
                   </div>
                   <div className="space-y-2">
-                    {result.details.map((d, i) => (
+                    {trDetails.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
                         {d.ok ? <CheckCircle2 size={14} className="text-success" /> : <AlertCircle size={14} className="text-destructive" />}
                         <span style={{ color: d.ok ? "#2E7D5B" : "#C94C4C" }}>{d.label}</span>
@@ -518,7 +525,8 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                     ))}
                   </div>
                 </motion.div>
-              )}
+                );
+              })()}
             </AnimatePresence>
           </div>
         )}
