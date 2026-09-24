@@ -8,7 +8,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import StudentsManager from "../../components/admin/StudentsManager";
-import { planLabel } from "@/lib/plans";
+import { planLabel, PLANS } from "@/lib/plans";
 import { t, useLang, useDir } from "@/lib/i18n";
 
 /**
@@ -20,6 +20,7 @@ export default function SchoolsManager() {
   useLang();
   const direction = useDir();
   const [schools, setSchools] = useState(null);
+  const [personalCodes, setPersonalCodes] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", code: "", studentLimit: 50 });
   const [formError, setFormError] = useState(null);
@@ -30,7 +31,20 @@ export default function SchoolsManager() {
 
   const isSuperAdmin = user?.role === "admin";
 
-  const load = () => base44.entities.School.list("-created_date", 100).then((r) => setSchools(r || []));
+  const load = async () => {
+    const r = await base44.entities.School.list("-created_date", 100);
+    setSchools(r || []);
+    // جلب رموز الطلاب الفردية للخطط الشخصية
+    const personal = (r || []).filter((s) => PLANS[s.subscription_plan]?.personal);
+    if (personal.length) {
+      const codes = {};
+      await Promise.all(personal.map(async (s) => {
+        const students = await base44.entities.StudentProfile.filter({ school_id: s.id }, "-created_date", 1);
+        if (students?.length) codes[s.id] = students[0].student_code;
+      }));
+      setPersonalCodes(codes);
+    }
+  };
 
   useEffect(() => {
     if (!isLoadingAuth && isSuperAdmin) load();
@@ -202,6 +216,9 @@ export default function SchoolsManager() {
             <div className="space-y-3">
               {schools.map((s, i) => {
                 const isEditing = !!editing[s.id];
+                const isPersonal = !!PLANS[s.subscription_plan]?.personal;
+                const displayCode = isPersonal ? (personalCodes[s.id] || "—") : s.code;
+                const codeLabel = isPersonal ? t("studentCodeLabel") : t("schoolsCodeLabel");
                 return (
                   <motion.div key={s.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
                     className="rounded-2xl p-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
@@ -234,10 +251,10 @@ export default function SchoolsManager() {
 
                     {/* Row 2: Code + Admin Code + Student Limit (editable) */}
                     <div className="grid sm:grid-cols-3 gap-2 mb-3">
-                      {/* School Code */}
+                      {/* School Code / Personal Code */}
                       <div className="rounded-xl p-2.5" style={{ background: "rgba(6,182,212,0.04)", border: "1px solid rgba(6,182,212,0.15)" }}>
-                        <div className="text-[9px] font-bold text-muted-foreground mb-1">{t("schoolsCodeLabel")}</div>
-                        {isEditing ? (
+                        <div className="text-[9px] font-bold text-muted-foreground mb-1">{codeLabel}</div>
+                        {isEditing && !isPersonal ? (
                           <input value={editing[s.id]?.code ?? s.code}
                             onChange={(e) => setEditing((p) => ({ ...p, [s.id]: { ...(p[s.id] || {}), code: e.target.value } }))}
                             dir="ltr" autoFocus
@@ -246,11 +263,13 @@ export default function SchoolsManager() {
                             className="w-full text-xs font-mono bg-transparent focus:outline-none" />
                         ) : (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-mono font-bold" style={{ color: "#06b6d4" }}>{s.code}</span>
-                            <button onClick={() => setEditing((p) => ({ ...p, [s.id]: { ...(p[s.id] || {}), code: s.code, limit: s.student_limit } }))}
-                              className="opacity-50 hover:opacity-100" title={t("schoolsEditCodeHint")}>
-                              <Pencil size={10} />
-                            </button>
+                            <span className="text-xs font-mono font-bold" style={{ color: "#06b6d4" }} dir="ltr">{displayCode}</span>
+                            {!isPersonal && (
+                              <button onClick={() => setEditing((p) => ({ ...p, [s.id]: { ...(p[s.id] || {}), code: s.code, limit: s.student_limit } }))}
+                                className="opacity-50 hover:opacity-100" title={t("schoolsEditCodeHint")}>
+                                <Pencil size={10} />
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
