@@ -9,6 +9,7 @@ import {
   TrendingUp, CheckCircle2, Clock, RefreshCw, ShieldAlert, Search
 } from "lucide-react";
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
+import { sectionTitle, topicTitle } from "@/lib/courseI18n";
 
 const totalTopics = courseData.reduce((s, sec) => s + sec.topics.length, 0);
 const totalQuizzes = Object.keys(quizData).length;
@@ -236,7 +237,7 @@ export default function AdminStudentsReport() {
                           <div key={topicId} className="flex items-center justify-between px-5 py-3">
                             <div className="flex items-center gap-2">
                               <Award size={14} className={result.score >= 80 ? "text-amber-500" : "text-slate-300"} />
-                              <span className="text-sm text-foreground">{topic.title}</span>
+                              <span className="text-sm text-foreground">{topicTitle(topic)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
@@ -268,7 +269,7 @@ export default function AdminStudentsReport() {
                         return (
                           <div key={sec.id} className="text-sm">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-bold text-foreground">{sec.title}</span>
+                              <span className="text-xs font-bold text-foreground">{sectionTitle(sec)}</span>
                               <span className="text-xs text-muted-foreground">{visitedInSec}/{sec.topics.length}</span>
                             </div>
                             <div className="h-1.5 bg-muted rounded-full overflow-hidden">
