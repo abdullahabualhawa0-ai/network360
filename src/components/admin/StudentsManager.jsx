@@ -310,7 +310,7 @@ export default function StudentsManager({ school, onBack }) {
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
                       style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
-                      {isClaimed ? t(stKey) : t("smCodeNotActivated")}
+                      {s.status === "approved" ? t("smStatusApproved") : isClaimed ? t(stKey) : t("smCodeNotActivated")}
                     </span>
                   </div>
                   <div className="text-[10px] text-muted-foreground mt-0.5 truncate">

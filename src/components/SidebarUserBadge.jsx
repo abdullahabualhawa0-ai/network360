@@ -46,17 +46,17 @@ export default function SidebarUserBadge({ compact = false }) {
     info = {
       icon: <ShieldCheck size={13} />,
       roleLabel: t("roleSchoolAdmin"),
-      name: user.full_name || user.email || "",
-      code: user.email || "",
-      codeLabel: t("emailLabel"),
+      name: user.full_name || "",
+      code: "",
+      codeLabel: "",
     };
   } else if (user?.role === "admin") {
     info = {
       icon: <ShieldCheck size={13} />,
       roleLabel: t("roleOwner"),
-      name: user.full_name || user.email || "",
-      code: user.email || "",
-      codeLabel: t("emailLabel"),
+      name: user.full_name || "",
+      code: "",
+      codeLabel: "",
     };
   }
 
