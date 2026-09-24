@@ -22,7 +22,7 @@ export default function SidebarUserBadge({ compact = false }) {
     info = {
       icon: <ShieldCheck size={13} />,
       roleLabel: t("roleSchoolAdmin"),
-      name: schoolAdminSession.school_name || "",
+      name: schoolAdminSession.admin_name || schoolAdminSession.school_name || "",
       code: schoolAdminSession.admin_code || "",
       codeLabel: t("adminCode"),
     };

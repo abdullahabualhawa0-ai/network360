@@ -36,6 +36,7 @@ export default async function(req) {
       school_id: school.id,
       school_code: school.code,
       school_name: school.name,
+      admin_name: school.admin_name || school.name,
       admin_code: school.admin_code,
       role: "school_admin",
       login_at: new Date().toISOString(),
