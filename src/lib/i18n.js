@@ -848,7 +848,7 @@ const T = {
   backHome: { ar: "العودة للرئيسية", en: "Back to Home", he: "חזרה לבית" },
 
   /* ─── المدارس (SchoolsManager) ─── */
-  schoolsTitle: { ar: "المدارس", en: "Schools", he: "בתי ספר" },
+  schoolsTitle: { ar: "الاشتراكات المفعلة", en: "Active Subscriptions", he: "מנויים פעילים" },
   schoolsAddBtn: { ar: "إضافة مدرسة", en: "Add School", he: "הוסף בית ספר" },
   schoolsNameLabel: { ar: "اسم المدرسة *", en: "School Name *", he: "שם בית הספר *" },
   schoolsCodeLabel: { ar: "رمز المدرسة *", en: "School Code *", he: "קוד בית הספר *" },
