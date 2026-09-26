@@ -23,7 +23,7 @@ export default function TeachersManager() {
   const [teacherLimit, setTeacherLimit] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", subject: "", teacher_code: "" });
+  const [form, setForm] = useState({ full_name: "", teacher_code: "" });
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -55,13 +55,10 @@ export default function TeachersManager() {
       if (editId) {
         const updatedData = {
           full_name: form.full_name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim(),
-          subject: form.subject.trim(),
         };
         const prev = teachers;
         setTeachers(prev => (prev || []).map(tc => tc.id === editId ? { ...tc, ...updatedData } : tc));
-        setForm({ full_name: "", email: "", phone: "", subject: "", teacher_code: "" });
+        setForm({ full_name: "", teacher_code: "" });
         setEditId(null);
         setShowForm(false);
         try {
@@ -76,9 +73,6 @@ export default function TeachersManager() {
           session,
           data: {
             full_name: form.full_name.trim(),
-            email: form.email.trim(),
-            phone: form.phone.trim(),
-            subject: form.subject.trim(),
             teacher_code: form.teacher_code.trim() || undefined,
           },
         });
@@ -88,7 +82,7 @@ export default function TeachersManager() {
         } else {
           load();
         }
-        setForm({ full_name: "", email: "", phone: "", subject: "", teacher_code: "" });
+        setForm({ full_name: "", teacher_code: "" });
         setShowForm(false);
       }
     } catch (err) {
@@ -125,9 +119,6 @@ export default function TeachersManager() {
     setEditId(t.id);
     setForm({
       full_name: t.full_name || "",
-      email: t.email || "",
-      phone: t.phone || "",
-      subject: t.subject || "",
       teacher_code: t.teacher_code || "",
     });
     setShowForm(true);
@@ -174,7 +165,7 @@ export default function TeachersManager() {
             <button onClick={load} className="p-2 rounded-xl" style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
               <RefreshCw size={14} />
             </button>
-            <button onClick={() => { setEditId(null); setForm({ full_name: "", email: "", phone: "", subject: "", teacher_code: "" }); setShowForm(!showForm); }}
+            <button onClick={() => { setEditId(null); setForm({ full_name: "", teacher_code: "" }); setShowForm(!showForm); }}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white"
               style={{ background: "#173F5F" }}>
               <Plus size={14} /> {t("addTeacher")}
@@ -191,21 +182,6 @@ export default function TeachersManager() {
               <label className={labelCls}>{t("teacherName")} *</label>
               <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })}
                 className={inputCls} style={inputStyle} required />
-            </div>
-            <div>
-              <label className={labelCls}>{t("teacherEmail")}</label>
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} dir="ltr"
-                className={inputCls} style={inputStyle} />
-            </div>
-            <div>
-              <label className={labelCls}>{t("teacherPhone")}</label>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} dir="ltr"
-                className={inputCls} style={inputStyle} />
-            </div>
-            <div>
-              <label className={labelCls}>{t("teacherSubject")}</label>
-              <input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                className={inputCls} style={inputStyle} />
             </div>
             <div>
               <label className={labelCls}>{t("teacherCode")}</label>
@@ -265,12 +241,6 @@ export default function TeachersManager() {
                         : { background: "rgba(148,163,184,0.1)", border: "1px solid rgba(148,163,184,0.3)", color: "#94a3b8" }}>
                       {tc.status === "active" ? t("teacherActive") : t("teacherDisabled")}
                     </span>
-                    {tc.subject && (
-                      <span className="text-[10px] text-muted-foreground">{tc.subject}</span>
-                    )}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                    {tc.email || ""} {tc.phone ? ` • ${tc.phone}` : ""}
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
