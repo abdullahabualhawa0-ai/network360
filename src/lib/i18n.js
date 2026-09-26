@@ -867,6 +867,7 @@ const T = {
   schoolsRegDate: { ar: "التسجيل", en: "Registered", he: "נרשם" },
   schoolsEditPlanHint: { ar: "تعديل خطة الاشتراك (Enter للحفظ)", en: "Edit plan (Enter to save)", he: "עריכת תוכנית (Enter לשמירה)" },
   schoolsStudentsBtn: { ar: "الطلاب", en: "Students", he: "תלמידים" },
+  schoolsTeachersBtn: { ar: "الأساتذة", en: "Teachers", he: "מורים" },
   schoolsEnable: { ar: "تفعيل", en: "Enable", he: "הפעל" },
   schoolsDisable: { ar: "تعطيل", en: "Disable", he: "השבת" },
   schoolsAssignAdmin: { ar: "تعيين مشرف المدرسة:", en: "Assign school admin:", he: "מינוי מנהל בית ספר:" },

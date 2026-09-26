@@ -8,6 +8,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import StudentsManager from "../../components/admin/StudentsManager";
+import TeachersList from "../../components/admin/TeachersList";
 import { planLabel, PLANS } from "@/lib/plans";
 import { t, useLang, useDir } from "@/lib/i18n";
 
@@ -25,7 +26,7 @@ export default function SchoolsManager() {
   const [form, setForm] = useState({ name: "", code: "", studentLimit: 50 });
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [view, setView] = useState("list"); // list | students
+  const [view, setView] = useState("list"); // list | students | teachers
   const [selectedSchool, setSelectedSchool] = useState(null);
   const [editing, setEditing] = useState({}); // { [id]: { code, limit } }
 
@@ -140,6 +141,16 @@ export default function SchoolsManager() {
       <div className="min-h-screen bg-background text-foreground" dir={direction}>
         <div className="max-w-5xl mx-auto px-4 py-8">
           <StudentsManager school={selectedSchool} onBack={() => { setView("list"); setSelectedSchool(null); }} />
+        </div>
+      </div>);
+  }
+
+  // إدارة أساتذة مدرسة محددة
+  if (view === "teachers" && selectedSchool) {
+    return (
+      <div className="min-h-screen bg-background text-foreground" dir={direction}>
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          <TeachersList school={selectedSchool} onBack={() => { setView("list"); setSelectedSchool(null); }} />
         </div>
       </div>);
   }
@@ -333,6 +344,11 @@ export default function SchoolsManager() {
                           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold"
                           style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.3)", color: "#06b6d4" }}>
                           <GraduationCap size={13} /> {t("schoolsStudentsBtn")}
+                        </button>
+                        <button onClick={() => { setSelectedSchool(s); setView("teachers"); }}
+                          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold"
+                          style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)", color: "#2F6690" }}>
+                          <ShieldCheck size={13} /> {t("schoolsTeachersBtn")}
                         </button>
                         <button onClick={() => toggleActive(s)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
