@@ -61,6 +61,7 @@ export default function RegistrationRequests() {
     let codeLines = "";
     if (accepted && isSchool && schoolCode) {
       codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailSchoolCodeLabel", lang)}: <b dir="ltr">${schoolCode}</b></p>`
+        + (req.admin_name ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminNameLabel", lang)}: <b>${req.admin_name}</b></p>` : "")
         + (adminCode ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminCodeLabel", lang)}: <b dir="ltr">${adminCode}</b></p>` : "")
         + (adminCode ? `<p style="margin:0 0 12px;font-size:13px;color:#2F6690;">${t("mailAdminAssignedNote", lang)}</p>` : "");
     } else if (accepted && !isSchool && individualCode) {
@@ -144,7 +145,7 @@ export default function RegistrationRequests() {
           name: req.school_name, code: schoolCode, admin_code: adminCode, is_active: true, created_by_id: user.id,
           subscription_plan: "school_50", student_limit: req.expected_students || 50,
           teacher_limit: req.expected_teachers || 0, current_student_count: 0,
-          subscription_status: "active", admin_name: req.full_name, admin_email: req.email,
+          subscription_status: "active", admin_name: req.admin_name || req.full_name, admin_email: req.email,
           contact_phone: req.phone, country: req.country, expected_students: req.expected_students,
         });
         schoolId = school.id;

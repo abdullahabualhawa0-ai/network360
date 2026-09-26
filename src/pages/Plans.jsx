@@ -26,7 +26,7 @@ export default function Plans() {
   const [indForm, setIndForm] = useState({ fullName: "", email: "", phone: "", country: "" });
   // نموذج مدرسي
   const [schForm, setSchForm] = useState({
-    schoolName: "", fullName: "", email: "", phone: "", country: "",
+    schoolName: "", adminName: "", fullName: "", email: "", phone: "", country: "",
     expectedStudents: "", expectedTeachers: "",
   });
 
@@ -67,7 +67,7 @@ export default function Plans() {
 
   const submitSchool = async (e) => {
     e.preventDefault();
-    const req = ["schoolName", "fullName", "email", "phone", "country", "expectedStudents", "expectedTeachers"];
+    const req = ["schoolName", "adminName", "fullName", "email", "phone", "country", "expectedStudents", "expectedTeachers"];
     for (const k of req) {
       if (!String(schForm[k] || "").trim()) {
         setError(t("regErrRequired"));
@@ -84,6 +84,7 @@ export default function Plans() {
         phone: schForm.phone.trim(),
         country: schForm.country.trim(),
         school_name: schForm.schoolName.trim(),
+        admin_name: schForm.adminName.trim(),
         expected_students: Number(schForm.expectedStudents) || 0,
         expected_teachers: Number(schForm.expectedTeachers) || 0,
         status: "new",
@@ -179,6 +180,9 @@ export default function Plans() {
               <form onSubmit={submitSchool} className="grid sm:grid-cols-2 gap-3">
                 <div className="sm:col-span-2">
                   <Field label={`${t("regSchoolName")} *`} value={schForm.schoolName} onChange={(v) => setSchForm({ ...schForm, schoolName: v })} required />
+                </div>
+                <div>
+                  <Field label={`${t("regAdminName")} *`} value={schForm.adminName} onChange={(v) => setSchForm({ ...schForm, adminName: v })} required />
                 </div>
                 <div className="sm:col-span-2 mt-1 mb-1">
                   <div className="text-[11px] font-bold" style={{ color: "#2F6690" }}>{t("regContactPerson")}</div>
