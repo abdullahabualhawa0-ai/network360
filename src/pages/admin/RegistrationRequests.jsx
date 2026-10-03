@@ -8,6 +8,8 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import BackButton from "@/components/BackButton";
 import { t, useLang, useDir, getLang, LANG_DIR } from "@/lib/i18n";
+import { randomCode } from "@/lib/plans";
+import { escapeHtml } from "@/lib/escapeHtml";
 
 const STATUS_UI = {
   new: { label: "reqStatusNew", color: "#2F6690", bg: "rgba(47,102,144,0.1)", border: "rgba(47,102,144,0.35)" },
@@ -52,20 +54,20 @@ export default function RegistrationRequests() {
     const headerColor = accepted ? "#2E7D5B" : "#C94C4C";
     const bodyLine = accepted
       ? (isSchool
-        ? `${t("mailAcceptedBodySchool", lang)} «${req.school_name || ""}».`
+        ? `${t("mailAcceptedBodySchool", lang)} «${escapeHtml(req.school_name)}».`
         : t("mailAcceptedBodyIndividual", lang))
       : (isSchool
-        ? `${t("mailRejectedBodySchool", lang)} «${req.school_name || ""}».`
+        ? `${t("mailRejectedBodySchool", lang)} «${escapeHtml(req.school_name)}».`
         : t("mailRejectedBodyIndividual", lang));
     const footer = accepted ? t("mailAcceptedFooter", lang) : t("mailRejectedFooter", lang);
     let codeLines = "";
     if (accepted && isSchool && schoolCode) {
-      codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailSchoolCodeLabel", lang)}: <b dir="ltr">${schoolCode}</b></p>`
-        + (req.admin_name ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminNameLabel", lang)}: <b>${req.admin_name}</b></p>` : "")
-        + (adminCode ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminCodeLabel", lang)}: <b dir="ltr">${adminCode}</b></p>` : "")
+      codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailSchoolCodeLabel", lang)}: <b dir="ltr">${escapeHtml(schoolCode)}</b></p>`
+        + (req.admin_name ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminNameLabel", lang)}: <b>${escapeHtml(req.admin_name)}</b></p>` : "")
+        + (adminCode ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminCodeLabel", lang)}: <b dir="ltr">${escapeHtml(adminCode)}</b></p>` : "")
         + (adminCode ? `<p style="margin:0 0 12px;font-size:13px;color:#2F6690;">${t("mailAdminAssignedNote", lang)}</p>` : "");
     } else if (accepted && !isSchool && individualCode) {
-      codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailIndividualCodeLabel", lang)}: <b dir="ltr">${individualCode}</b></p>`
+      codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailIndividualCodeLabel", lang)}: <b dir="ltr">${escapeHtml(individualCode)}</b></p>`
         + `<p style="margin:0 0 12px;font-size:13px;color:#2E7D5B;">${t("mailIndividualLoginNote", lang)}</p>`;
     }
     const html = `<div dir="${dirAttr}" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #F7F9FC; border-radius: 16px;">
@@ -73,7 +75,7 @@ export default function RegistrationRequests() {
           <h2 style="margin: 0; font-size: 18px;">${title}</h2>
         </div>
         <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;">
-          <p style="margin: 0 0 12px; font-size: 14px;">${greeting} ${req.full_name || ""}،</p>
+          <p style="margin: 0 0 12px; font-size: 14px;">${greeting} ${escapeHtml(req.full_name)}،</p>
           <p style="margin: 0 0 12px; font-size: 14px;">${bodyLine}</p>
           ${codeLines}
           <p style="margin: 0; font-size: 12px; color: #64748B;">${footer}</p>
@@ -98,7 +100,7 @@ export default function RegistrationRequests() {
     setActivateMsg(null);
     try {
       // توليد رمز مدرسة فريد
-      const code = `SCH-${Date.now().toString().slice(-6)}`;
+      const code = randomCode("SCH-", 6);
       const dup = await base44.entities.School.filter({ code });
       if (dup && dup.length > 0) throw new Error("Code collision");
       const school = await base44.entities.School.create({
@@ -137,7 +139,7 @@ export default function RegistrationRequests() {
       let adminCode = null;
       let individualCode = null;
       if (req.request_type === "school" && req.status !== "accepted") {
-        schoolCode = `SCH-${Date.now().toString().slice(-6)}`;
+        schoolCode = randomCode("SCH-", 6);
         const dup = await base44.entities.School.filter({ code: schoolCode });
         if (dup && dup.length > 0) throw new Error("Code collision");
         adminCode = generateAdminCode();
@@ -152,7 +154,7 @@ export default function RegistrationRequests() {
         // المشرف يدخل برمز المدرسة ورمز المشرف — لا حاجة لإنشاء حساب Base44
       } else if (req.request_type === "individual" && req.status !== "accepted") {
         // إنشاء مدرسة بخطة شخصية + ملف طالب برمز فريد — الطالب يدخل برمز واحد فقط
-        schoolCode = `SCH-${Date.now().toString().slice(-6)}`;
+        schoolCode = randomCode("SCH-", 6);
         const dup = await base44.entities.School.filter({ code: schoolCode });
         if (dup && dup.length > 0) throw new Error("Code collision");
         individualCode = generateIndividualCode();
@@ -348,15 +350,9 @@ export default function RegistrationRequests() {
 }
 
 function generateAdminCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "ADM-";
-  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
+  return randomCode("ADM-", 6);
 }
 
 function generateIndividualCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "IND-";
-  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
+  return randomCode("IND-", 6);
 }

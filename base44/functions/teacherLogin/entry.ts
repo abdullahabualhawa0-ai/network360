@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { rateLimit, clientIp } from "../../shared/security.ts";
 
 /**
  * teacherLogin — التحقق من رمز المدرسة + رمز الأستاذ دون Base44 Authentication
@@ -12,8 +13,17 @@ export default async function(req) {
     const body = await req.json();
     const { schoolCode, teacherCode } = body;
 
+    // تحديد معدل المحاولات — منع تخمين الرموز (brute-force)
+    const ipCheck = rateLimit(`teacherLogin:ip:${clientIp(req)}`, 20, 10 * 60 * 1000);
+    if (!ipCheck.ok) {
+      return Response.json({ error: "محاولات كثيرة — حاول لاحقاً." }, { status: 429 });
+    }
     if (!schoolCode || !teacherCode) {
       return Response.json({ error: "أدخل رمز المدرسة ورمز الأستاذ" }, { status: 400 });
+    }
+    const codeCheck = rateLimit(`teacherLogin:code:${String(schoolCode).trim()}:${String(teacherCode).trim()}`, 10, 15 * 60 * 1000);
+    if (!codeCheck.ok) {
+      return Response.json({ error: "محاولات كثيرة — حاول لاحقاً." }, { status: 429 });
     }
 
     // 1) التحقق من رمز المدرسة (موجودة ومفعّلة)

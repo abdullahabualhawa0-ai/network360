@@ -433,6 +433,7 @@ const T = {
   regSuccessMsg: { ar: "سيقوم المسؤول بالتواصل معك عند الحاجة.", en: "The admin will contact you if needed.", he: "המנהל ייצור איתך קשר במידת הצורך." },
   regBackToLogin: { ar: "العودة لتسجيل الدخول", en: "Back to login", he: "חזרה להתחברות" },
   regErrRequired: { ar: "يرجى تعبئة جميع الحقول المطلوبة", en: "Please fill all required fields", he: "נא למלא את כל השדות הנדרשים" },
+  regErrEmail: { ar: "يرجى إدخال بريد إلكتروني صحيح", en: "Please enter a valid email address", he: "נא להזין כתובת אימייל תקינה" },
   regErrSubmit: { ar: "تعذر إرسال الطلب — حاول مجدداً", en: "Could not submit request — try again", he: "לא ניתן לשלוח את הבקשה — נסו שוב" },
 
   /* ─── إدارة الأساتذة (School Admin) ─── */

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { rateLimit, clientIp } from "../../shared/security.ts";
 
 /**
  * schoolAdminLogin — التحقق من رمز المدرسة + رمز المشرف (admin_code) دون Base44 Authentication
@@ -12,8 +13,17 @@ export default async function(req) {
     const body = await req.json();
     const { adminCode } = body;
 
+    // تحديد معدل المحاولات — منع تخمين رموز المشرف (brute-force)
+    const ipCheck = rateLimit(`schoolAdminLogin:ip:${clientIp(req)}`, 20, 10 * 60 * 1000);
+    if (!ipCheck.ok) {
+      return Response.json({ error: "محاولات كثيرة — حاول لاحقاً." }, { status: 429 });
+    }
     if (!adminCode) {
       return Response.json({ error: "أدخل رمز المشرف" }, { status: 400 });
+    }
+    const codeCheck = rateLimit(`schoolAdminLogin:code:${String(adminCode).trim()}`, 10, 15 * 60 * 1000);
+    if (!codeCheck.ok) {
+      return Response.json({ error: "محاولات كثيرة — حاول لاحقاً." }, { status: 429 });
     }
 
     // 1) البحث عن المدرسة برمز المشرف فقط (رمز فريد لكل مشرف)

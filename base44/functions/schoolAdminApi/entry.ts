@@ -98,6 +98,14 @@ export default async function(req) {
 
       case "create": {
         if (!config.writable) return Response.json({ error: "Read-only entity" }, { status: 403 });
+        // فرض حد الطلاب (student_limit) من الخادم — لا يُعتمد على فحص الواجهة
+        if (entity === "StudentProfile") {
+          const existing = await svc.entities.StudentProfile.filter({ school_id: schoolId }, "-created_date", 500);
+          const limit = school.student_limit || 0;
+          if (limit > 0 && (existing || []).length >= limit) {
+            return Response.json({ error: "STUDENT_LIMIT_REACHED" }, { status: 403 });
+          }
+        }
         const d = { ...data, [config.schoolField]: schoolId };
         const row = await svc.entities[entity].create(d);
         return Response.json(row);

@@ -76,40 +76,26 @@ export default function TakeExam() {
     if (submittingRef.current || !exam) return;
     submittingRef.current = true;
     setSubmitting(true);
-
-    const qs = exam.questions || [];
-    let correct = 0;
-    const review = {};
-    qs.forEach((q, i) => {
-      const given = answersRef.current[i] ?? "";
-      const isCorrect = q.type === "short"
-        ? !!norm(given) && norm(given) === norm(q.answer)
-        : !!given && given === q.answer;
-      if (isCorrect) correct++;
-      review[String(i)] = {
-        question: q.text, type: q.type,
-        given: given || "—", model_answer: q.answer,
-        is_correct: isCorrect,
-      };
-    });
-    const total = qs.length;
-    const pct = total ? Math.round((correct / total) * 100) : 0;
-    const now = new Date().toISOString();
-
-    await studentApi("create", "ExamResult", {
-      data: {
-        student_name: session?.student_name || session?.student_code,
-        student_email: session?.student_code,
-        exam_id: exam.id, exam_title: exam.title,
-        score: pct, percentage: pct, total_questions: total,
-        correct_answers: correct, wrong_answers: total - correct,
-        answers: review,
-        start_time: startedAtRef.current.toISOString(),
-        submission_time: now, status: "submitted",
-      },
-    });
-    setResult({ pct, correct, total, review });
-  }, [exam, session, schoolId]);
+    try {
+      // التصحيح يتم في الخادم — لا تُرسل الدرجات من المتصفح
+      const res = await studentApi("submitExam", "Exam", {
+        data: {
+          exam_id: exam.id,
+          answers: answersRef.current,
+          start_time: startedAtRef.current.toISOString(),
+        },
+      });
+      if (res?.result) {
+        setResult(res.result);
+      } else {
+        submittingRef.current = false;
+        setSubmitting(false);
+      }
+    } catch {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
+  }, [exam]);
 
   // مؤقت تنازلي مع تسليم تلقائي
   useEffect(() => {
@@ -198,7 +184,7 @@ export default function TakeExam() {
                       <div className="text-xs font-bold mb-1.5">{i + 1}. {q.text}</div>
                       <div className="text-[11px] flex flex-wrap gap-x-4 gap-y-1">
                         <span className="text-muted-foreground">{t("takeExamYourAnswer")}: <span className={ok ? "text-green-400" : "text-red-400"}>{r?.given}</span></span>
-                        {!ok && <span className="text-muted-foreground">{t("takeExamCorrectAnswer")}: <span className="text-green-400">{q.answer}</span></span>}
+                        {!ok && <span className="text-muted-foreground">{t("takeExamCorrectAnswer")}: <span className="text-green-400">{r?.model_answer}</span></span>}
                       </div>
                     </div>
                   </div>

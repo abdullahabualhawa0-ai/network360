@@ -133,11 +133,20 @@ export default async function(req) {
 }
 
 async function generateUniqueTeacherCode(svc, schoolId) {
-  for (let i = 0; i < 20; i++) {
-    const num = Math.floor(1000 + Math.random() * 90000);
-    const code = `TCH-${String(num).padStart(5, "0")}`;
+  // توليد آمن (CSPRNG) برمز أبجدي رقمي عالي العشوائية بدلاً من رقم من Math.random
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const bytes = new Uint8Array(6);
+    crypto.getRandomValues(bytes);
+    let suffix = "";
+    for (let i = 0; i < bytes.length; i++) suffix += chars[bytes[i] % chars.length];
+    const code = `TCH-${suffix}`;
     const dup = await svc.entities.Teacher.filter({ school_id: schoolId, teacher_code: code });
     if (!dup || dup.length === 0) return code;
   }
-  return `TCH-${Date.now().toString().slice(-5)}`;
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  let fallback = "";
+  for (let i = 0; i < bytes.length; i++) fallback += chars[bytes[i] % chars.length];
+  return `TCH-${fallback}`;
 }

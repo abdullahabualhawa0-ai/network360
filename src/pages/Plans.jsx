@@ -39,6 +39,10 @@ export default function Plans() {
       setError(t("regErrRequired"));
       return;
     }
+    if (!EMAIL_RE.test(indForm.email.trim())) {
+      setError(t("regErrEmail"));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -73,6 +77,10 @@ export default function Plans() {
         setError(t("regErrRequired"));
         return;
       }
+    }
+    if (!EMAIL_RE.test(schForm.email.trim())) {
+      setError(t("regErrEmail"));
+      return;
     }
     setBusy(true);
     setError(null);
@@ -226,6 +234,8 @@ export default function Plans() {
     </div>
   );
 }
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const _inputStyle = { background: "#F7F9FC", border: "1px solid #E2E8F0" };
 const _labelCls = "block text-[11px] font-bold text-muted-foreground mb-1.5";

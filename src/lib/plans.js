@@ -32,11 +32,13 @@ export const SCHOOL_TIERS = ["school_50", "school_100", "school_200", "school_ma
 export const STUDENT_LIMIT_MSG =
   "لقد وصلت المدرسة إلى الحد الأقصى لعدد الطلاب في خطتك الحالية. يرجى ترقية الخطة لإضافة طلاب جدد.";
 
-/** توليد رمز فريد (يُفحص ضد قاعدة البيانات في المستدعي) */
-export function randomCode(prefix = "SCH") {
+/** توليد رمز فريد عبر مولّد أرقام عشوائية آمن (CSPRNG) — يُفحص ضد قاعدة البيانات في المستدعي */
+export function randomCode(prefix = "SCH", length = 6) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
   let s = "";
-  for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < length; i++) s += chars[bytes[i] % chars.length];
   return `${prefix}${s}`;
 }
 

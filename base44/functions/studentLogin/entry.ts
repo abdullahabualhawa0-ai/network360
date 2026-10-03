@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { rateLimit, clientIp } from "../../shared/security.ts";
 
 /**
  * studentLogin — تسجيل دخول الطالب دون Base44 Authentication
@@ -16,8 +17,17 @@ export default async function(req) {
     const body = await req.json();
     const { schoolCode, studentCode } = body;
 
+    // تحديد معدل المحاولات — منع تخمين الرموز (brute-force)
+    const ipCheck = rateLimit(`studentLogin:ip:${clientIp(req)}`, 20, 10 * 60 * 1000);
+    if (!ipCheck.ok) {
+      return Response.json({ error: "محاولات كثيرة — حاول لاحقاً." }, { status: 429 });
+    }
     if (!studentCode || !String(studentCode).trim()) {
       return Response.json({ error: "أدخل رمز الطالب" }, { status: 400 });
+    }
+    const codeCheck = rateLimit(`studentLogin:code:${String(schoolCode || "").trim()}:${String(studentCode).trim()}`, 10, 15 * 60 * 1000);
+    if (!codeCheck.ok) {
+      return Response.json({ error: "محاولات كثيرة — حاول لاحقاً." }, { status: 429 });
     }
 
     const sCode = String(studentCode).trim();

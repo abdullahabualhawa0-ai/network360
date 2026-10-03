@@ -9,7 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import StudentsManager from "../../components/admin/StudentsManager";
 import TeachersList from "../../components/admin/TeachersList";
-import { planLabel, PLANS } from "@/lib/plans";
+import { planLabel, PLANS, randomCode } from "@/lib/plans";
 import { t, useLang, useDir } from "@/lib/i18n";
 
 /**
@@ -374,8 +374,6 @@ function FullSpinner() {
 }
 
 function generateAdminCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "ADM-";
-  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
+  // توليد آمن (CSPRNG) بدلاً من Math.random
+  return randomCode("ADM-", 6);
 }
