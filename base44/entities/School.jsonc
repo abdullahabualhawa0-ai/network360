@@ -92,7 +92,39 @@
         "role": "admin"
       }
     },
-    "read": null,
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "school_admin"
+              }
+            },
+            {
+              "id": "{{user.data.school_id}}"
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "student"
+              }
+            },
+            {
+              "id": "{{user.data.school_id}}"
+            }
+          ]
+        }
+      ]
+    },
     "update": {
       "user_condition": {
         "role": "admin"
