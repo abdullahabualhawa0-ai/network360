@@ -87,8 +87,12 @@
     "code"
   ],
   "rls": {
-    "read": {},
-    "create": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": null,
     "update": {
       "user_condition": {
         "role": "admin"
