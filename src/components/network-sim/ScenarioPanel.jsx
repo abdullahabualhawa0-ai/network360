@@ -94,21 +94,15 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 40 }}
-      className="absolute top-4 left-4 z-30 w-72 rounded-2xl overflow-hidden shadow-2xl"
-      style={{
-        background: "#FFFFFF",
-        border: "1px solid #E2E8F0",
-        boxShadow: "0 12px 32px rgba(23,63,95,0.15)",
-      }}
+      className="absolute top-4 left-4 z-30 w-72 rounded-2xl overflow-hidden bg-card text-card-foreground border border-border shadow-[0_12px_32px_rgba(23,63,95,0.15)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.55)]"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: "1px solid #E2E8F0", background: "rgba(47,102,144,0.05)" }}>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/5">
         <div className="flex items-center gap-2">
           <span className="text-lg">{scenario.icon}</span>
           <div>
-            <div className="text-xs font-black" style={{ color: "#173F5F" }}>{scenario.title}</div>
-            <div className="text-[9px]" style={{ color: "rgba(47,102,144,0.7)" }}>
+            <div className="text-xs font-black text-primary">{scenario.title}</div>
+            <div className="text-[9px] text-secondary/70 dark:text-primary/70">
               {scenario.difficulty} • {scenario.xp} XP
             </div>
           </div>
@@ -121,16 +115,15 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
 
       {/* Progress Bar */}
       <div className="px-4 pt-3 pb-2">
-        <div className="flex justify-between text-[9px] mb-1.5" style={{ color: "rgba(31,41,55,0.6)" }}>
-          <span>{t("simScenarioProgress")} {trackingReady && <Save size={8} className="inline" style={{ color: "#2E7D5B" }} />}</span>
-          <span className="font-bold" style={{ color: allDone ? "#2E7D5B" : "#2F6690" }}>
+        <div className="flex justify-between text-[9px] mb-1.5 text-foreground/60">
+          <span>{t("simScenarioProgress")} {trackingReady && <Save size={8} className="inline text-success" />}</span>
+          <span className={`font-bold ${allDone ? "text-success" : "text-secondary dark:text-primary"}`}>
             {completedCount}/{totalCount} {t("simScenarioTasks")}
           </span>
         </div>
-        <div className="h-1.5 rounded-full" style={{ background: "rgba(23,63,95,0.08)" }}>
+        <div className="h-1.5 rounded-full bg-primary/[0.08]">
           <motion.div
-            className="h-full rounded-full"
-            style={{ background: allDone ? "#2E7D5B" : "#2F6690" }}
+            className={`h-full rounded-full ${allDone ? "bg-success" : "bg-secondary"}`}
             animate={{ width: `${progressPct}%` }}
             transition={{ duration: 0.5 }}
           />
@@ -145,11 +138,9 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
           return (
             <motion.div
               key={i}
-              className="flex items-start gap-2 py-1.5 px-2 rounded-lg"
-              style={{
-                background: done ? "rgba(46,125,91,0.06)" : "rgba(23,63,95,0.03)",
-                border: `1px solid ${done ? "rgba(46,125,91,0.25)" : "#E2E8F0"}`,
-              }}
+              className={`flex items-start gap-2 py-1.5 px-2 rounded-lg border ${
+                done ? "bg-success/[0.06] border-success/25" : "bg-primary/[0.03] border-border"
+              }`}
               animate={{ opacity: 1 }}
             >
               {done ? (
@@ -157,10 +148,10 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
               ) : (
                 <Circle size={13} className="flex-shrink-0 mt-0.5 text-muted-foreground" />
               )}
-              <span className="text-[11px] leading-snug flex-1" style={{ color: done ? "#2E7D5B" : "rgba(31,41,55,0.75)" }}>
+              <span className={`text-[11px] leading-snug flex-1 ${done ? "text-success" : "text-foreground/75"}`}>
                 {task.label}
                 {savedOnly && (
-                  <span className="block text-[8px] mt-0.5 flex items-center gap-0.5" style={{ color: "rgba(46,125,91,0.6)" }}>
+                  <span className="block text-[8px] mt-0.5 flex items-center gap-0.5 text-success/60">
                     <Save size={7} /> {t("simScenarioSaved")}
                   </span>
                 )}
@@ -174,12 +165,9 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
       <div className="px-4 pb-2">
         <button
           onClick={() => setShowHints(!showHints)}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-bold transition-all"
-          style={{
-            background: showHints ? "rgba(214,158,46,0.12)" : "rgba(214,158,46,0.06)",
-            border: "1px solid rgba(214,158,46,0.3)",
-            color: "#D69E2E",
-          }}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-bold transition-all border border-warning/30 text-warning ${
+            showHints ? "bg-warning/[0.12]" : "bg-warning/[0.06]"
+          }`}
         >
           <div className="flex items-center gap-1.5">
             <Lightbulb size={11} />
@@ -197,7 +185,7 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
             >
               <div className="pt-2 space-y-1.5">
                 {scenario.hints.map((h, i) => (
-                  <div key={i} className="flex items-start gap-1.5 text-[10px]" style={{ color: "rgba(31,41,55,0.7)" }}>
+                  <div key={i} className="flex items-start gap-1.5 text-[10px] text-foreground/70">
                     <span className="flex-shrink-0 mt-0.5">•</span>
                     <span>{h}</span>
                   </div>
@@ -214,8 +202,7 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mx-4 mb-4 rounded-xl p-3 text-center"
-            style={{ background: "rgba(46,125,91,0.1)", border: "1px solid rgba(46,125,91,0.4)" }}
+            className="mx-4 mb-4 rounded-xl p-3 text-center bg-success/10 border border-success/40"
           >
             <Trophy size={20} className="text-warning mx-auto mb-1" />
             <div className="text-sm font-black text-success">{t("simScenarioSuccess")}</div>
