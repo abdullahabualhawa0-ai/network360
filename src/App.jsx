@@ -1,43 +1,46 @@
 import { Toaster } from "@/components/ui/toaster"
-import { useRef } from 'react'
+import { useRef, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import Layout from './components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminGuard from '@/components/AdminGuard';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import ScrollToTop from './components/ScrollToTop';
-import Home from './pages/Home';
-import TopicPage from './pages/TopicPage';
-import NetworkSimulator from './pages/NetworkSimulator.jsx';
-import Dashboard from './pages/Dashboard';
-import AdminStudentsReport from './pages/AdminStudentsReport';
-import ScenarioLab from './pages/ScenarioLab.jsx';
-import LabHistory from './pages/LabHistory.jsx';
-import Exams from './pages/Exams.jsx';
-import TakeExam from './pages/TakeExam.jsx';
-import ExamResults from './pages/admin/ExamResults.jsx';
-import Settings from './pages/Settings.jsx';
-import SchoolsManager from './pages/admin/SchoolsManager.jsx';
-import SchoolStudents from './pages/admin/SchoolStudents.jsx';
+import PageLoader from './components/PageLoader';
 import StudentGuard from '@/components/StudentGuard';
-import StudentLogin from './pages/StudentLogin';
-import TeacherDashboard from './pages/TeacherDashboard';
-import TeacherExams from './pages/TeacherExams';
-import TeacherStudents from './pages/TeacherStudents';
-import TeacherResults from './pages/TeacherResults';
 import TeacherGuard from '@/components/TeacherGuard';
-import Plans from './pages/Plans.jsx';
-import ExamManager from './pages/admin/ExamManager';
-import TeachersManager from './pages/admin/TeachersManager';
-import RegistrationRequests from './pages/admin/RegistrationRequests';
+
+// ── تحميل الصفحات عند الحاجة فقط (Code Splitting) لتقليل حجم التحميل الأولي ──
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Home = lazy(() => import('./pages/Home'));
+const TopicPage = lazy(() => import('./pages/TopicPage'));
+const NetworkSimulator = lazy(() => import('./pages/NetworkSimulator.jsx'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const AdminStudentsReport = lazy(() => import('./pages/AdminStudentsReport'));
+const ScenarioLab = lazy(() => import('./pages/ScenarioLab.jsx'));
+const LabHistory = lazy(() => import('./pages/LabHistory.jsx'));
+const Exams = lazy(() => import('./pages/Exams.jsx'));
+const TakeExam = lazy(() => import('./pages/TakeExam.jsx'));
+const ExamResults = lazy(() => import('./pages/admin/ExamResults.jsx'));
+const Settings = lazy(() => import('./pages/Settings.jsx'));
+const SchoolsManager = lazy(() => import('./pages/admin/SchoolsManager.jsx'));
+const SchoolStudents = lazy(() => import('./pages/admin/SchoolStudents.jsx'));
+const StudentLogin = lazy(() => import('./pages/StudentLogin'));
+const TeacherDashboard = lazy(() => import('./pages/TeacherDashboard'));
+const TeacherExams = lazy(() => import('./pages/TeacherExams'));
+const TeacherStudents = lazy(() => import('./pages/TeacherStudents'));
+const TeacherResults = lazy(() => import('./pages/TeacherResults'));
+const Plans = lazy(() => import('./pages/Plans.jsx'));
+const ExamManager = lazy(() => import('./pages/admin/ExamManager'));
+const TeachersManager = lazy(() => import('./pages/admin/TeachersManager'));
+const RegistrationRequests = lazy(() => import('./pages/admin/RegistrationRequests'));
+const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings } = useAuth();
@@ -61,11 +64,7 @@ const AuthenticatedApp = () => {
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center" style={{ background: "#F7F9FC" }}>
-        <div className="w-8 h-8 rounded-full animate-spin" style={{ border: "3px solid rgba(47,102,144,0.2)", borderTopColor: "#173F5F" }} />
-      </div>
-    );
+    return <PageLoader fullScreen />;
   }
 
   // Render the main app — all app routes are gated by ProtectedRoute;
@@ -82,6 +81,7 @@ const AuthenticatedApp = () => {
         exit={(d) => ({ opacity: 0, x: -32 * d })}
         transition={{ duration: 0.18, ease: "easeOut" }}
       >
+      <Suspense fallback={<PageLoader fullScreen />}>
       <Routes location={location}>
       {/* دخول الطالب — الرموز فقط، لا Base44 Authentication — الصفحة الرئيسية للدخول */}
       <Route path="/login" element={<StudentLogin />} />
@@ -138,6 +138,7 @@ const AuthenticatedApp = () => {
 
       <Route path="*" element={<PageNotFound />} />
       </Routes>
+      </Suspense>
       </motion.div>
     </AnimatePresence>
     </>

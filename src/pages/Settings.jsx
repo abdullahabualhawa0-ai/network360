@@ -161,7 +161,10 @@ export default function Settings() {
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState(null);
 
-  const canDelete = isStudent || isTeacher;
+  // حسابات الإدارة المسجَّلة بالبريد (Base44 Auth): المالك، ومشرف المدرسة الذي لديه بريد.
+  // مشرف المدرسة بالرمز (بدون بريد) يبقى كما هو ويتواصل مع الدعم.
+  const isEmailAdmin = isOwner || (isSchoolAdmin && !!active.email);
+  const canDelete = isStudent || isTeacher || isEmailAdmin;
   const confirmWord = getLang() === "ar" ? "حذف" : getLang() === "he" ? "מחק" : "DELETE";
 
   const handleDeleteAccount = async () => {
@@ -175,11 +178,21 @@ export default function Settings() {
       } else if (isTeacher) {
         await teacherApi("delete", "Teacher", { id: teacherSession.teacher_id });
         clearTeacherSession();
+      } else if (isEmailAdmin) {
+        // حذف ذاتي عبر دالة Backend (تتحقق من الهوية وتحذف سجل المستخدم نفسه فقط)
+        await base44.functions.invoke("deleteMyAccount", { confirm: true });
       }
       setDeleteMsg({ ok: true, text: t("deleteAccountSuccess") });
-      setTimeout(() => navigate("/student-login", { replace: true }), 1500);
+      if (isEmailAdmin) {
+        // إنهاء الجلسة بعد الحذف ثم التحويل لصفحة الدخول
+        setTimeout(() => {
+          try { base44.auth.logout("/login"); } catch { window.location.href = "/login"; }
+        }, 1500);
+      } else {
+        setTimeout(() => navigate("/student-login", { replace: true }), 1500);
+      }
     } catch (err) {
-      setDeleteMsg({ ok: false, text: err?.data?.error || err?.message || t("errUnexpected") });
+      setDeleteMsg({ ok: false, text: err?.response?.data?.error || err?.data?.error || err?.message || t("errUnexpected") });
     } finally {
       setDeleting(false);
     }
@@ -355,7 +368,7 @@ export default function Settings() {
           </div>
         )}
 
-        {/* حذف الحساب — للطلاب والأساتذة فقط */}
+        {/* حذف الحساب — للطلاب والأساتذة وحسابات الإدارة المسجَّلة بالبريد */}
         {canDelete && (
           <button onClick={() => setShowDeleteDialog(true)}
             className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all"

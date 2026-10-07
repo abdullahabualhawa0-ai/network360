@@ -1,14 +1,26 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import ContactUsButton from "./ContactUsButton";
 import MobileTabBar from "./MobileTabBar";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { Menu, X } from "lucide-react";
 import { t, useLang } from "@/lib/i18n";
 import SidebarUserBadge from "@/components/SidebarUserBadge";
+import BackButton from "@/components/BackButton";
+import PageLoader from "@/components/PageLoader";
+
+// الشاشات الفرعية (Nested) التي يظهر لها زر رجوع في هيدر الموبايل → وجهة الرجوع الاحتياطية.
+// تمنع "فخ" الـ WebView حيث لا يوجد زر رجوع للنظام.
+function getNestedFallback(pathname) {
+  if (pathname.startsWith("/topic/")) return "/";
+  if (/^\/exams\/[^/]+/.test(pathname)) return "/exams";
+  return null;
+}
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const nestedFallback = getNestedFallback(location.pathname);
   useLang();
 
   return (
@@ -28,6 +40,7 @@ export default function Layout() {
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
         <div className="flex items-center gap-2 flex-1 min-w-0">
+          {nestedFallback && <BackButton compact fallback={nestedFallback} />}
           <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ background: "#173F5F" }}>
             <span className="text-white text-xs font-black">ش</span>
@@ -56,7 +69,10 @@ export default function Layout() {
 
       {/* Main content — padding سفلي لشريط التنقل على الموبايل */}
       <div className="md:mr-80 pt-16 md:pt-0 pb-16 md:pb-0">
-        <Outlet />
+        {/* Suspense هنا (وليس حول الـ Routes كلها) كي يبقى الهيدر والشريط السفلي ظاهرين أثناء تحميل الصفحة */}
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
       </div>
 
       {/* حقوق النشر — السنة تتحدث تلقائياً */}
