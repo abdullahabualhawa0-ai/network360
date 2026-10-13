@@ -45,3 +45,16 @@ export function randomCode(prefix = "SCH", length = 6) {
 export function planLabel(planId) {
   return PLANS[planId]?.label || planId || "—";
 }
+
+/**
+ * أصغر شريحة مدرسية تتسع لعدد الطلاب المحدد (0 = بلا حد ← الشريحة الأكبر).
+ * تُستخدم كي يبقى اسم الخطة متسقاً مع حد الطلاب بعد التعديل.
+ */
+export function planForLimit(limit) {
+  const n = Number(limit) || 0;
+  if (n <= 0) return "school_max";
+  for (const id of SCHOOL_TIERS) {
+    if (PLANS[id].student_limit >= n) return id;
+  }
+  return "school_max";
+}

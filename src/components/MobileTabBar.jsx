@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, MonitorPlay, BarChart2, Settings } from "lucide-react";
+import { Home, MonitorPlay, BarChart2, Settings, School, GraduationCap } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useStudentSession } from "@/lib/studentSession";
 import { useTeacherSession } from "@/lib/teacherSession";
@@ -41,16 +41,26 @@ export default function MobileTabBar() {
     : (isSchoolAdmin || isOwner) ? "/admin/settings"
     : "/settings";
 
-  // لوحة التقدم — للطلاب فقط
+  // التبويب الثالث حسب الدور: التقدم (طالب/أستاذ) — المدارس (المالك) — طلابي (مشرف المدرسة)
+  // (سابقاً كان يظهر "التقدم" للإدارة ويفتح شاشة الاشتراكات، ومشرف المدرسة كان يصل لصفحة "وصول مقيّد")
   const dashboardPath = isTeacher ? "/teacher/dashboard"
-    : (isSchoolAdmin || isOwner) ? "/admin/schools"
+    : isOwner ? "/admin/schools"
+    : isSchoolAdmin ? "/admin/school-students"
     : "/dashboard";
+  const dashboardLabel = isTeacher ? t("tabDashboard")
+    : isOwner ? t("navSchools")
+    : isSchoolAdmin ? t("navMyStudents")
+    : t("tabDashboard");
+  const dashboardIcon = isTeacher ? BarChart2
+    : isOwner ? School
+    : isSchoolAdmin ? GraduationCap
+    : BarChart2;
 
   // also: مسارات فرعية إضافية تُحسب ضمن نفس التبويب (صفحات الدروس تتبع الرئيسية)
   const tabs = [
     { to: "/", icon: Home, label: t("tabHome"), also: ["/topic"] },
     { to: "/network-simulator", icon: MonitorPlay, label: t("tabSimulator") },
-    { to: dashboardPath, icon: BarChart2, label: t("tabDashboard") },
+    { to: dashboardPath, icon: dashboardIcon, label: dashboardLabel },
     { to: settingsPath, icon: Settings, label: t("tabSettings") },
   ];
 
