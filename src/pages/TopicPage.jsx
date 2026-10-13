@@ -65,7 +65,7 @@ export default function TopicPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-xl font-bold text-foreground mb-2">{t("topicNotFound")}</h2>
-          <Link to="/" className="text-primary hover:underline text-sm">{t("backHome")}</Link>
+          <Link to="/" className="text-primary hover:underline text-sm">{t("backToHome")}</Link>
         </div>
       </div>
     );

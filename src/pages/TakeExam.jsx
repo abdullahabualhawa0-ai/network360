@@ -5,8 +5,7 @@ import { Clock, Loader2, AlertTriangle, Send, CheckCircle2, XCircle, ChevronRigh
 import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { t, useLang, useDir, getLang, LANG_DIR } from "@/lib/i18n";
 import useExamTranslation from "@/lib/useExamTranslation";
-
-const norm = (s) => (s || "").toString().trim().replace(/\s+/g, " ").toLowerCase();
+import { useDialogs } from "@/components/DialogProvider";
 
 function fmtTime(s) {
   const m = Math.floor(s / 60);
@@ -26,7 +25,9 @@ export default function TakeExam() {
   const [secondsLeft, setSecondsLeft] = useState(null);
   const [result, setResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null); // { fatal: boolean, message?: string }
   const [schoolId, setSchoolId] = useState("general");
+  const { confirmDialog } = useDialogs();
 
   // ترجمة محتوى الامتحان آلياً عند اختيار لغة غير العربية
   const { exam: trExam, translating: examTranslating } = useExamTranslation(exam);
@@ -34,7 +35,8 @@ export default function TakeExam() {
 
   const answersRef = useRef({});
   const submittingRef = useRef(false);
-  const startedAtRef = useRef(new Date());
+  // الموعد النهائي (بتوقيت الجهاز) محسوب من الزمن المتبقي الذي يعيده الخادم — يصمد أمام تحديث الصفحة وتجميد التبويب
+  const deadlineRef = useRef(null);
 
   useEffect(() => {
     if (!examId) return;
@@ -60,54 +62,93 @@ export default function TakeExam() {
         (!latestResult ||
           new Date(lastApproved.reviewed_at || lastApproved.created_date) >
             new Date(latestResult.submission_time));
+      let started = null;
+      if (ok) {
+        // بدء الامتحان على الخادم: يسجّل وقت البدء مرة واحدة ويعيد الزمن المتبقي الحقيقي
+        started = await studentApi("startExam", "Exam", { data: { exam_id: examId } }).catch(() => null);
+      }
       setExam(ex);
-      setAllowed(ok);
-      if (ok) setSecondsLeft((ex.duration_minutes || 30) * 60);
+      setAllowed(!!(ok && started));
+      if (ok && started) {
+        deadlineRef.current = Date.now() + (started.remaining_seconds || 0) * 1000;
+        setSecondsLeft(started.remaining_seconds || 0);
+      }
       setLoading(false);
     })();
   }, [session?.student_id, examId]);
 
+  // MCQ: رقم الخيار | صح/خطأ: "true"/"false" | إجابة قصيرة: نص.
+  // الاختيارات تُرسل بالفهرس/الرمز (لا بالنص) كي يصح التصحيح حتى لو ترجم الطالب الامتحان للغة أخرى.
   const setAnswer = (i, val) => {
-    answersRef.current = { ...answersRef.current, [i]: val };
-    setAnswers(answersRef.current);
+    const next = { ...answersRef.current };
+    if (typeof val === "string" && val.trim() === "") delete next[i];
+    else next[i] = val;
+    answersRef.current = next;
+    setAnswers(next);
   };
 
   const submit = useCallback(async () => {
     if (submittingRef.current || !exam) return;
     submittingRef.current = true;
     setSubmitting(true);
+    setSubmitError(null);
     try {
+      // فصل الاختيارات (فهرس/رمز) عن النصوص الحرة
+      const choices = {};
+      const texts = {};
+      (exam.questions || []).forEach((q, i) => {
+        const v = answersRef.current[i];
+        if (v === undefined) return;
+        if (q.type === "short") texts[i] = v;
+        else choices[i] = v;
+      });
       // التصحيح يتم في الخادم — لا تُرسل الدرجات من المتصفح
       const res = await studentApi("submitExam", "Exam", {
-        data: {
-          exam_id: exam.id,
-          answers: answersRef.current,
-          start_time: startedAtRef.current.toISOString(),
-        },
+        data: { exam_id: exam.id, choices, answers: texts },
       });
       if (res?.result) {
         setResult(res.result);
       } else {
-        submittingRef.current = false;
-        setSubmitting(false);
+        throw new Error("empty");
       }
-    } catch {
+    } catch (e) {
       submittingRef.current = false;
       setSubmitting(false);
+      // أخطاء 4xx (إذن مستهلك/جلسة منتهية…) لا تفيد معها إعادة المحاولة
+      const status = e?.status || e?.response?.status;
+      const fatal = status >= 400 && status < 500 && status !== 429;
+      setSubmitError({ fatal, message: fatal ? (e?.data?.error || e?.response?.data?.error) : null });
     }
   }, [exam]);
 
-  // مؤقت تنازلي مع تسليم تلقائي
+  // مؤقت تنازلي مع تسليم تلقائي (محسوب من الموعد النهائي لا من عدّاد تراكمي)
+  useEffect(() => {
+    if (loading || result || secondsLeft === null || !deadlineRef.current) return;
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000));
+      setSecondsLeft(left);
+    };
+    const id = setInterval(tick, 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", tick); };
+  }, [loading, result, secondsLeft === null]);
+
+  // انتهى الوقت → تسليم تلقائي
   useEffect(() => {
     if (loading || result || secondsLeft === null) return;
-    if (secondsLeft <= 0) { submit(); return; }
-    const t = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
-    return () => clearTimeout(t);
+    if (secondsLeft <= 0) submit();
   }, [secondsLeft, loading, result, submit]);
 
-  const confirmSubmit = () => {
+  // فشل التسليم بعد انتهاء الوقت (مثلاً انقطاع الشبكة) → إعادة محاولة تلقائية كل 5 ثوانٍ
+  useEffect(() => {
+    if (!submitError || submitError.fatal || result || secondsLeft === null || secondsLeft > 0) return;
+    const id = setTimeout(() => submit(), 5000);
+    return () => clearTimeout(id);
+  }, [submitError, result, secondsLeft, submit]);
+
+  const confirmSubmit = async () => {
     const unanswered = (exam?.questions || []).length - Object.keys(answers).length;
-    if (unanswered > 0 && !confirm(`${unanswered} ${t("takeExamConfirmUnanswered")}`)) return;
+    if (unanswered > 0 && !(await confirmDialog(`${unanswered} ${t("takeExamConfirmUnanswered")}`))) return;
     submit();
   };
 
@@ -167,6 +208,7 @@ export default function TakeExam() {
             <div className="text-xs text-muted-foreground">
               {result.correct} {t("takeExamResultSummary")} {result.total} — {t("takeExamResultSaved")}
             </div>
+            {result.late && <div className="text-[11px] font-bold mt-2" style={{ color: "#C94C4C" }}>{t("takeExamLate")}</div>}
           </motion.div>
 
           <h3 className="font-black text-sm mb-3">{t("takeExamReviewTitle")}</h3>
@@ -174,6 +216,12 @@ export default function TakeExam() {
             {(displayExam.questions || []).map((q, i) => {
               const r = result.review[String(i)];
               const ok = r?.is_correct;
+              // عرض إجابة الطالب والإجابة الصحيحة بلغة العرض الحالية
+              const tfLabel = (tok) => (tok === "true" ? t("takeExamTrue") : t("takeExamFalse"));
+              const given = r?.given_index !== undefined ? (q.options?.[r.given_index] ?? r.given)
+                : r?.given_token ? tfLabel(r.given_token) : r?.given;
+              const model = r?.model_index !== undefined ? (q.options?.[r.model_index] ?? r.model_answer)
+                : r?.model_token ? tfLabel(r.model_token) : r?.model_answer;
               return (
                 <div key={i} className="rounded-xl p-3.5 bg-card"
                   style={{ border: `1px solid ${ok ? "rgba(52,211,153,0.3)" : "rgba(239,68,68,0.3)"}` }}>
@@ -183,8 +231,8 @@ export default function TakeExam() {
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold mb-1.5">{i + 1}. {q.text}</div>
                       <div className="text-[11px] flex flex-wrap gap-x-4 gap-y-1">
-                        <span className="text-muted-foreground">{t("takeExamYourAnswer")}: <span className={ok ? "text-green-400" : "text-red-400"}>{r?.given}</span></span>
-                        {!ok && <span className="text-muted-foreground">{t("takeExamCorrectAnswer")}: <span className="text-green-400">{r?.model_answer}</span></span>}
+                        <span className="text-muted-foreground">{t("takeExamYourAnswer")}: <span className={ok ? "text-green-400" : "text-red-400"}>{given}</span></span>
+                        {!ok && <span className="text-muted-foreground">{t("takeExamCorrectAnswer")}: <span className="text-green-400">{model}</span></span>}
                       </div>
                     </div>
                   </div>
@@ -241,6 +289,17 @@ export default function TakeExam() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+        {submitError && (
+          <div role="alert" className="rounded-xl p-3 text-xs font-bold flex items-center justify-between gap-3 flex-wrap"
+            style={{ background: "rgba(201,76,76,0.08)", color: "#C94C4C", border: "1px solid rgba(201,76,76,0.3)" }}>
+            <span>{submitError.message || t("takeExamSubmitFailed")}</span>
+            {!submitError.fatal && (
+              <button onClick={submit} className="px-3 py-1.5 rounded-lg text-white" style={{ background: "#C94C4C" }}>
+                {t("takeExamRetry")}
+              </button>
+            )}
+          </div>
+        )}
         {examTranslating && (
           <div className="rounded-xl p-3 text-center text-xs font-bold" style={{ background: "rgba(47,102,144,0.06)", color: "#2F6690", border: "1px solid rgba(47,102,144,0.2)" }}>
             {t("quizTranslating")}
@@ -259,9 +318,9 @@ export default function TakeExam() {
             {q.type === "mcq" && (
               <div className="space-y-2">
                 {(q.options || []).map((opt, oi) => {
-                  const selected = answers[i] === opt;
+                  const selected = answers[i] === oi;
                   return (
-                    <button key={oi} onClick={() => setAnswer(i, opt)}
+                    <button key={oi} onClick={() => setAnswer(i, oi)}
                       className="w-full text-right px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
                       style={{
                         background: selected ? "rgba(47,102,144,0.1)" : "rgba(47,102,144,0.03)",
@@ -282,10 +341,10 @@ export default function TakeExam() {
             {/* True/False */}
             {q.type === "truefalse" && (
               <div className="flex gap-3">
-                {[t("takeExamTrue"), t("takeExamFalse")].map((opt) => {
-                  const selected = answers[i] === opt;
+                {[["true", t("takeExamTrue")], ["false", t("takeExamFalse")]].map(([token, opt]) => {
+                  const selected = answers[i] === token;
                   return (
-                    <button key={opt} onClick={() => setAnswer(i, opt)}
+                    <button key={token} onClick={() => setAnswer(i, token)}
                       className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
                       style={{
                         background: selected ? "rgba(47,102,144,0.1)" : "rgba(47,102,144,0.03)",

@@ -51,3 +51,70 @@ export function clientIp(req: Request): string {
   const ip = forwarded.split(",")[0]?.trim();
   return ip || "unknown";
 }
+
+/* ───────────────────────── حماية دائمة (Persistent) ─────────────────────────
+ * المحدّد الذي في الذاكرة (rateLimit) يُصفَّر عند إعادة تشغيل الدالة ولا يُشارَك بين النسخ.
+ * هذه الدوال تخزّن العدّادات في كيان RateLimit (service role) فتصمد وتُشارَك.
+ * كلها fail-open: إذا تعذّر الوصول للكيان لا نمنع المستخدمين الشرعيين.
+ */
+const cleanKey = (k: string) => String(k || "").toLowerCase().slice(0, 180);
+
+/** هل المفتاح مقفول (وصل للحد داخل النافذة الزمنية)؟ */
+export async function isLocked(svc: any, key: string, max: number): Promise<boolean> {
+  try {
+    const rows = await svc.entities.RateLimit.filter({ key: cleanKey(key) });
+    const row = rows?.[0];
+    if (!row) return false;
+    if (new Date(row.reset_at).getTime() <= Date.now()) return false;
+    return (row.count || 0) >= max;
+  } catch {
+    return false;
+  }
+}
+
+/** يزيد عدّاد المفتاح (يبدأ نافذة جديدة إذا انتهت السابقة). يعيد العدد الحالي بعد الزيادة. */
+export async function recordHit(svc: any, key: string, windowMs: number): Promise<number> {
+  try {
+    const k = cleanKey(key);
+    const rows = await svc.entities.RateLimit.filter({ key: k });
+    const row = rows?.[0];
+    const now = Date.now();
+    if (!row) {
+      await svc.entities.RateLimit.create({ key: k, count: 1, reset_at: new Date(now + windowMs).toISOString() });
+      return 1;
+    }
+    if (new Date(row.reset_at).getTime() <= now) {
+      await svc.entities.RateLimit.update(row.id, { count: 1, reset_at: new Date(now + windowMs).toISOString() });
+      return 1;
+    }
+    const next = (row.count || 0) + 1;
+    await svc.entities.RateLimit.update(row.id, { count: next });
+    return next;
+  } catch {
+    return 0;
+  }
+}
+
+/** تسجيل محاولة فاشلة — اسم بديل أوضح للاستخدام في الدخول */
+export const recordFailure = recordHit;
+
+export async function clearFailures(svc: any, key: string): Promise<void> {
+  try {
+    const rows = await svc.entities.RateLimit.filter({ key: cleanKey(key) });
+    for (const r of rows || []) await svc.entities.RateLimit.delete(r.id);
+  } catch { /* تجاهل */ }
+}
+
+/**
+ * البحث برمز مع التسامح في حالة الأحرف: يجرّب النص كما هو ثم الأحرف الكبيرة ثم الصغيرة.
+ * (لوحات مفاتيح الجوال تغيّر حالة الحرف الأول فيفشل الدخول برمز صحيح.)
+ */
+export async function filterByCode(svc: any, entity: string, field: string, code: string, extra: any = {}): Promise<any[]> {
+  const raw = String(code ?? "").trim();
+  const variants = Array.from(new Set([raw, raw.toUpperCase(), raw.toLowerCase()])).filter(Boolean);
+  for (const v of variants) {
+    const rows = await svc.entities[entity].filter({ ...extra, [field]: v });
+    if (rows && rows.length > 0) return rows;
+  }
+  return [];
+}

@@ -3,13 +3,13 @@ import { useRef, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import Layout from './components/Layout';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminGuard from '@/components/AdminGuard';
 import ScrollToTop from './components/ScrollToTop';
 import PageLoader from './components/PageLoader';
+import { DialogProvider } from './components/DialogProvider';
 import StudentGuard from '@/components/StudentGuard';
 import TeacherGuard from '@/components/TeacherGuard';
 
@@ -37,6 +37,7 @@ const TeacherExams = lazy(() => import('./pages/TeacherExams'));
 const TeacherStudents = lazy(() => import('./pages/TeacherStudents'));
 const TeacherResults = lazy(() => import('./pages/TeacherResults'));
 const Plans = lazy(() => import('./pages/Plans.jsx'));
+const LegalPage = lazy(() => import('./pages/LegalPage.jsx'));
 const ExamManager = lazy(() => import('./pages/admin/ExamManager'));
 const TeachersManager = lazy(() => import('./pages/admin/TeachersManager'));
 const RegistrationRequests = lazy(() => import('./pages/admin/RegistrationRequests'));
@@ -96,6 +97,11 @@ const AuthenticatedApp = () => {
       {/* صفحة الخطط — متاحة بدون تسجيل دخول */}
       <Route path="/plans" element={<Plans />} />
 
+      {/* صفحات قانونية عامة (مطلوبة لمتاجر التطبيقات) — بدون تسجيل دخول */}
+      <Route path="/privacy" element={<LegalPage kind="privacy" />} />
+      <Route path="/terms" element={<LegalPage kind="terms" />} />
+      <Route path="/account-deletion" element={<LegalPage kind="deletion" />} />
+
       {/* مسارات الإدارة — المالك (Base44) أو مشرف المدرسة (جلسة الرمز) */}
       <Route element={<AdminGuard />}>
         <Route element={<Layout />}>
@@ -151,9 +157,11 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
+        <DialogProvider>
+          <Router>
+            <AuthenticatedApp />
+          </Router>
+        </DialogProvider>
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>

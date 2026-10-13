@@ -35,6 +35,10 @@
     "reviewed_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "started_at": {
+      "type": "string",
+      "description": "وقت بدء الطالب للامتحان (يُسجَّل في الخادم لفرض المدة)"
     }
   },
   "required": [

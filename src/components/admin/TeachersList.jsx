@@ -5,12 +5,14 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { t, useLang, useDir } from "@/lib/i18n";
+import { useDialogs } from "@/components/DialogProvider";
 
 /**
  * قائمة أساتذة مدرسة — يُستخدم من قبل المالك (admin) من SchoolsManager.
  * يستخدم manageTeachers مع school_id (مصادقة Base44 admin).
  */
 export default function TeachersList({ school, onBack }) {
+  const { confirmDialog, alertDialog } = useDialogs();
   useLang();
   const direction = useDir();
   const [teachers, setTeachers] = useState(null);
@@ -90,19 +92,19 @@ export default function TeachersList({ school, onBack }) {
       await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id, data: { school_id: school.id } });
     } catch (err) {
       setTeachers(prev);
-      alert(err?.data?.error || err?.message);
+      await alertDialog(err?.data?.error || err?.message);
     }
   };
 
   const deleteTeacher = async (tc) => {
-    if (!confirm(t("teacherConfirmDelete"))) return;
+    if (!(await confirmDialog(t("teacherConfirmDelete")))) return;
     const prev = teachers;
     setTeachers((prev) => (prev || []).filter((item) => item.id !== tc.id));
     try {
       await base44.functions.invoke("manageTeachers", { action: "delete", id: tc.id, data: { school_id: school.id } });
     } catch (err) {
       setTeachers(prev);
-      alert(err?.data?.error || err?.message);
+      await alertDialog(err?.data?.error || err?.message);
     }
   };
 

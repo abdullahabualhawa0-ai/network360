@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useAdminAuth } from "@/lib/useAdminAuth";
 import { getSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang, useDir } from "@/lib/i18n";
+import { useDialogs } from "@/components/DialogProvider";
 
 /**
  * إدارة الأساتذة — School Admin
@@ -16,6 +17,7 @@ import { t, useLang, useDir } from "@/lib/i18n";
  * الحد الأقصى (teacher_limit) يُفرض من الـBackend عبر manageTeachers.
  */
 export default function TeachersManager() {
+  const { confirmDialog, alertDialog } = useDialogs();
   const { isLoading, role } = useAdminAuth();
   useLang();
   const direction = useDir();
@@ -99,19 +101,19 @@ export default function TeachersManager() {
       await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id, session });
     } catch (err) {
       setTeachers(prev);
-      alert(err?.data?.error || err?.message);
+      await alertDialog(err?.data?.error || err?.message);
     }
   };
 
   const deleteTeacher = async (tc) => {
-    if (!confirm(t("teacherConfirmDelete"))) return;
+    if (!(await confirmDialog(t("teacherConfirmDelete")))) return;
     const prev = teachers;
     setTeachers(prev => (prev || []).filter(item => item.id !== tc.id));
     try {
       await base44.functions.invoke("manageTeachers", { action: "delete", id: tc.id, session });
     } catch (err) {
       setTeachers(prev);
-      alert(err?.data?.error || err?.message);
+      await alertDialog(err?.data?.error || err?.message);
     }
   };
 

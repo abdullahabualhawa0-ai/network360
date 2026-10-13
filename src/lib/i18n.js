@@ -62,7 +62,6 @@ const T = {
   errDisabled: { ar: "هذا الحساب معطل. يرجى التواصل مع إدارة المدرسة.", en: "This account is disabled. Please contact the school administration.", he: "החשבון מושבת. פנו להנהלת בית הספר." },
   errNotApproved: { ar: "الحساب غير معتمد. يرجى التواصل مع إدارة المدرسة.", en: "Account not approved. Please contact the school administration.", he: "החשבון לא מאושר. פנו להנהלת בית הספר." },
   errTaken: { ar: "هذا الرمز مستخدم ومسجل مسبقاً — تواصل مع إدارة مدرستك", en: "This code is already registered — contact your school administration", he: "הקוד כבר רשום — פנו להנהלת בית הספר" },
-  errUnexpected: { ar: "حدث خطأ غير متوقع — تأكد من الاتصال وحاول مجدداً", en: "Unexpected error — check your connection and try again", he: "שגיאה לא צפויה — בדקו את החיבור ונסו שוב" },
   errInvalidCode: { ar: "الرمز غير صحيح.", en: "Invalid code.", he: "הקוד שגוי." },
 
   /* ─── دخول فردي (رمز واحد) ─── */
@@ -237,8 +236,6 @@ const T = {
   newBadge: { ar: "جديد", en: "New", he: "חדש" },
 
   /* ─── دخول الطالب — روابط الإدارة ─── */
-  adminLoginLink: { ar: "دخول الإدارة / المعلمين", en: "Admin / Teacher login", he: "כניסת הנהלה / מורים" },
-  adminLoginNote: { ar: "لإدارة المدارس والطلاب والامتحانات", en: "To manage schools, students and exams", he: "לניהול בתי ספר, תלמידים ובחינות" },
 
   /* ─── الاستبيان عند التسجيل ─── */
   surveyTitle: { ar: "المعلومات الأساسية", en: "Basic Information", he: "פרטים בסיסיים" },
@@ -301,7 +298,6 @@ const T = {
   settingsRoleUser: { ar: "مستخدم", en: "User", he: "משתמש" },
   settingsRegistered: { ar: "مسجّل", en: "Registered", he: "רשום" },
   settingsVerified: { ar: "حساب موثّق ✓", en: "Verified account ✓", he: "חשבון מאושר ✓" },
-  settingsLogout: { ar: "تسجيل الخروج", en: "Logout", he: "התנתקות" },
   settingsSchoolLinkedNote: { ar: "بياناتك (التقدم، النتائج، السيناريوهات) مرتبطة بهذه المدرسة فقط", en: "Your data is linked to this school only", he: "הנתונים שלכם מקושרים לבית הספר הזה בלבד" },
   settingsSchoolGeneralNote: { ar: "بياناتك على النطاق العام", en: "Your data is on the general scope", he: "הנתונים בטווח הכללי" },
   settingsStatusPending: { ar: "بانتظار موافقة المدرسة", en: "Awaiting school approval", he: "ממתין לאישור בית הספר" },
@@ -347,7 +343,6 @@ const T = {
   /* ─── تبويبات الدخول الموحّد (طالب / أستاذ / إنشاء حساب) ─── */
   loginTabStudent: { ar: "طالب", en: "Student", he: "תלמיד" },
   loginTabTeacher: { ar: "أستاذ", en: "Teacher", he: "מורה" },
-  teacherCode: { ar: "رمز الأستاذ", en: "Teacher Code", he: "קוד מורה" },
   teacherCodePlaceholder: { ar: "TCH-1025", en: "TCH-1025", he: "TCH-1025" },
   loginTeacherSubtitle: {
     ar: "أدخل رمز المدرسة ورمز الأستاذ للدخول إلى لوحة الأستاذ",
@@ -401,7 +396,7 @@ const T = {
   teacherPublishedBadge: { ar: "منشور ✓", en: "Published ✓", he: "פורסם ✓" },
   teacherDraftBadge: { ar: "مسودة", en: "Draft", he: "טיוטה" },
   teacherEdit: { ar: "تعديل", en: "Edit", he: "עריכה" },
-  teacherConfirmDelete: { ar: "هل أنت متأكد من حذف هذا الامتحان؟", en: "Are you sure you want to delete this exam?", he: "האם למחוק בחינה זו?" },
+  examConfirmDelete: { ar: "هل أنت متأكد من حذف هذا الامتحان؟", en: "Are you sure you want to delete this exam?", he: "האם למחוק בחינה זו?" },
 
   /* ─── التسجيل الجديد — بدون دفع ─── */
   regTitle: { ar: "إنشاء حساب جديد", en: "Create New Account", he: "יצירת חשבון חדש" },
@@ -435,6 +430,7 @@ const T = {
   regErrRequired: { ar: "يرجى تعبئة جميع الحقول المطلوبة", en: "Please fill all required fields", he: "נא למלא את כל השדות הנדרשים" },
   regErrEmail: { ar: "يرجى إدخال بريد إلكتروني صحيح", en: "Please enter a valid email address", he: "נא להזין כתובת אימייל תקינה" },
   regErrSubmit: { ar: "تعذر إرسال الطلب — حاول مجدداً", en: "Could not submit request — try again", he: "לא ניתן לשלוח את הבקשה — נסו שוב" },
+  regConsentNote: { ar: "بإرسال الطلب فإنك توافق على:", en: "By submitting you agree to:", he: "בשליחת הבקשה אתם מסכימים ל:" },
 
   /* ─── إدارة الأساتذة (School Admin) ─── */
   navTeachers: { ar: "إدارة الأساتذة", en: "Teachers", he: "מורים" },
@@ -618,6 +614,23 @@ const T = {
   takeExamCancelExit: { ar: "إلغاء والخروج", en: "Cancel and exit", he: "ביטול ויציאה" },
   takeExamShortPh: { ar: "اكتب إجابتك هنا...", en: "Type your answer here...", he: "כתבו את התשובה כאן..." },
   takeExamConfirmUnanswered: { ar: "سؤال بدون إجابة. هل تريد التسليم الآن؟", en: "question(s) unanswered. Submit now?", he: "שאלות ללא תשובה. להגיש עכשיו?" },
+  takeExamSubmitFailed: { ar: "تعذّر تسليم الامتحان (تحقق من الاتصال). إجاباتك محفوظة على الشاشة — أعد المحاولة.", en: "Couldn't submit the exam (check your connection). Your answers are still on screen — please retry.", he: "לא ניתן היה להגיש את הבחינה (בדקו את החיבור). התשובות שלכם עדיין על המסך — נסו שוב." },
+  takeExamRetry: { ar: "إعادة المحاولة", en: "Retry", he: "נסו שוב" },
+  takeExamLate: { ar: "تم التسليم بعد انتهاء الوقت المسموح، لذلك لم تُحتسب الإجابات.", en: "Submitted after the allowed time, so your answers were not counted.", he: "הוגש לאחר תום הזמן המותר, ולכן התשובות לא נספרו." },
+
+  /* ─── نوافذ التأكيد (بديل confirm/alert الأصلية) ─── */
+  dialogCancel: { ar: "إلغاء", en: "Cancel", he: "ביטול" },
+  dialogConfirm: { ar: "تأكيد", en: "Confirm", he: "אישור" },
+  dialogOk: { ar: "حسناً", en: "OK", he: "אישור" },
+
+  /* ─── صفحات قانونية وروابطها ─── */
+  legalPrivacy: { ar: "سياسة الخصوصية", en: "Privacy Policy", he: "מדיניות פרטיות" },
+  legalTerms: { ar: "شروط الاستخدام", en: "Terms of Use", he: "תנאי שימוש" },
+  legalDeletion: { ar: "حذف الحساب", en: "Account deletion", he: "מחיקת חשבון" },
+  legalBack: { ar: "رجوع", en: "Back", he: "חזרה" },
+  legalLastUpdated: { ar: "آخر تحديث", en: "Last updated", he: "עודכן לאחרונה" },
+  legalContactUs: { ar: "للتواصل", en: "Contact", he: "יצירת קשר" },
+  deleteRequestHelp: { ar: "لحذف هذا الحساب تواصل مع الدعم عبر صفحة «حذف الحساب».", en: "To delete this account, contact support via the “Account deletion” page.", he: "למחיקת חשבון זה פנו לתמיכה דרך דף «מחיקת חשבון»." },
   takeExamTrue: { ar: "صح", en: "True", he: "נכון" },
   takeExamFalse: { ar: "خطأ", en: "False", he: "לא נכון" },
 
@@ -696,7 +709,7 @@ const T = {
   simCancelPlacement: { ar: "إلغاء", en: "Cancel", he: "בטל" },
 
   /* ─── محاكي الشبكة — الواجهة ─── */
-  simTools: { ar: "SIM TOOLS", en: "SIM TOOLS", he: "כלי סימולציה" },
+  simTools: { ar: "أدوات المحاكاة", en: "SIM TOOLS", he: "כלי סימולציה" },
   simDevicesSection: { ar: "الأجهزة", en: "Devices", he: "מכשירים" },
   simToolsSection: { ar: "الأدوات", en: "Tools", he: "כלים" },
   simSimulationSection: { ar: "المحاكاة", en: "Simulation", he: "הדמיה" },
@@ -740,7 +753,7 @@ const T = {
   simDefaultGateway: { ar: "Default Gateway", en: "Default Gateway", he: "שער ברירת מחדל" },
   simSaveConfig: { ar: "حفظ الإعدادات", en: "Save settings", he: "שמור הגדרות" },
   simBackHome: { ar: "الرئيسية", en: "Home", he: "בית" },
-  simTitle: { ar: "Network Simulator", en: "Network Simulator", he: "סימולטור רשתות" },
+  simTitle: { ar: "محاكاة الشبكات", en: "Network Simulator", he: "סימולטור רשתות" },
   simClickFirst: { ar: "انقر الجهاز الأول", en: "Click first device", he: "הקליקו מכשיר ראשון" },
   simClickSecond: { ar: "انقر الجهاز الثاني", en: "Click second device", he: "הקליקו מכשיר שני" },
   simClickSource: { ar: "انقر المصدر", en: "Click source", he: "הקליקו מקור" },
@@ -768,7 +781,7 @@ const T = {
   /* ─── أنواع الكابلات ─── */
   simCableUtp: { ar: "UTP", en: "UTP", he: "UTP" },
   simCableStp: { ar: "STP", en: "STP", he: "STP" },
-  simCableFiber: { ar: "Fiber", en: "Fiber", he: "סיב אופטי" },
+  simCableFiber: { ar: "ألياف ضوئية", en: "Fiber", he: "סיב אופטי" },
   simCableWifi: { ar: "Wi-Fi", en: "Wi-Fi", he: "Wi-Fi" },
   simCableUtpDesc: { ar: "كابل نحاسي غير محمي — الأكثر شيوعاً في الشبكات المحلية", en: "Unshielded twisted pair — most common in LANs", he: "כבל נחושת לא מוגן — נפוץ ברשתות מקומיות" },
   simCableStpDesc: { ar: "كابل نحاسي محمي ضد التشويش الكهرومغناطيسي", en: "Shielded twisted pair — EMI protected", he: "כבל נחושת מוגן מהפרעות אלקטרומגנטיות" },
@@ -781,12 +794,12 @@ const T = {
   simPortDisabled: { ar: "معطّل", en: "Disabled", he: "מושבת" },
 
   /* ─── مراقب الحزم (PacketSniffer) ─── */
-  simSnifferTitle: { ar: "PACKET SNIFFER", en: "PACKET SNIFFER", he: "מאזין חבילות" },
+  simSnifferTitle: { ar: "محلل الحزم", en: "PACKET SNIFFER", he: "מאזין חבילות" },
   simSnifferEmpty: { ar: "لا توجد packets بعد...", en: "No packets yet...", he: "אין חבילות עדיין..." },
   simSnifferDelivered: { ar: "✓ تم الاستلام", en: "✓ DELIVERED", he: "✓ נמסר" },
   simSnifferFailed: { ar: "✗ فشل", en: "✗ FAILED", he: "✗ נכשל" },
   simSnifferTransit: { ar: "⏳ جاري", en: "⏳ TRANSIT", he: "⏳ בדרך" },
-  simSnifferPackets: { ar: "packets", en: "packets", he: "חבילות" },
+  simSnifferPackets: { ar: "حزمة", en: "packets", he: "חבילות" },
 
   /* ─── المساعد الذكي (AIAssistant) ─── */
   simAiTitle: { ar: "مساعد الشبكات", en: "Network Assistant", he: "עוזר רשתות" },
@@ -848,7 +861,7 @@ const T = {
   restrictedOwnerOnly: { ar: "هذه الشاشة للمالك (Owner) فقط.", en: "This screen is for the Owner only.", he: "מסך זה לבעלים בלבד." },
   restrictedSchoolAdminOnly: { ar: "هذه الصفحة لمشرفي المدارس فقط.", en: "This page is for school admins only.", he: "דף זה למנהלי בתי ספר בלבד." },
   restrictedAdminOnly: { ar: "هذه الصفحة للمشرفين فقط.", en: "This page is for admins only.", he: "דף זה למנהלים בלבד." },
-  backHome: { ar: "العودة للرئيسية", en: "Back to Home", he: "חזרה לבית" },
+  backToHome: { ar: "العودة للرئيسية", en: "Back to Home", he: "חזרה לבית" },
 
   /* ─── المدارس (SchoolsManager) ─── */
   schoolsTitle: { ar: "الاشتراكات المفعلة", en: "Active Subscriptions", he: "מנויים פעילים" },
@@ -919,6 +932,7 @@ const T = {
   smImportAllDup: { ar: "كل الأكواد موجودة مسبقاً أو بلغت الحد الأقصى", en: "All codes exist or limit reached", he: "כל הקודים קיימים או הגבול הושג" },
   smImportSuccess: { ar: "تم استيراد {count} طالب بنجاح", en: "Imported {count} students successfully", he: "ייובאו {count} תלמידים בהצלחה" },
   smImportError: { ar: "تعذر استيراد الملف — تأكد من صيغة Excel (أعمدة: الاسم، الرمز، البريد)", en: "Import failed — check Excel format (columns: name, code, email)", he: "הייבוא נכשל — בדקו את פורמט Excel" },
+  smImportTryCsv: { ar: "جرّب حفظ الملف بصيغة CSV وأعد الاستيراد.", en: "Try saving the file as CSV and import again.", he: "נסו לשמור את הקובץ כ-CSV ולייבא שוב." },
   smDeleteConfirm: { ar: "حذف الطالب", en: "Delete student", he: "מחיקת תלמיד" },
   smStatusPending: { ar: "بانتظار الموافقة", en: "Pending", he: "ממתין" },
   smStatusApproved: { ar: "فعّال ✓", en: "Active ✓", he: "פעיל ✓" },

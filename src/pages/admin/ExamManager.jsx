@@ -12,8 +12,10 @@ import { sectionTitle, topicTitleById } from "@/lib/courseI18n";
 import courseData from "../../lib/courseData";
 import ExamEditor from "../../components/exams/ExamEditor";
 import ExamPreview from "../../components/exams/ExamPreview";
+import { useDialogs } from "@/components/DialogProvider";
 
 export default function ExamManager() {
+  const { confirmDialog } = useDialogs();
   const { isLoading, role, school_id } = useAdminAuth();
   useLang();
   const direction = useDir();
@@ -39,7 +41,7 @@ export default function ExamManager() {
       .then((rows) => setExams(rows || []));
 
   const deleteExam = async (id) => {
-    if (!confirm(t("teacherConfirmDelete"))) return;
+    if (!(await confirmDialog(t("examConfirmDelete")))) return;
     await adminDelete("Exam", id);
     setExams((prev) => prev.filter((e) => e.id !== id));
   };

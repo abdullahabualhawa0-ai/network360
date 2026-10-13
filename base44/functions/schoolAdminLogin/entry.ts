@@ -1,48 +1,52 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { rateLimit, clientIp } from "../../shared/security.ts";
+import { rateLimit, clientIp, isLocked, recordFailure, clearFailures, filterByCode } from "../../shared/security.ts";
+import { createSession } from "../../shared/session.ts";
 
 /**
- * schoolAdminLogin — التحقق من رمز المدرسة + رمز المشرف (admin_code) دون Base44 Authentication
- * يعيد جلسة مشرف مدرسة تحتوي على school_id, school_code, school_name, admin_code
- * مشرف المدرسة يرى ويدير فقط بيانات مدرسته.
+ * schoolAdminLogin — التحقق من رمز المشرف (admin_code) دون Base44 Authentication
+ * يعيد جلسة مشرف مدرسة (بيانات عرض + token + expires_at). مشرف المدرسة يدير بيانات مدرسته فقط.
+ *
+ * ملاحظة: الجلسة لم تعد تُستخدم فيها admin_code للتحقق؛ الرمز السري يبقى لحظة الدخول فقط.
  */
+const WINDOW = 15 * 60 * 1000;
+const MAX_FAIL_IP = 12;
+
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
     const svc = base44.asServiceRole;
     const body = await req.json();
-    const { adminCode } = body;
+    const ip = clientIp(req);
 
-    // تحديد معدل المحاولات — منع تخمين رموز المشرف (brute-force)
-    const ipCheck = rateLimit(`schoolAdminLogin:ip:${clientIp(req)}`, 20, 10 * 60 * 1000);
+    const ipCheck = rateLimit(`schoolAdminLogin:ip:${ip}`, 20, 10 * 60 * 1000);
     if (!ipCheck.ok) {
       return Response.json({ error: "محاولات كثيرة — حاول لاحقاً." }, { status: 429 });
     }
+    const adminCode = String(body.adminCode ?? "").trim().slice(0, 64);
     if (!adminCode) {
       return Response.json({ error: "أدخل رمز المشرف" }, { status: 400 });
     }
-    const codeCheck = rateLimit(`schoolAdminLogin:code:${String(adminCode).trim()}`, 10, 15 * 60 * 1000);
-    if (!codeCheck.ok) {
+
+    const ipKey = `sal:ip:${ip}`;
+    if (await isLocked(svc, ipKey, MAX_FAIL_IP)) {
       return Response.json({ error: "محاولات كثيرة — حاول لاحقاً." }, { status: 429 });
     }
 
-    // 1) البحث عن المدرسة برمز المشرف فقط (رمز فريد لكل مشرف)
-    const schools = await svc.entities.School.filter({
-      admin_code: adminCode.trim(),
-      is_active: true,
-    });
-    if (!schools || schools.length === 0) {
+    // البحث بالرمز فقط (رمز فريد لكل مشرف)
+    const schools = await filterByCode(svc, "School", "admin_code", adminCode, { is_active: true });
+    if (schools.length === 0) {
+      await recordFailure(svc, ipKey, WINDOW);
       return Response.json({ error: "رمز المشرف غير صحيح." }, { status: 404 });
     }
     const school = schools[0];
 
-    // 3) التحقق من حالة الاشتراك
     if (school.subscription_status === "expired") {
       return Response.json({ error: "اشتراك المدرسة منتهي — تواصل مع مالك المنصة." }, { status: 403 });
     }
 
-    // 4) إنشاء جلسة مشرف المدرسة
-    const session = {
+    await clearFailures(svc, ipKey);
+    const { token, expires_at } = await createSession(svc, "school_admin", school.id, school.id);
+    return Response.json({
       school_id: school.id,
       school_code: school.code,
       school_name: school.name,
@@ -50,9 +54,9 @@ export default async function(req) {
       admin_code: school.admin_code,
       role: "school_admin",
       login_at: new Date().toISOString(),
-    };
-
-    return Response.json(session);
+      token,
+      expires_at,
+    });
   } catch (error) {
     return Response.json({ error: error.message || "حدث خطأ غير متوقع" }, { status: 500 });
   }

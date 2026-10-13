@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, Mail, LogOut, Shield, Trash2, AlertTriangle, X } from "lucide-react";
 import BackButton from "@/components/BackButton";
@@ -203,7 +203,7 @@ export default function Settings() {
   // تحديد الدور والرمز حسب الجلسة النشطة
   const roleLabel = isStudent ? t("roleStudent")
     : isTeacher ? t("teacherRole")
-    : isSchoolAdmin ? t("adminLoginLink")
+    : isSchoolAdmin ? t("roleSchoolAdmin")
     : isOwner ? t("roleAdmin")
     : "—";
 
@@ -379,9 +379,17 @@ export default function Settings() {
         {!canDelete && (isSchoolAdmin || isOwner) && (
           <div className="w-full mt-3 py-2.5 px-3 rounded-xl text-[10px] text-center text-muted-foreground"
             style={{ border: "1px solid hsl(var(--border))" }}>
-            {t("deleteAccountNotAvailable")}
+            {t("deleteAccountNotAvailable")}{" "}
+            <Link to="/account-deletion" className="font-bold text-primary underline">{t("legalDeletion")}</Link>
           </div>
         )}
+
+        {/* روابط قانونية (مطلوبة للمتاجر) */}
+        <div className="mt-4 flex items-center justify-center gap-x-4 gap-y-1 flex-wrap text-[11px] text-muted-foreground">
+          <Link to="/privacy" className="hover:text-primary hover:underline">{t("legalPrivacy")}</Link>
+          <Link to="/terms" className="hover:text-primary hover:underline">{t("legalTerms")}</Link>
+          <Link to="/account-deletion" className="hover:text-primary hover:underline">{t("legalDeletion")}</Link>
+        </div>
 
         {/* تسجيل الخروج — لكل الأدوار */}
         <button onClick={handleLogout}

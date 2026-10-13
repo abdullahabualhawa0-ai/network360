@@ -9,6 +9,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { UNCLAIMED } from "@/lib/registrationUtils";
 import { STUDENT_LIMIT_MSG } from "@/lib/plans";
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
+import { useDialogs } from "@/components/DialogProvider";
+import { studentsFromCsv } from "@/lib/csvStudents";
 
 const STATUS_KEYS = {
   pending: "smStatusPending",
@@ -29,6 +31,7 @@ const STATUS_UI = {
  * تُستخدم من قبل Super Admin (إدارة الطلاب داخل كل مدرسة) ومشرف المدرسة.
  */
 export default function StudentsManager({ school, onBack }) {
+  const { confirmDialog } = useDialogs();
   const { user } = useAuth();
   useLang();
   const direction = useDir();
@@ -103,36 +106,46 @@ export default function StudentsManager({ school, onBack }) {
     setImporting(true);
     setImportMsg(null);
     try {
-      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
-      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
-        json_schema: {
-          type: "object",
-          properties: {
-            students: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  full_name: { type: "string" },
-                  student_code: { type: "string" },
-                  email: { type: "string" },
+      // الخصوصية: ملفات الطلاب لا تُرفع على رابط عام.
+      //  • CSV/TXT: تُقرأ داخل المتصفح ولا تُرسل لأي خادم.
+      //  • Excel/PDF: تُرفع كملف خاص (UploadPrivateFile) ويُستخدم رابط موقّع مؤقت للاستخراج.
+      let imported;
+      const isTextFile = /\.(csv|txt|tsv)$/i.test(file.name || "") || /^text\//.test(file.type || "");
+      if (isTextFile) {
+        imported = studentsFromCsv(await file.text());
+      } else {
+        const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
+        const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri, expires_in: 300 });
+        const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+          file_url: signed_url,
+          json_schema: {
+            type: "object",
+            properties: {
+              students: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    full_name: { type: "string" },
+                    student_code: { type: "string" },
+                    email: { type: "string" },
+                  },
+                  required: ["full_name", "student_code"],
                 },
-                required: ["full_name", "student_code"],
               },
             },
+            required: ["students"],
           },
-          required: ["students"],
-        },
-      });
-      const imported = result?.output?.students || [];
+        });
+        imported = result?.output?.students || [];
+      }
       if (!imported.length) {
         setImportMsg({ type: "error", text: t("smImportNoData") });
         setImporting(false);
         return;
       }
       // فحص الحد والفرادة قبل الإنشاء
-      const existing = await base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 500);
+      const existing = await base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 10000);
       const existingCodes = new Set((existing || []).map((s) => s.student_code));
       const limit = school.student_limit || 0;
       const toCreate = [];
@@ -164,14 +177,14 @@ export default function StudentsManager({ school, onBack }) {
       setImportMsg({ type: "success", text: t("smImportSuccess", getLang()).replace("{count}", toCreate.length) });
       load();
     } catch (err) {
-      setImportMsg({ type: "error", text: t("smImportError") });
+      setImportMsg({ type: "error", text: `${t("smImportError")} ${t("smImportTryCsv")}` });
     } finally {
       setImporting(false);
     }
   };
 
   const deleteStudent = async (s) => {
-    if (!confirm(`${t("smDeleteConfirm")}: "${s.full_name}" (${s.student_code})?`)) return;
+    if (!(await confirmDialog(`${t("smDeleteConfirm")}: "${s.full_name}" (${s.student_code})?`))) return;
     const prev = students;
     // حذف محلي فوري
     setStudents(prev => (prev || []).filter(st => st.id !== s.id));

@@ -85,7 +85,7 @@ export default function RegistrationRequests() {
       await base44.integrations.Core.SendEmail({ to: req.email, subject, html });
       return true;
     } catch (e) {
-      console.log("SendEmail failed:", e?.message);
+        /* فشل إرسال البريد لا يوقف التفعيل */
       return false;
     }
   };

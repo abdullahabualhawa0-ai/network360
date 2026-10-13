@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { loadSession, schoolUsable, deleteSessions } from "../../shared/session.ts";
 
 /**
  * manageTeachers — إدارة الأساتذة لمشرف المدرسة (school_admin) عبر Base44 Authentication
@@ -13,19 +14,15 @@ export default async function(req) {
     const body = await req.json();
     const { action, data = {}, id, session } = body;
 
-    // تحديد school_id: عبر جلسة مشرف المدرسة (رمز) أو عبر Base44 auth
+    // تحديد school_id: عبر جلسة مشرف المدرسة (token من الخادم) أو عبر Base44 auth
     let schoolId;
-    if (session?.school_id && session?.admin_code) {
-      // جلسة مشرف المدرسة بالرمز — تحقق من صحتها
-      const schools = await svc.entities.School.filter({
-        id: session.school_id,
-        admin_code: session.admin_code,
-        is_active: true,
-      });
-      if (!schools || schools.length === 0) {
+    if (session?.token) {
+      // جلسة مشرف المدرسة بالرمز — الهوية من جلسة الخادم، لا من حقول العميل
+      const rec = await loadSession(svc, session, "school_admin");
+      if (!rec) {
         return Response.json({ error: "Invalid session" }, { status: 401 });
       }
-      schoolId = session.school_id;
+      schoolId = rec.school_id;
     } else {
       // مصادقة Base44 (المالك أو مشرف مدرسة قديم)
       const user = await base44.auth.me();
@@ -45,6 +42,9 @@ export default async function(req) {
     // جلب المدرسة لقراءة teacher_limit
     const school = await svc.entities.School.get(schoolId).catch(() => null);
     if (!school) return Response.json({ error: "School not found" }, { status: 404 });
+    if (session?.token && !schoolUsable(school)) {
+      return Response.json({ error: "Invalid session" }, { status: 401 });
+    }
 
     switch (action) {
       case "list": {
@@ -54,7 +54,7 @@ export default async function(req) {
 
       case "create": {
         // فحص حد الأساتذة
-        const existing = await svc.entities.Teacher.filter({ school_id: schoolId }, "-created_date", 500);
+        const existing = await svc.entities.Teacher.filter({ school_id: schoolId }, "-created_date", 10000);
         const limit = school.teacher_limit || 0;
         if (limit > 0 && (existing || []).length >= limit) {
           return Response.json({
@@ -85,6 +85,16 @@ export default async function(req) {
           status: "active",
           preferred_language: data.preferred_language || "ar",
         });
+        // إعادة فحص بعد الإنشاء: إذا تجاوزنا الحد بسبب طلبات متزامنة نتراجع
+        if (limit > 0) {
+          const after = await svc.entities.Teacher.filter({ school_id: schoolId }, "-created_date", 10000);
+          if ((after || []).length > limit) {
+            await svc.entities.Teacher.delete(teacher.id).catch(() => {});
+            return Response.json({
+              error: "لقد وصلت إلى الحد الأقصى لعدد الأساتذة المسموح به لهذه المدرسة.",
+            }, { status: 403 });
+          }
+        }
         return Response.json(teacher);
       }
 
@@ -121,6 +131,7 @@ export default async function(req) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
         await svc.entities.Teacher.delete(id);
+        await deleteSessions(svc, id);
         return Response.json({ ok: true });
       }
 

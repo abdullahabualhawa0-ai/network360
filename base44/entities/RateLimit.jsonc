@@ -1,0 +1,17 @@
+{
+  "name": "RateLimit",
+  "type": "object",
+  "description": "عدّادات محاولات الدخول الفاشلة (حماية من تخمين الرموز). تُدار من دوال الخادم فقط.",
+  "properties": {
+    "key": { "type": "string" },
+    "count": { "type": "number" },
+    "reset_at": { "type": "string", "description": "ISO date-time لنهاية النافذة" }
+  },
+  "required": ["key"],
+  "rls": {
+    "read": { "user_condition": { "role": "admin" } },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

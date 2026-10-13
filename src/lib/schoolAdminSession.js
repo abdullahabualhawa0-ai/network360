@@ -10,7 +10,15 @@ const SESSION_EVENT = "school-admin-session-change";
 
 export function getSchoolAdminSession() {
   try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    if (!s) return null;
+    // جلسة قديمة بلا رمز خادم، أو منتهية الصلاحية → تُعتبر غير موجودة (يعيد المستخدم لصفحة الدخول)
+    const expired = s.expires_at && new Date(s.expires_at).getTime() <= Date.now();
+    if (!s.token || expired) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return s;
   } catch {
     return null;
   }

@@ -67,7 +67,7 @@ export default function AdminStudentsReport() {
         <ShieldAlert size={48} className="text-red-400" />
         <h2 className="text-xl font-bold text-foreground">{t("srNotAuthorized")}</h2>
         <p className="text-muted-foreground text-sm">{t("restrictedAdminOnly")}</p>
-        <Link to="/" className="text-primary hover:underline text-sm">{t("backHome")}</Link>
+        <Link to="/" className="text-primary hover:underline text-sm">{t("backToHome")}</Link>
       </div>
     );
   }

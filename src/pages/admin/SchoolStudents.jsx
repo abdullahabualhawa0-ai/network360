@@ -41,7 +41,7 @@ export default function SchoolStudents() {
           <AlertTriangle size={36} className="text-red-400 mx-auto mb-3" />
           <h2 className="font-black text-lg mb-2">{t("restrictedAccess")}</h2>
           <p className="text-xs text-muted-foreground mb-5">{t("restrictedSchoolAdminOnly")}</p>
-          <Link to="/" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>{t("backHome")}</Link>
+          <Link to="/" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>{t("backToHome")}</Link>
         </div>
       </div>
     );

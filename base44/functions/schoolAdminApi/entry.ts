@@ -1,34 +1,43 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { loadSession, schoolUsable, pick } from "../../shared/session.ts";
 
 /**
  * schoolAdminApi — طبقة وصول آمنة لبيانات مشرف المدرسة مع عزل كامل (school_id)
- * تتحقق من جلسة المشرف في كل استدعاء، وتفرض عزل البيانات برمجياً.
+ * الهوية تُستخرج من جلسة الخادم (token) — لا يُعتمد على admin_code المخزَّن في المتصفح.
  * يدعم: إدارة الطلاب (StudentProfile CRUD)، الامتحانات (Exam CRUD)،
  *       النتائج (ExamResult read)، طلبات الدخول (ExamAccessRequest read+update)،
  *       معلومات المدرسة (School get)، الأساتذة (Teacher read)، سجل المختبر (LabHistory read).
+ *
+ * حماية: قائمة بيضاء للحقول عند الكتابة (لا يمكن نقل سجل لمدرسة أخرى ولا تغيير حقول النظام).
+ * حد الطلاب يُفرض في الخادم مع إعادة فحص بعد الإنشاء (حماية من التزامن).
  */
 
 const ENTITY_CONFIG: Record<string, any> = {
   School: { mode: "own_school_only" },
-  Exam: { schoolField: "school_id", writable: true, includeGeneral: true },
+  Exam: {
+    schoolField: "school_id", writable: true, includeGeneral: true,
+    fields: ["title", "topic_id", "topic_title", "section_title", "questions", "duration_minutes", "status"],
+  },
   ExamResult: { schoolField: "school_id", readOnly: true },
-  ExamAccessRequest: { schoolField: "school_id", readOnly: true, updatable: true },
-  StudentProfile: { schoolField: "school_id", writable: true },
+  ExamAccessRequest: { schoolField: "school_id", readOnly: true, updatable: true, fields: ["status", "reviewed_by", "reviewed_at"] },
+  StudentProfile: {
+    schoolField: "school_id", writable: true,
+    fields: ["full_name", "student_code", "email", "status", "approved_by", "approved_at", "preferred_language", "phone", "country", "user_id"],
+  },
   Teacher: { schoolField: "school_id", readOnly: true },
   LabHistory: { schoolField: "school_id", readOnly: true },
   ScenarioTaskStatus: { schoolField: "school_id", readOnly: true },
 };
 
+const STUDENT_QUERY_LIMIT = 10000;
+
 async function validateSession(svc: any, session: any) {
-  if (!session?.school_id || !session?.school_code || !session?.admin_code) return null;
+  const rec = await loadSession(svc, session, "school_admin");
+  if (!rec) return null;
   try {
-    const schools = await svc.entities.School.filter({
-      id: session.school_id,
-      code: session.school_code,
-      admin_code: session.admin_code,
-      is_active: true,
-    });
-    return schools?.[0] || null;
+    const school = await svc.entities.School.get(rec.school_id);
+    if (!schoolUsable(school)) return null;
+    return school;
   } catch {
     return null;
   }
@@ -47,14 +56,14 @@ export default async function(req) {
     const school = await validateSession(svc, session);
     if (!school) return Response.json({ error: "Invalid session" }, { status: 401 });
 
-    const schoolId = session.school_id;
+    const schoolId = school.id;
 
     // بناء استعلام مع عزل المدرسة
-    const injectSchool = (q: any) => ({ ...q, [config.schoolField]: schoolId });
+    const injectSchool = (q: any) => ({ ...(q || {}), [config.schoolField]: schoolId });
 
     // للامتحانات: تضمين الامتحانات العامة أيضاً
     const injectSchoolOrGeneral = (q: any) => ({
-      ...q,
+      ...(q || {}),
       $or: [
         { [config.schoolField]: schoolId },
         { [config.schoolField]: "general" },
@@ -88,7 +97,7 @@ export default async function(req) {
         if (entity === "School") {
           return Response.json(school);
         }
-        const row = await svc.entities[entity].get(id);
+        const row = await svc.entities[entity].get(id).catch(() => null);
         if (!row) return Response.json({ error: "Not found" }, { status: 404 });
         if (config.schoolField && row[config.schoolField] !== schoolId && row[config.schoolField] !== "general") {
           return Response.json({ error: "Forbidden" }, { status: 403 });
@@ -98,32 +107,38 @@ export default async function(req) {
 
       case "create": {
         if (!config.writable) return Response.json({ error: "Read-only entity" }, { status: 403 });
+        const limitN = Number(school.student_limit) || 0;
+        const countStudents = async () =>
+          ((await svc.entities.StudentProfile.filter({ school_id: schoolId }, "-created_date", STUDENT_QUERY_LIMIT)) || []).length;
+
         // فرض حد الطلاب (student_limit) من الخادم — لا يُعتمد على فحص الواجهة
-        if (entity === "StudentProfile") {
-          const existing = await svc.entities.StudentProfile.filter({ school_id: schoolId }, "-created_date", 500);
-          const limit = school.student_limit || 0;
-          if (limit > 0 && (existing || []).length >= limit) {
-            return Response.json({ error: "STUDENT_LIMIT_REACHED" }, { status: 403 });
-          }
+        if (entity === "StudentProfile" && limitN > 0 && (await countStudents()) >= limitN) {
+          return Response.json({ error: "STUDENT_LIMIT_REACHED" }, { status: 403 });
         }
-        const d = { ...data, [config.schoolField]: schoolId };
+        const d = { ...pick(data, config.fields), [config.schoolField]: schoolId };
         const row = await svc.entities[entity].create(d);
+
+        // إعادة فحص بعد الإنشاء: إذا تجاوزنا الحد بسبب طلبات متزامنة نتراجع
+        if (entity === "StudentProfile" && limitN > 0 && (await countStudents()) > limitN) {
+          await svc.entities.StudentProfile.delete(row.id).catch(() => {});
+          return Response.json({ error: "STUDENT_LIMIT_REACHED" }, { status: 403 });
+        }
         return Response.json(row);
       }
 
       case "update": {
         if (!config.writable && !config.updatable) return Response.json({ error: "Read-only entity" }, { status: 403 });
-        const existing = await svc.entities[entity].get(id);
+        const existing = await svc.entities[entity].get(id).catch(() => null);
         if (!existing || (config.schoolField && existing[config.schoolField] !== schoolId)) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
-        const row = await svc.entities[entity].update(id, data);
+        const row = await svc.entities[entity].update(id, pick(data, config.fields));
         return Response.json(row);
       }
 
       case "delete": {
         if (!config.writable) return Response.json({ error: "Read-only entity" }, { status: 403 });
-        const existing = await svc.entities[entity].get(id);
+        const existing = await svc.entities[entity].get(id).catch(() => null);
         if (!existing || (config.schoolField && existing[config.schoolField] !== schoolId)) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }

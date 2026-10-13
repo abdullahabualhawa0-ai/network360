@@ -1,0 +1,19 @@
+{
+  "name": "AuthSession",
+  "type": "object",
+  "description": "جلسات دخول الطلاب والأساتذة ومشرفي المدارس (بالرمز). تُنشأ وتُقرأ من دوال الخادم فقط (service role). يُخزَّن هاش الرمز وليس الرمز نفسه.",
+  "properties": {
+    "token_hash": { "type": "string", "description": "SHA-256 لرمز الجلسة" },
+    "role": { "type": "string", "enum": ["student", "teacher", "school_admin"] },
+    "subject_id": { "type": "string", "description": "معرّف الطالب أو الأستاذ (أو المدرسة لمشرف المدرسة)" },
+    "school_id": { "type": "string" },
+    "expires_at": { "type": "string", "description": "ISO date-time لانتهاء الجلسة" }
+  },
+  "required": ["token_hash", "role", "subject_id", "school_id", "expires_at"],
+  "rls": {
+    "read": { "user_condition": { "role": "admin" } },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

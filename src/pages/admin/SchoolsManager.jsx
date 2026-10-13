@@ -11,12 +11,14 @@ import StudentsManager from "../../components/admin/StudentsManager";
 import TeachersList from "../../components/admin/TeachersList";
 import { planLabel, PLANS, randomCode } from "@/lib/plans";
 import { t, useLang, useDir } from "@/lib/i18n";
+import { useDialogs } from "@/components/DialogProvider";
 
 /**
  * شاشة المدارس — Super Admin فقط (role = admin)
  * إضافة مدرسة برمز فريد + عدد طلاب، تعديل الرمز والحد، حذف، تفعيل/تعطيل، إدارة طلاب.
  */
 export default function SchoolsManager() {
+  const { confirmDialog } = useDialogs();
   const { user, isLoadingAuth } = useAuth();
   useLang();
   const direction = useDir();
@@ -116,7 +118,7 @@ export default function SchoolsManager() {
   };
 
   const deleteSchool = async (s) => {
-    if (!confirm(t("schoolsDeleteConfirm"))) return;
+    if (!(await confirmDialog(t("schoolsDeleteConfirm")))) return;
     await base44.entities.School.delete(s.id);
     load();
   };
@@ -130,7 +132,7 @@ export default function SchoolsManager() {
           <AlertTriangle size={36} className="text-red-400 mx-auto mb-3" />
           <h2 className="font-black text-lg mb-2">{t("restrictedAccess")}</h2>
           <p className="text-xs text-muted-foreground mb-5">{t("restrictedOwnerOnly")}</p>
-          <Link to="/" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>{t("backHome")}</Link>
+          <Link to="/" className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>{t("backToHome")}</Link>
         </div>
       </div>);
   }

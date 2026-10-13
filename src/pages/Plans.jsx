@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Sparkles, CheckCircle2, AlertTriangle, User, School as SchoolIcon, Loader2, ArrowRight } from "lucide-react";
 import { t, useLang, useDir, setLang, getLang } from "@/lib/i18n";
@@ -21,6 +22,7 @@ export default function Plans() {
   }); // type | individual | school | done
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [hp, setHp] = useState(""); // حقل فخ للبوتات (مخفي عن البشر)
 
   // نموذج فردي
   const [indForm, setIndForm] = useState({ fullName: "", email: "", phone: "", country: "" });
@@ -46,7 +48,14 @@ export default function Plans() {
     setBusy(true);
     setError(null);
     try {
-      await base44.entities.RegistrationRequest.create({
+      await sendRegistration({
+        requestType: "individual",
+        fullName: indForm.fullName.trim(),
+        email: indForm.email.trim(),
+        phone: indForm.phone.trim(),
+        country: indForm.country.trim(),
+        website: hp,
+      }, {
         request_type: "individual",
         full_name: indForm.fullName.trim(),
         email: indForm.email.trim(),
@@ -54,13 +63,6 @@ export default function Plans() {
         country: indForm.country.trim(),
         status: "new",
       });
-      base44.functions.invoke("notifyOwnerRegistration", {
-        requestType: "individual",
-        fullName: indForm.fullName.trim(),
-        email: indForm.email.trim(),
-        phone: indForm.phone.trim(),
-        country: indForm.country.trim(),
-      }).catch(() => {});
       setStep("done");
     } catch {
       setError(t("regErrSubmit"));
@@ -85,7 +87,17 @@ export default function Plans() {
     setBusy(true);
     setError(null);
     try {
-      await base44.entities.RegistrationRequest.create({
+      await sendRegistration({
+        requestType: "school",
+        fullName: schForm.fullName.trim(),
+        email: schForm.email.trim(),
+        phone: schForm.phone.trim(),
+        country: schForm.country.trim(),
+        schoolName: schForm.schoolName.trim(),
+        expectedStudents: schForm.expectedStudents,
+        expectedTeachers: schForm.expectedTeachers,
+        website: hp,
+      }, {
         request_type: "school",
         full_name: schForm.fullName.trim(),
         email: schForm.email.trim(),
@@ -97,16 +109,6 @@ export default function Plans() {
         expected_teachers: Number(schForm.expectedTeachers) || 0,
         status: "new",
       });
-      base44.functions.invoke("notifyOwnerRegistration", {
-        requestType: "school",
-        fullName: schForm.fullName.trim(),
-        email: schForm.email.trim(),
-        phone: schForm.phone.trim(),
-        country: schForm.country.trim(),
-        schoolName: schForm.schoolName.trim(),
-        expectedStudents: schForm.expectedStudents,
-        expectedTeachers: schForm.expectedTeachers,
-      }).catch(() => {});
       setStep("done");
     } catch {
       setError(t("regErrSubmit"));
@@ -160,6 +162,9 @@ export default function Plans() {
               <h2 className="font-black text-base mb-1" style={{ color: "#173F5F" }}>{t("regIndividualTitle")}</h2>
               <p className="text-[11px] text-muted-foreground mb-4">{t("regIndividualDesc")}</p>
               <form onSubmit={submitIndividual} className="grid sm:grid-cols-2 gap-3">
+            <input type="text" name="website" value={hp} onChange={(e) => setHp(e.target.value)}
+              tabIndex={-1} autoComplete="off" aria-hidden="true"
+              style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} />
                 <Field label={`${t("regFullName")} *`} value={indForm.fullName} onChange={(v) => setIndForm({ ...indForm, fullName: v })} required />
                 <Field label={`${t("regEmail")} *`} type="email" dir="ltr" value={indForm.email} onChange={(v) => setIndForm({ ...indForm, email: v })} required />
                 <Field label={`${t("regPhone")} *`} dir="ltr" value={indForm.phone} onChange={(v) => setIndForm({ ...indForm, phone: v })} required />
@@ -173,6 +178,12 @@ export default function Plans() {
                     {busy ? t("regSubmitting") : t("regSubmit")}
                   </button>
                 </div>
+                <p className="sm:col-span-2 text-[11px] text-muted-foreground text-center leading-relaxed">
+                  {t("regConsentNote")}{" "}
+                  <Link to="/privacy" className="font-bold text-primary underline">{t("legalPrivacy")}</Link>
+                  {" · "}
+                  <Link to="/terms" className="font-bold text-primary underline">{t("legalTerms")}</Link>
+                </p>
               </form>
             </div>
           </div>
@@ -186,6 +197,9 @@ export default function Plans() {
               <h2 className="font-black text-base mb-1" style={{ color: "#173F5F" }}>{t("regSchoolTitle")}</h2>
               <p className="text-[11px] text-muted-foreground mb-4">{t("regSchoolDesc")}</p>
               <form onSubmit={submitSchool} className="grid sm:grid-cols-2 gap-3">
+            <input type="text" name="website" value={hp} onChange={(e) => setHp(e.target.value)}
+              tabIndex={-1} autoComplete="off" aria-hidden="true"
+              style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} />
                 <div className="sm:col-span-2">
                   <Field label={`${t("regSchoolName")} *`} value={schForm.schoolName} onChange={(v) => setSchForm({ ...schForm, schoolName: v })} required />
                 </div>
@@ -213,6 +227,12 @@ export default function Plans() {
                     {busy ? t("regSubmitting") : t("regSubmit")}
                   </button>
                 </div>
+                <p className="sm:col-span-2 text-[11px] text-muted-foreground text-center leading-relaxed">
+                  {t("regConsentNote")}{" "}
+                  <Link to="/privacy" className="font-bold text-primary underline">{t("legalPrivacy")}</Link>
+                  {" · "}
+                  <Link to="/terms" className="font-bold text-primary underline">{t("legalTerms")}</Link>
+                </p>
               </form>
             </div>
           </div>
@@ -236,6 +256,21 @@ export default function Plans() {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * إرسال طلب التسجيل: الدالة تنشئ الطلب في الخادم (مع حدّ للإساءة وحقل فخ) وترجع created:true.
+ * إن كانت نسخة الدالة المنشورة قديمة (لا ترجع created) ننشئ الطلب مباشرة كما في السابق.
+ */
+async function sendRegistration(payload, legacyEntityData) {
+  try {
+    const res = await base44.functions.invoke("notifyOwnerRegistration", payload);
+    if (res?.data?.created === true) return;
+  } catch (err) {
+    const status = err?.status || err?.response?.status;
+    if (status === 400 || status === 429) throw err; // مدخلات غير صالحة أو حدّ الطلبات
+  }
+  await base44.entities.RegistrationRequest.create(legacyEntityData);
+}
 
 const _inputStyle = { background: "#F7F9FC", border: "1px solid #E2E8F0" };
 const _labelCls = "block text-[11px] font-bold text-muted-foreground mb-1.5";

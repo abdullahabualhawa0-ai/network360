@@ -9,12 +9,14 @@ import { useTeacherSession, teacherApi } from "@/lib/teacherSession";
 import { t, useLang, useDir } from "@/lib/i18n";
 import BackButton from "@/components/BackButton";
 import ExamEditor from "@/components/exams/ExamEditor";
+import { useDialogs } from "@/components/DialogProvider";
 
 /**
  * امتحانات الأستاذ — إنشاء وإدارة امتحانات المدرسة مع توليد أسئلة بالـAI.
  * يستخدم teacherApi (عزل school_id من الخادم). لا Base44 Authentication.
  */
 export default function TeacherExams() {
+  const { confirmDialog } = useDialogs();
   const session = useTeacherSession();
   useLang();
   const direction = useDir();
@@ -34,7 +36,7 @@ export default function TeacherExams() {
   useEffect(() => { load(); }, []);
 
   const deleteExam = async (id) => {
-    if (!confirm(t("teacherConfirmDelete"))) return;
+    if (!(await confirmDialog(t("examConfirmDelete")))) return;
     await teacherApi("delete", "Exam", { id });
     setExams((prev) => prev.filter((e) => e.id !== id));
   };

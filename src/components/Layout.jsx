@@ -26,16 +26,11 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-background font-main">
       {/* Mobile header — مع مساحات آمنة علوية */}
-      <div className="md:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3 safe-area-top"
-        style={{
-          background: "rgba(255,255,255,0.97)",
-          backdropFilter: "blur(20px)",
-          borderBottom: "1px solid #E2E8F0",
-        }}>
+      <div className="md:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3 safe-area-top bg-card/[0.97] backdrop-blur-[20px] border-b border-border">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg transition-all"
-          style={{ color: "#173F5F", background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)" }}
+          aria-label="Menu"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-all text-primary bg-secondary/[0.08] border border-secondary/25"
         >
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>

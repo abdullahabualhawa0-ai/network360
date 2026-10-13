@@ -7,6 +7,7 @@ import { teacherLogin, setTeacherSession, clearTeacherSession } from "@/lib/teac
 import { schoolAdminLogin, setSchoolAdminSession, clearSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang, useDir } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import PageLoader from "@/components/PageLoader";
 
 /**
  * صفحة الدخول الموحّدة — ثلاثة تبويبات:
@@ -52,11 +53,7 @@ export default function StudentLogin() {
   }, [navigate]);
 
   if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#F7F9FC" }}>
-        <div className="w-8 h-8 rounded-full animate-spin" style={{ border: "3px solid rgba(47,102,144,0.2)", borderTopColor: "#173F5F" }} />
-      </div>
-    );
+    return <PageLoader fullScreen />;
   }
 
   // inputStyle moved to module scope (see LoginField below)
@@ -130,48 +127,43 @@ export default function StudentLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" dir={direction}
-      style={{ background: "#F7F9FC" }}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground" dir={direction}>
       {/* زر تغيير اللغة — ثابت أعلى الصفحة */}
       <div className="fixed top-4 end-4 z-10">
         <LanguageSwitcher />
       </div>
-      <div className="w-full max-w-md rounded-2xl p-6 bg-white"
-        style={{ border: "1px solid #E2E8F0", boxShadow: "0 4px 20px rgba(23,63,95,0.08)" }}>
+      <div className="w-full max-w-md rounded-2xl p-6 bg-card border border-border shadow-[0_4px_20px_rgba(23,63,95,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
         {/* Header — مع رابط دخول المشرف جنب اسم المنصة */}
         <div className="text-center mb-5">
-          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: "#173F5F" }}>
-            <BookOpen className="text-white" size={24} />
+          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-primary">
+            <BookOpen className="text-primary-foreground" size={24} />
           </div>
-          <div className="flex items-center justify-center gap-2 flex-wrap">
-            <h1 className="font-black text-lg" style={{ color: "#173F5F" }}>{t("appName")}</h1>
-            <button type="button" onClick={() => { setShowIndividualLogin(!showIndividualLogin); setShowAdminLogin(false); setTab("student"); setError(null); }}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all"
-              style={{
-                background: showIndividualLogin ? "#2E7D5B" : "rgba(46,125,91,0.06)",
-                color: showIndividualLogin ? "#fff" : "hsl(var(--muted-foreground))",
-                border: "1px solid rgba(46,125,91,0.2)",
-              }}>
-              <User size={10} /> {t("individualLoginLink")}
-            </button>
-            <button type="button" onClick={() => { setShowAdminLogin(!showAdminLogin); setShowIndividualLogin(false); setTab("student"); setError(null); }}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all"
-              style={{
-                background: showAdminLogin ? "#173F5F" : "rgba(23,63,95,0.06)",
-                color: showAdminLogin ? "#fff" : "hsl(var(--muted-foreground))",
-                border: "1px solid rgba(23,63,95,0.15)",
-              }}>
-              <Shield size={10} /> {t("adminLoginLink")}
-            </button>
-          </div>
+          <h1 className="font-black text-lg text-primary">{t("appName")}</h1>
           <p className="text-xs mt-1 text-muted-foreground">
             {showAdminLogin ? t("loginAdminSubtitle") : showIndividualLogin ? t("individualLoginSubtitle") : t("loginSubtitle")}
           </p>
+          {/* خيارات الدخول الأخرى — أزرار بحجم لمس مريح (≥44px) بدل الأزرار الصغيرة */}
+          <div className="flex gap-2 mt-3">
+            <button type="button" onClick={() => { setShowIndividualLogin(!showIndividualLogin); setShowAdminLogin(false); setTab("student"); setError(null); }}
+              aria-pressed={showIndividualLogin}
+              className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all border ${
+                showIndividualLogin ? "bg-success text-white border-success" : "bg-success/[0.06] text-foreground/70 border-success/25"
+              }`}>
+              <User size={14} /> {t("individualLoginLink")}
+            </button>
+            <button type="button" onClick={() => { setShowAdminLogin(!showAdminLogin); setShowIndividualLogin(false); setTab("student"); setError(null); }}
+              aria-pressed={showAdminLogin}
+              className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all border ${
+                showAdminLogin ? "bg-primary text-primary-foreground border-primary" : "bg-primary/[0.06] text-foreground/70 border-primary/20"
+              }`}>
+              <Shield size={14} /> {t("adminLoginLink")}
+            </button>
+          </div>
         </div>
 
         {/* Tabs — تُخفى عند تفعيل دخول المشرف أو الدخول الفردي */}
         {!showAdminLogin && !showIndividualLogin && (
-        <div className="flex gap-1 p-1 rounded-xl mb-4" style={{ background: "rgba(23,63,95,0.05)" }}>
+        <div className="flex gap-1 p-1 rounded-xl mb-4 bg-primary/5">
           <TabButton id="student" active={tab === "student"} icon={KeyRound} label={t("loginTabStudent")} onClick={() => { setTab("student"); setError(null); }} />
           <TabButton id="teacher" active={tab === "teacher"} icon={GraduationCap} label={t("loginTabTeacher")} onClick={() => { setTab("teacher"); setError(null); }} />
           <TabButton id="create" active={tab === "create"} icon={UserPlus} label={t("createAccountTab")} onClick={() => { setTab("create"); setError(null); }} />
@@ -248,6 +240,13 @@ export default function StudentLogin() {
           </div>
         )}
 
+        {/* روابط قانونية — مطلوبة لمتاجر التطبيقات */}
+        <div className="mt-5 pt-4 border-t border-border flex items-center justify-center gap-x-4 gap-y-2 flex-wrap text-[11px] text-muted-foreground">
+          <Link to="/privacy" className="hover:text-primary underline-offset-2 hover:underline">{t("legalPrivacy")}</Link>
+          <Link to="/terms" className="hover:text-primary underline-offset-2 hover:underline">{t("legalTerms")}</Link>
+          <Link to="/account-deletion" className="hover:text-primary underline-offset-2 hover:underline">{t("legalDeletion")}</Link>
+        </div>
+
       </div>
     </div>
   );
@@ -265,23 +264,21 @@ function ErrorBox({ text }) {
 function SubmitButton({ busy }) {
   return (
     <button type="submit" disabled={busy}
-      className="w-full py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-60"
-      style={{ background: "#173F5F" }}>
+      className="w-full min-h-[44px] py-3 rounded-xl text-sm font-black bg-primary text-primary-foreground transition-all disabled:opacity-60">
       {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : t("loginBtn")}
     </button>
   );
 }
 
-const _inputStyle = { background: "#F7F9FC", border: "1px solid #E2E8F0" };
-
 function LoginField({ value, onChange, label, placeholder }) {
   return (
     <div>
       <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{label}</label>
+      {/* الرموز: لا تصحيح تلقائي ولا حرف كبير تلقائي (لوحات الجوال كانت تغيّر الحرف الأول فيفشل الدخول) */}
       <input value={value} onChange={(e) => onChange(e.target.value)}
         required placeholder={placeholder} dir="ltr"
-        className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none"
-        style={_inputStyle} />
+        autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false} inputMode="text"
+        className="w-full px-4 py-3 rounded-xl text-sm text-foreground font-mono focus:outline-none bg-background border border-border focus:border-primary" />
     </div>
   );
 }
@@ -289,11 +286,9 @@ function LoginField({ value, onChange, label, placeholder }) {
 function TabButton({ id, active, icon: Icon, label, onClick }) {
   return (
     <button type="button" onClick={onClick}
-      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all"
-      style={{
-        background: active ? "#173F5F" : "transparent",
-        color: active ? "#fff" : "hsl(var(--muted-foreground))",
-      }}>
+      className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+        active ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"
+      }`}>
       <Icon size={13} /> {label}
     </button>
   );

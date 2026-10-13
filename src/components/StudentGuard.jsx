@@ -1,6 +1,7 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { useStudentSession } from "@/lib/studentSession";
 import { useAuth } from "@/lib/AuthContext";
+import PageLoader from "@/components/PageLoader";
 
 /**
  * StudentGuard — يحرس مسارات الطالب عبر جلسة الطالب (localStorage).
@@ -12,12 +13,7 @@ export default function StudentGuard() {
   const { isAuthenticated, user, isLoadingAuth } = useAuth();
 
   if (isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center" style={{ background: "#F7F9FC" }}>
-        <div className="w-8 h-8 rounded-full animate-spin"
-          style={{ border: "3px solid rgba(47,102,144,0.2)", borderTopColor: "#173F5F" }} />
-      </div>
-    );
+    return <PageLoader fullScreen />;
   }
 
   // طالب بجلسة صالحة

@@ -8,6 +8,7 @@ import { base44 } from "@/api/base44Client";
 import courseData from "../../lib/courseData";
 import { sectionTitle as sectionTitleTr, topicTitle as topicTitleTr } from "@/lib/courseI18n";
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
+import { useDialogs } from "@/components/DialogProvider";
 
 const BRAND = {
   primary: "#173F5F",
@@ -35,6 +36,7 @@ function emptyQuestion() {
 }
 
 export default function ExamEditor({ exam, onSave, onCancel }) {
+  const { alertDialog } = useDialogs();
   useLang();
   const direction = useDir();
   const [title, setTitle] = useState(exam?.title || "");
@@ -79,7 +81,7 @@ export default function ExamEditor({ exam, onSave, onCancel }) {
   const generateQuestions = async () => {
     if (!selectedTopic) return;
     if (selectedTypes.length === 0) {
-      alert(t("examEditorSelectAtLeastOne"));
+      await alertDialog(t("examEditorSelectAtLeastOne"));
       return;
     }
     setGenerating(true);
@@ -136,7 +138,7 @@ ${t("aiGenPromptJsonFormat", lang)}
       })));
       setOpenQ(0);
     } catch (e) {
-      alert(t("examEditorGenError"));
+      await alertDialog(t("examEditorGenError"));
     } finally {
       setGenerating(false);
     }
@@ -166,8 +168,8 @@ ${t("aiGenPromptJsonFormat", lang)}
   };
 
   const handleSave = async (newStatus = status) => {
-    if (!title.trim()) { alert(t("examEditorErrTitle")); return; }
-    if (questions.length === 0) { alert(t("examEditorErrQuestions")); return; }
+    if (!title.trim()) { await alertDialog(t("examEditorErrTitle")); return; }
+    if (questions.length === 0) { await alertDialog(t("examEditorErrQuestions")); return; }
     setSaving(true);
     try {
       await onSave({
