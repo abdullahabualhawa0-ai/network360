@@ -32,8 +32,9 @@ export async function createSession(svc: any, role: SessionRole, subjectId: stri
   const token = randomToken();
   const expires_at = new Date(Date.now() + SESSION_TTL[role]).toISOString();
 
-  // تنظيف انتهازي: احذف المنتهي، وأبقِ أحدث N جلسة لنفس الشخص
+  // تنظيف انتهازي (في ~ربع عمليات الدخول لتقليل عمليات قاعدة البيانات): احذف المنتهي، وأبقِ أحدث N جلسة لنفس الشخص
   try {
+    if (Math.random() > 0.25) throw new Error("skip-cleanup");
     const existing = (await svc.entities.AuthSession.filter({ subject_id: subjectId, role }, "-created_date", 100)) || [];
     const now = Date.now();
     const live: any[] = [];

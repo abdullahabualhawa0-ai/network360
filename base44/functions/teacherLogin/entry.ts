@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { rateLimit, clientIp, isLocked, recordFailure, clearFailures, filterByCode } from "../../shared/security.ts";
+import { rateLimit, clientIp, isLocked, recordFailure, filterByCode } from "../../shared/security.ts";
 import { createSession, schoolUsable } from "../../shared/session.ts";
 
 /**
@@ -61,7 +61,6 @@ export default async function(req) {
     }
 
     // 4) جلسة الأستاذ
-    await clearFailures(svc, ipKey);
     const { token, expires_at } = await createSession(svc, "teacher", teacher.id, school.id);
     return Response.json({
       teacher_id: teacher.id,

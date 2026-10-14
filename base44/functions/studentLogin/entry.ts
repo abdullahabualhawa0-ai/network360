@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { rateLimit, clientIp, isLocked, recordFailure, clearFailures, filterByCode } from "../../shared/security.ts";
+import { rateLimit, clientIp, isLocked, recordFailure, filterByCode } from "../../shared/security.ts";
 import { createSession, schoolUsable } from "../../shared/session.ts";
 
 /**
@@ -65,8 +65,6 @@ export default async function(req) {
 
       const statusErr = checkStatus(student);
       if (statusErr) return Response.json({ error: statusErr.msg }, { status: statusErr.code });
-
-      await clearFailures(svc, ipKey);
       return Response.json(await buildSession(svc, student, school, true));
     }
 
@@ -85,8 +83,6 @@ export default async function(req) {
 
     const statusErr = checkStatus(student);
     if (statusErr) return Response.json({ error: statusErr.msg }, { status: statusErr.code });
-
-    await clearFailures(svc, ipKey);
     const isPersonal = typeof school.subscription_plan === "string"
       && school.subscription_plan.startsWith("personal_");
     return Response.json(await buildSession(svc, student, school, isPersonal));

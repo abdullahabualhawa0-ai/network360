@@ -382,6 +382,10 @@ const T = {
   settingsLogout: { ar: "تسجيل الخروج", en: "Logout", he: "התנתקות" },
   adminLoginNote: { ar: "لإدارة المدارس والطلاب والامتحانات", en: "Manage schools, students and exams", he: "ניהול בתי ספר, תלמידים ובחינות" },
   errUnexpected: { ar: "حدث خطأ غير متوقع. حاول مرة أخرى.", en: "An unexpected error occurred. Try again.", he: "אירעה שגיאה בלתי צפויה. נסו שוב." },
+  errServiceLimit: { ar: "الخدمة غير متاحة مؤقتاً بسبب حد الاستخدام على المنصة. أبلغ إدارة المنصة وحاول لاحقاً.", en: "The service is temporarily unavailable because the platform usage limit was reached. Please tell the platform administrator and try again later.", he: "השירות אינו זמין זמנית עקב מגבלת שימוש בפלטפורמה. עדכנו את מנהל הפלטפורמה ונסו שוב מאוחר יותר." },
+  errTooMany: { ar: "محاولات كثيرة. انتظر قليلاً ثم حاول مجدداً.", en: "Too many attempts. Please wait a moment and try again.", he: "יותר מדי ניסיונות. המתינו מעט ונסו שוב." },
+  errServer: { ar: "حدث خطأ في الخادم. حاول بعد قليل.", en: "A server error occurred. Please try again shortly.", he: "אירעה שגיאת שרת. נסו שוב בעוד רגע." },
+  errNetwork: { ar: "تعذّر الاتصال بالخادم. تحقق من اتصال الإنترنت وحاول مجدداً.", en: "Couldn't reach the server. Check your internet connection and try again.", he: "לא ניתן להתחבר לשרת. בדקו את חיבור האינטרנט ונסו שוב." },
 
   /* ─── امتحانات الأستاذ ─── */
   teacherExamsTitle: { ar: "إدارة الامتحانات", en: "Exam Management", he: "ניהול בחינות" },

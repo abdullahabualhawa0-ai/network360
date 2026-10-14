@@ -8,6 +8,7 @@ import { schoolAdminLogin, setSchoolAdminSession, clearSchoolAdminSession } from
 import { t, useLang, useDir } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import PageLoader from "@/components/PageLoader";
+import { friendlyError } from "@/lib/errorMessage";
 
 /**
  * صفحة الدخول الموحّدة — ثلاثة تبويبات:
@@ -41,6 +42,11 @@ export default function StudentLogin() {
 
   // المالك (Base44 auth) لا يرى صفحة دخول الطلاب — يُوجّه للوحة الإدارة
   const [checking, setChecking] = useState(true);
+
+  // اختفاء رسالة الخطأ بمجرد أن يبدأ المستخدم بتعديل الرمز (بدل بقائها حتى الإرسال التالي)
+  useEffect(() => {
+    setError(null);
+  }, [sSchoolCode, sStudentCode, tSchoolCode, tTeacherCode, aAdminCode, iStudentCode]);
   useEffect(() => {
     base44.auth.isAuthenticated().then((authed) => {
       if (authed) {
@@ -69,7 +75,7 @@ export default function StudentLogin() {
       setStudentSession(session);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err?.data?.error || err?.message || t("errUnexpected"));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -86,7 +92,7 @@ export default function StudentLogin() {
       setStudentSession(session);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err?.data?.error || err?.message || t("errUnexpected"));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -103,7 +109,7 @@ export default function StudentLogin() {
       setTeacherSession(session);
       navigate("/teacher/dashboard", { replace: true });
     } catch (err) {
-      setError(err?.data?.error || err?.message || t("errUnexpected"));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -120,7 +126,7 @@ export default function StudentLogin() {
       setSchoolAdminSession(session);
       navigate("/admin/school-students", { replace: true });
     } catch (err) {
-      setError(err?.data?.error || err?.message || t("errUnexpected"));
+      setError(friendlyError(err));
     } finally {
       setBusy(false);
     }
