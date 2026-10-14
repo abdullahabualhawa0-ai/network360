@@ -9,6 +9,7 @@ import { studentApi, useStudentSession, clearStudentSession } from "@/lib/studen
 import { useTeacherSession, clearTeacherSession, teacherApi } from "@/lib/teacherSession";
 import { useSchoolAdminSession, clearSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang, useDir, getLang } from "@/lib/i18n";
+import { friendlyError } from "@/lib/errorMessage";
 
 const LANGUAGES = [
   { id: "ar", label: "العربية", native: "العربية", flag: "🇸🇦", dir: "rtl" },
@@ -192,7 +193,7 @@ export default function Settings() {
         setTimeout(() => navigate("/student-login", { replace: true }), 1500);
       }
     } catch (err) {
-      setDeleteMsg({ ok: false, text: err?.response?.data?.error || err?.data?.error || err?.message || t("errUnexpected") });
+      setDeleteMsg({ ok: false, text: friendlyError(err) });
     } finally {
       setDeleting(false);
     }

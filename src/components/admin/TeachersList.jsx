@@ -6,6 +6,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { t, useLang, useDir } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
+import { friendlyError } from "@/lib/errorMessage";
 
 /**
  * قائمة أساتذة مدرسة — يُستخدم من قبل المالك (admin) من SchoolsManager.
@@ -59,7 +60,7 @@ export default function TeachersList({ school, onBack }) {
           });
         } catch (err) {
           setTeachers(prev);
-          setFormError(err?.data?.error || err?.message || t("regErrSubmit"));
+          setFormError(friendlyError(err));
         }
       } else {
         const res = await base44.functions.invoke("manageTeachers", {
@@ -79,7 +80,7 @@ export default function TeachersList({ school, onBack }) {
         setShowForm(false);
       }
     } catch (err) {
-      setFormError(err?.data?.error || err?.message || t("regErrSubmit"));
+      setFormError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -92,7 +93,7 @@ export default function TeachersList({ school, onBack }) {
       await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id, data: { school_id: school.id } });
     } catch (err) {
       setTeachers(prev);
-      await alertDialog(err?.data?.error || err?.message);
+      await alertDialog(friendlyError(err));
     }
   };
 
@@ -104,7 +105,7 @@ export default function TeachersList({ school, onBack }) {
       await base44.functions.invoke("manageTeachers", { action: "delete", id: tc.id, data: { school_id: school.id } });
     } catch (err) {
       setTeachers(prev);
-      await alertDialog(err?.data?.error || err?.message);
+      await alertDialog(friendlyError(err));
     }
   };
 

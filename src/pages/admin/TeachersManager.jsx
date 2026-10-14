@@ -10,6 +10,7 @@ import { useAdminAuth } from "@/lib/useAdminAuth";
 import { getSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang, useDir } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
+import { friendlyError } from "@/lib/errorMessage";
 
 /**
  * إدارة الأساتذة — School Admin
@@ -67,7 +68,7 @@ export default function TeachersManager() {
           await base44.functions.invoke("manageTeachers", { action: "update", id: editId, session, data: updatedData });
         } catch (err) {
           setTeachers(prev);
-          setFormError(err?.data?.error || err?.message || t("regErrSubmit"));
+          setFormError(friendlyError(err));
         }
       } else {
         const res = await base44.functions.invoke("manageTeachers", {
@@ -88,7 +89,7 @@ export default function TeachersManager() {
         setShowForm(false);
       }
     } catch (err) {
-      setFormError(err?.data?.error || err?.message || t("regErrSubmit"));
+      setFormError(friendlyError(err));
     } finally {
       setBusy(false);
     }
@@ -101,7 +102,7 @@ export default function TeachersManager() {
       await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id, session });
     } catch (err) {
       setTeachers(prev);
-      await alertDialog(err?.data?.error || err?.message);
+      await alertDialog(friendlyError(err));
     }
   };
 
@@ -113,7 +114,7 @@ export default function TeachersManager() {
       await base44.functions.invoke("manageTeachers", { action: "delete", id: tc.id, session });
     } catch (err) {
       setTeachers(prev);
-      await alertDialog(err?.data?.error || err?.message);
+      await alertDialog(friendlyError(err));
     }
   };
 
