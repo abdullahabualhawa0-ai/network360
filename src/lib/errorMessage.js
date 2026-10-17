@@ -11,7 +11,7 @@ export function friendlyError(err) {
   const status = err?.status ?? err?.response?.status;
   const serverMsg = err?.data?.error || err?.response?.data?.error;
 
-  if (status === 402) return `${t("errServiceLimit")} (402)`;
+  if (status === 402) return t("errServiceLimit");
   if (serverMsg) return serverMsg;
   if (status === 429) return `${t("errTooMany")} (429)`;
   if (status >= 500) return `${t("errServer")} (${status})`;

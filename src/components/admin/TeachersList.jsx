@@ -6,11 +6,12 @@ import {
 import { base44 } from "@/api/base44Client";
 import { t, useLang, useDir } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
-import { friendlyError } from "@/lib/errorMessage";
+import { randomCode } from "@/lib/plans";
 
 /**
- * قائمة أساتذة مدرسة — يُستخدم من قبل المالك (admin) من SchoolsManager.
- * يستخدم manageTeachers مع school_id (مصادقة Base44 admin).
+ * قائمة أساتذة مدرسة — يُستخدم من قبل المالك (Owner) من SchoolsManager.
+ * عمليات مباشرة على كيان Teacher بدون دوال خلفية — لا أخطاء 402.
+ * حد الأساتذة (teacher_limit) وتفرّد الرمز يُفحصان قبل الإنشاء.
  */
 export default function TeachersList({ school, onBack }) {
   const { confirmDialog, alertDialog } = useDialogs();
@@ -26,12 +27,9 @@ export default function TeachersList({ school, onBack }) {
 
   const load = async () => {
     try {
-      const res = await base44.functions.invoke("manageTeachers", {
-        action: "list",
-        data: { school_id: school.id },
-      });
-      setTeachers(res?.teachers || []);
-      setTeacherLimit(res?.teacher_limit || 0);
+      const rows = await base44.entities.Teacher.filter({ school_id: school.id }, "-created_date", 200);
+      setTeachers(rows || []);
+      setTeacherLimit(school.teacher_limit || 0);
     } catch {
       setTeachers([]);
     }
@@ -39,7 +37,21 @@ export default function TeachersList({ school, onBack }) {
 
   useEffect(() => {
     if (school?.id) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [school?.id]);
+
+  const codeTaken = (code) =>
+    (teachers || []).some((tc) => String(tc.teacher_code || "").toLowerCase() === code.toLowerCase());
+
+  const uniqueTeacherCode = async () => {
+    for (let i = 0; i < 10; i++) {
+      const c = randomCode("TCH-", 6);
+      if (codeTaken(c)) continue;
+      const dup = await base44.entities.Teacher.filter({ school_id: school.id, teacher_code: c });
+      if (!dup?.length) return c;
+    }
+    return `${randomCode("TCH-", 6)}${Date.now().toString(36).slice(-2).toUpperCase()}`;
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -55,57 +67,59 @@ export default function TeachersList({ school, onBack }) {
         setEditId(null);
         setShowForm(false);
         try {
-          await base44.functions.invoke("manageTeachers", {
-            action: "update", id: editId, data: { school_id: school.id, ...updatedData },
-          });
+          await base44.entities.Teacher.update(editId, updatedData);
         } catch (err) {
           setTeachers(prev);
-          setFormError(friendlyError(err));
+          setFormError(t("errUnexpected"));
         }
       } else {
-        const res = await base44.functions.invoke("manageTeachers", {
-          action: "create",
-          data: {
-            school_id: school.id,
-            full_name: form.full_name.trim(),
-            teacher_code: form.teacher_code.trim() || undefined,
-          },
-        });
-        if (res?.id) {
-          setTeachers((prev) => [...(prev || []), res]);
-        } else {
-          load();
+        const limit = school.teacher_limit || 0;
+        if (limit > 0 && (teachers || []).length >= limit) {
+          setFormError(t("teacherLimitReached"));
+          return;
         }
+        const code = form.teacher_code.trim() || (await uniqueTeacherCode());
+        if (codeTaken(code)) { setFormError(t("teacherCodeTaken")); return; }
+        const created = await base44.entities.Teacher.create({
+          school_id: school.id,
+          school_code: school.code,
+          full_name: form.full_name.trim(),
+          teacher_code: code,
+          status: "active",
+          preferred_language: "ar",
+        });
+        setTeachers((prev) => [...(prev || []), created]);
         setForm({ full_name: "", teacher_code: "" });
         setShowForm(false);
       }
     } catch (err) {
-      setFormError(friendlyError(err));
+      setFormError(t("errUnexpected"));
     } finally {
       setBusy(false);
     }
   };
 
-  const toggleStatus = async (id) => {
+  const toggleStatus = async (tc) => {
+    const next = tc.status === "active" ? "disabled" : "active";
     const prev = teachers;
-    setTeachers((prev) => (prev || []).map((tc) => (tc.id === id ? { ...tc, status: tc.status === "active" ? "disabled" : "active" } : tc)));
+    setTeachers((p) => (p || []).map((x) => (x.id === tc.id ? { ...x, status: next } : x)));
     try {
-      await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id, data: { school_id: school.id } });
+      await base44.entities.Teacher.update(tc.id, { status: next });
     } catch (err) {
       setTeachers(prev);
-      await alertDialog(friendlyError(err));
+      await alertDialog(t("errUnexpected"));
     }
   };
 
   const deleteTeacher = async (tc) => {
     if (!(await confirmDialog(t("teacherConfirmDelete")))) return;
     const prev = teachers;
-    setTeachers((prev) => (prev || []).filter((item) => item.id !== tc.id));
+    setTeachers((p) => (p || []).filter((item) => item.id !== tc.id));
     try {
-      await base44.functions.invoke("manageTeachers", { action: "delete", id: tc.id, data: { school_id: school.id } });
+      await base44.entities.Teacher.delete(tc.id);
     } catch (err) {
       setTeachers(prev);
-      await alertDialog(friendlyError(err));
+      await alertDialog(t("errUnexpected"));
     }
   };
 
@@ -234,7 +248,7 @@ export default function TeachersList({ school, onBack }) {
                   style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
                   <Pencil size={11} /> {t("examMgmtEdit")}
                 </button>
-                <button onClick={() => toggleStatus(tc.id)}
+                <button onClick={() => toggleStatus(tc)}
                   className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold"
                   style={tc.status === "active"
                     ? { border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }

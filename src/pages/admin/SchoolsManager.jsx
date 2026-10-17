@@ -23,7 +23,7 @@ export default function SchoolsManager() {
   const [schools, setSchools] = useState(null);
   const [personalCodes, setPersonalCodes] = useState({});
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", code: "", studentLimit: 50 });
+  const [form, setForm] = useState({ name: "", code: "", adminName: "", studentLimit: 50 });
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState("list"); // list | students | teachers
@@ -94,6 +94,7 @@ export default function SchoolsManager() {
       name: form.name.trim(),
       code,
       admin_code: generateAdminCode(),
+      admin_name: form.adminName.trim() || null,
       is_active: true,
       created_by_id: user.id,
       subscription_plan: planForLimit(limitN), // الاسم متسق مع الحد
@@ -101,7 +102,7 @@ export default function SchoolsManager() {
       current_student_count: 0,
       subscription_status: "active",
     });
-    setForm({ name: "", code: "", studentLimit: 50 });
+    setForm({ name: "", code: "", adminName: "", studentLimit: 50 });
     setShowForm(false);
     setBusy(false);
     load();
@@ -121,6 +122,15 @@ export default function SchoolsManager() {
     }
     return false;
   };
+  // هل رمز المشرف مستخدم؟ (بدون حساسية لحالة الأحرف)
+  const adminCodeTaken = async (code, exceptId = null) => {
+    if ((schools || []).some((x) => x.id !== exceptId && String(x.admin_code || "").toLowerCase() === code.toLowerCase())) return true;
+    for (const v of Array.from(new Set([code, code.toUpperCase(), code.toLowerCase()]))) {
+      const dup = await base44.entities.School.filter({ admin_code: v });
+      if ((dup || []).some((x) => x.id !== exceptId)) return true;
+    }
+    return false;
+  };
   const studentCodeTaken = async (code, exceptProfileId) => {
     for (const v of Array.from(new Set([code, code.toUpperCase(), code.toLowerCase()]))) {
       const dup = await base44.entities.StudentProfile.filter({ student_code: v });
@@ -133,6 +143,7 @@ export default function SchoolsManager() {
     setRowError(null);
     const value = field === "limit" ? String(s.student_limit ?? "")
       : field === "studentCode" ? (personalCodes[s.id]?.code || "")
+      : field === "adminCode" ? (s.admin_code || "")
       : (s.code || "");
     setEdit({ id: s.id, field, value });
   };
@@ -155,6 +166,12 @@ export default function SchoolsManager() {
       if (value === profile.code) return setEdit(null);
       if (await studentCodeTaken(value, profile.profileId)) return setRowError({ id: s.id, msg: t("schoolsErrDupCode") });
       await base44.entities.StudentProfile.update(profile.profileId, { student_code: value });
+    } else if (edit.field === "adminCode") {
+      // تعديل رمز المشرف — للاونرز فقط (هذه الشاشة للمالك حصراً)
+      if (!value) return setRowError({ id: s.id, msg: t("schoolsErrNameCode") });
+      if (value === s.admin_code) return setEdit(null);
+      if (await adminCodeTaken(value, s.id)) return setRowError({ id: s.id, msg: t("schoolsErrAdminDup") });
+      await base44.entities.School.update(s.id, { admin_code: value });
     } else if (edit.field === "limit") {
       const n = Number(value);
       if (!Number.isInteger(n) || n < 0) return setRowError({ id: s.id, msg: t("schoolsErrLimitInvalid") });
@@ -288,11 +305,17 @@ export default function SchoolsManager() {
         {/* Add School form */}
         {showForm &&
           <motion.form initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} onSubmit={addSchool}
-            className="rounded-2xl p-4 mb-5 grid sm:grid-cols-4 gap-3 items-end bg-card"
+            className="rounded-2xl p-4 mb-5 grid sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end bg-card"
             style={{ border: "1px solid rgba(6,182,212,0.3)" }}>
             <div>
               <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("schoolsNameLabel")}</label>
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                dir={direction} className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
+                style={{ border: "1px solid hsl(var(--border))" }} />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("regAdminName")}</label>
+              <input value={form.adminName} onChange={(e) => setForm({ ...form, adminName: e.target.value })}
                 dir={direction} className="w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none"
                 style={{ border: "1px solid hsl(var(--border))" }} />
             </div>
@@ -323,7 +346,7 @@ export default function SchoolsManager() {
               </button>
             </div>
             {formError &&
-              <div className="sm:col-span-4 text-[11px] font-bold px-3 py-2 rounded-xl"
+              <div className="sm:col-span-5 text-[11px] font-bold px-3 py-2 rounded-xl"
                 style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#fca5a5" }}>
                 {formError}
               </div>
@@ -403,7 +426,24 @@ export default function SchoolsManager() {
                           <div className="text-[9px] font-bold text-muted-foreground mb-1 flex items-center gap-1">
                             <ShieldCheck size={9} /> {t("schoolsAdminCodeLabel")}
                           </div>
-                          <span className="text-xs font-mono font-bold" style={{ color: "#a78bfa" }} dir="ltr">{s.admin_code || "—"}</span>
+                          {edit?.id === s.id && edit.field === "adminCode" ? (
+                            <InlineEdit value={edit.value} dir="ltr" mono
+                              onChange={(v) => setEdit({ ...edit, value: v })}
+                              onSave={() => commitEdit(s)} onCancel={cancelEdit} />
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-mono font-bold" style={{ color: "#a78bfa" }} dir="ltr">{s.admin_code || "—"}</span>
+                                <button onClick={() => startEdit(s, "adminCode")}
+                                  className="min-w-[32px] min-h-[32px] flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity" title={t("schoolsEditAdminCodeHint")}>
+                                  <Pencil size={12} />
+                                </button>
+                              </div>
+                              <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                                {t("regAdminName")}: {s.admin_name || "—"}
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
 

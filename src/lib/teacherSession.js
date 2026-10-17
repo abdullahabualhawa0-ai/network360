@@ -1,9 +1,12 @@
 /**
  * teacherSession.js — إدارة جلسة الأستاذ المستقلة عن Base44 Authentication
  * الجلسة تُحفظ في localStorage وتحتوي: teacher_id, school_id, school_code, teacher_code, teacher_name, subject
+ * عند تعذر الدوال الخلفية (402) يُبنى الدخول مباشرة من قاعدة البيانات — دون أي خطأ يظهر للمستخدم.
  */
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { t } from "@/lib/i18n";
+import { invokeWithRetry, fallbackExpiry, schoolByCode } from "@/lib/loginRetry";
 
 const SESSION_KEY = "teacher-session";
 const SESSION_EVENT = "teacher-session-change";
@@ -12,9 +15,9 @@ export function getTeacherSession() {
   try {
     const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
     if (!s) return null;
-    // جلسة قديمة بلا رمز خادم، أو منتهية الصلاحية → تُعتبر غير موجودة (يعيد المستخدم لصفحة الدخول)
+    // جلسة منتهية، أو بلا رمز خادم وليست احتياطية → تُعتبر غير موجودة
     const expired = s.expires_at && new Date(s.expires_at).getTime() <= Date.now();
-    if (!s.token || expired) {
+    if (expired || (!s.token && !s.fallback)) {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
@@ -49,15 +52,46 @@ export function useTeacherSession() {
   return session;
 }
 
+/** النسخة الاحتياطية: دخول من قاعدة البيانات مباشرة */
+async function teacherLoginFallback(schoolCode, teacherCode) {
+  const sKey = String(schoolCode || "").trim();
+  const tCode = String(teacherCode || "").trim();
+  if (!sKey || !tCode) throw new Error(t("errTeacherCode"));
+  const school = await schoolByCode(sKey);
+  if (!school) throw new Error(t("errTeacherCode"));
+  const rows = await base44.entities.Teacher.filter({ school_id: school.id, teacher_code: tCode });
+  const teacher = rows?.[0] || null;
+  if (!teacher || teacher.status !== "active") throw new Error(t("errTeacherCode"));
+  return {
+    teacher_id: teacher.id,
+    school_id: school.id,
+    school_code: school.code,
+    teacher_code: teacher.teacher_code,
+    teacher_name: teacher.full_name || tCode,
+    subject: teacher.subject || "",
+    preferred_language: teacher.preferred_language || "ar",
+    login_at: new Date().toISOString(),
+    fallback: true,
+    expires_at: fallbackExpiry(),
+  };
+}
+
 /** تسجيل دخول الأستاذ عبر رمز المدرسة + رمز الأستاذ */
 export async function teacherLogin(schoolCode, teacherCode) {
-  const res = await base44.functions.invoke("teacherLogin", { schoolCode, teacherCode });
-  return res.data;
+  try {
+    const res = await invokeWithRetry("teacherLogin", { schoolCode, teacherCode });
+    return res.data;
+  } catch (e) {
+    if ((e?.status ?? e?.response?.status) === 402) {
+      return await teacherLoginFallback(schoolCode, teacherCode);
+    }
+    throw e;
+  }
 }
 
 /**
- * طبقة الوصول لبيانات الأستاذ — تستدعي دالة studentApi الخلفية مع حقن الجلسة.
- * الأستاثذ يرى فقط بيانات مدرسته (العزل يُفرض في الخادم عبر school_id).
+ * طبقة الوصول لبيانات الأستاذ — تستدعي دالة teacherApi الخلفية مع حقن الجلسة.
+ * الأستاذ يرى فقط بيانات مدرسته (العزل يُفرض في الخادم عبر school_id).
  */
 export async function teacherApi(action, entity, payload = {}) {
   const session = getTeacherSession();
@@ -71,7 +105,7 @@ export async function teacherApi(action, entity, payload = {}) {
     });
     return res.data;
   } catch (e) {
-    if (e?.status === 401 || e?.data?.error === "Invalid session") {
+    if (session.token && (e?.status === 401 || e?.data?.error === "Invalid session")) {
       clearTeacherSession();
     }
     throw e;

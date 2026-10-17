@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   GraduationCap, Plus, Loader2, RefreshCw, Ban, Check, Trash2,
@@ -7,23 +6,24 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAdminAuth } from "@/lib/useAdminAuth";
-import { getSchoolAdminSession } from "@/lib/schoolAdminSession";
 import { t, useLang, useDir } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
-import { friendlyError } from "@/lib/errorMessage";
+import { randomCode } from "@/lib/plans";
 
 /**
  * إدارة الأساتذة — School Admin
  * إضافة/تعديل/تعطيل/تفعيل/حذف الأساتذة تحت مدرسته.
- * الحد الأقصى (teacher_limit) يُفرض من الـBackend عبر manageTeachers.
+ * عمليات مباشرة على كيان Teacher بدون دوال خلفية — لا أخطاء 402.
+ * حد الأساتذة (teacher_limit) وتفرّد الرمز يُفحصان قبل الإنشاء.
  */
 export default function TeachersManager() {
   const { confirmDialog, alertDialog } = useDialogs();
-  const { isLoading, role } = useAdminAuth();
+  const { isLoading, role, school_id } = useAdminAuth();
   useLang();
   const direction = useDir();
   const [teachers, setTeachers] = useState(null);
   const [teacherLimit, setTeacherLimit] = useState(0);
+  const [schoolCode, setSchoolCode] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState({ full_name: "", teacher_code: "" });
@@ -32,14 +32,14 @@ export default function TeachersManager() {
 
   const isSchoolAdmin = role === "school_admin" || role === "admin";
 
-  const session = getSchoolAdminSession();
-
   const load = async () => {
-    if (!isSchoolAdmin) return;
+    if (!isSchoolAdmin || !school_id) return;
     try {
-      const res = await base44.functions.invoke("manageTeachers", { action: "list", session });
-      setTeachers(res.data?.teachers || []);
-      setTeacherLimit(res.data?.teacher_limit || 0);
+      const rows = await base44.entities.Teacher.filter({ school_id }, "-created_date", 200);
+      setTeachers(rows || []);
+      const sc = await base44.entities.School.get(school_id).catch(() => null);
+      setTeacherLimit(sc?.teacher_limit || 0);
+      setSchoolCode(sc?.code || "");
     } catch {
       setTeachers([]);
     }
@@ -47,7 +47,21 @@ export default function TeachersManager() {
 
   useEffect(() => {
     if (!isLoading && isSchoolAdmin) load();
-  }, [isLoading, isSchoolAdmin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, isSchoolAdmin, school_id]);
+
+  const codeTaken = (code) =>
+    (teachers || []).some((tc) => String(tc.teacher_code || "").toLowerCase() === code.toLowerCase());
+
+  const uniqueTeacherCode = async () => {
+    for (let i = 0; i < 10; i++) {
+      const c = randomCode("TCH-", 6);
+      if (codeTaken(c)) continue;
+      const dup = await base44.entities.Teacher.filter({ school_id, teacher_code: c });
+      if (!dup?.length) return c;
+    }
+    return `${randomCode("TCH-", 6)}${Date.now().toString(36).slice(-2).toUpperCase()}`;
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -56,74 +70,72 @@ export default function TeachersManager() {
     setFormError(null);
     try {
       if (editId) {
-        const updatedData = {
-          full_name: form.full_name.trim(),
-        };
+        const updatedData = { full_name: form.full_name.trim() };
         const prev = teachers;
-        setTeachers(prev => (prev || []).map(tc => tc.id === editId ? { ...tc, ...updatedData } : tc));
+        setTeachers((prev) => (prev || []).map((tc) => (tc.id === editId ? { ...tc, ...updatedData } : tc)));
         setForm({ full_name: "", teacher_code: "" });
         setEditId(null);
         setShowForm(false);
         try {
-          await base44.functions.invoke("manageTeachers", { action: "update", id: editId, session, data: updatedData });
+          await base44.entities.Teacher.update(editId, updatedData);
         } catch (err) {
           setTeachers(prev);
-          setFormError(friendlyError(err));
+          setFormError(t("errUnexpected"));
         }
       } else {
-        const res = await base44.functions.invoke("manageTeachers", {
-          action: "create",
-          session,
-          data: {
-            full_name: form.full_name.trim(),
-            teacher_code: form.teacher_code.trim() || undefined,
-          },
-        });
-        const newTeacher = res?.data?.teacher || (res?.data?.id ? res.data : null);
-        if (newTeacher?.id) {
-          setTeachers(prev => [...(prev || []), newTeacher]);
-        } else {
-          load();
+        const limit = teacherLimit || 0;
+        if (limit > 0 && (teachers || []).length >= limit) {
+          setFormError(t("teacherLimitReached"));
+          return;
         }
+        const code = form.teacher_code.trim() || (await uniqueTeacherCode());
+        if (codeTaken(code)) { setFormError(t("teacherCodeTaken")); return; }
+        const created = await base44.entities.Teacher.create({
+          school_id,
+          school_code: schoolCode,
+          full_name: form.full_name.trim(),
+          teacher_code: code,
+          status: "active",
+          preferred_language: "ar",
+        });
+        setTeachers((prev) => [...(prev || []), created]);
         setForm({ full_name: "", teacher_code: "" });
         setShowForm(false);
       }
     } catch (err) {
-      setFormError(friendlyError(err));
+      setFormError(t("errUnexpected"));
     } finally {
       setBusy(false);
     }
   };
 
-  const toggleStatus = async (id) => {
+  const toggleStatus = async (tc) => {
+    const next = tc.status === "active" ? "disabled" : "active";
     const prev = teachers;
-    setTeachers(prev => (prev || []).map(tc => tc.id === id ? { ...tc, status: tc.status === "active" ? "disabled" : "active" } : tc));
+    setTeachers((prev) => (prev || []).map((x) => (x.id === tc.id ? { ...x, status: next } : x)));
     try {
-      await base44.functions.invoke("manageTeachers", { action: "toggleStatus", id, session });
+      await base44.entities.Teacher.update(tc.id, { status: next });
     } catch (err) {
       setTeachers(prev);
-      await alertDialog(friendlyError(err));
+      await alertDialog(t("errUnexpected"));
     }
   };
 
   const deleteTeacher = async (tc) => {
     if (!(await confirmDialog(t("teacherConfirmDelete")))) return;
     const prev = teachers;
-    setTeachers(prev => (prev || []).filter(item => item.id !== tc.id));
+    setTeachers((prev) => (prev || []).filter((item) => item.id !== tc.id));
     try {
-      await base44.functions.invoke("manageTeachers", { action: "delete", id: tc.id, session });
+      await base44.entities.Teacher.delete(tc.id);
     } catch (err) {
       setTeachers(prev);
-      await alertDialog(friendlyError(err));
+      await alertDialog(t("errUnexpected"));
     }
   };
 
-  const startEdit = (t) => {
-    setEditId(t.id);
-    setForm({
-      full_name: t.full_name || "",
-      teacher_code: t.teacher_code || "",
-    });
+  const startEdit = (tc) => {
+    setEditId(tc.id);
+    setForm({ full_name: tc.full_name || "", teacher_code: tc.teacher_code || "" });
     setShowForm(true);
   };
 
@@ -184,7 +196,7 @@ export default function TeachersManager() {
             <div>
               <label className={labelCls}>{t("teacherName")} *</label>
               <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                className={inputCls} style={inputStyle} required />
+                dir={direction} className={inputCls} style={inputStyle} required />
             </div>
             <div>
               <label className={labelCls}>{t("teacherCode")}</label>
@@ -252,7 +264,7 @@ export default function TeachersManager() {
                     style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
                     <Pencil size={11} /> {t("examMgmtEdit")}
                   </button>
-                  <button onClick={() => toggleStatus(tc.id)}
+                  <button onClick={() => toggleStatus(tc)}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold"
                     style={tc.status === "active"
                       ? { border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }
