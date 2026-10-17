@@ -110,18 +110,6 @@
               "id": "{{user.data.school_id}}"
             }
           ]
-        },
-        {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "student"
-              }
-            },
-            {
-              "id": "{{user.data.school_id}}"
-            }
-          ]
         }
       ]
     },
