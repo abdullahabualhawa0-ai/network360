@@ -1,12 +1,12 @@
 /**
  * studentSession.js — إدارة جلسة الطالب المستقلة عن Base44 Authentication
  * الجلسة تُحفظ في localStorage وتحتوي: student_id, school_id, student_code, student_name, login_at
- * عند تعذر الدوال الخلفية (402) يُبنى الدخول مباشرة من قاعدة البيانات — دون أي خطأ يظهر للمستخدم.
+ * لا تُنشأ الجلسة إلا بعد التحقق من الرموز في الخادم.
  */
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { t } from "@/lib/i18n";
-import { invokeWithRetry, fallbackExpiry, schoolByCode, isPlan402 } from "@/lib/loginRetry";
+import { invokeCodeLogin } from "@/lib/loginRetry";
 
 const SESSION_KEY = "student-session";
 const SESSION_EVENT = "student-session-change";
@@ -15,9 +15,9 @@ export function getStudentSession() {
   try {
     const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
     if (!s) return null;
-    // جلسة منتهية، أو بلا رمز خادم وليست احتياطية → تُعتبر غير موجودة
-    const expired = s.expires_at && new Date(s.expires_at).getTime() <= Date.now();
-    if (expired || (!s.token && !s.fallback)) {
+    // تُرفض الجلسات المحلية القديمة التي لم تصدر عن الخادم.
+    const expiresAt = Date.parse(s.expires_at);
+    if (typeof s.token !== "string" || !s.token || !s.student_id || !s.school_id || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
@@ -52,59 +52,13 @@ export function useStudentSession() {
   return session;
 }
 
-/** النسخة الاحتياطية: دخول من قاعدة البيانات مباشرة (مدرسي أو فردي) */
-async function studentLoginFallback(schoolCode, studentCode) {
-  const code = String(studentCode || "").trim();
-  if (!code) throw new Error(t("errStudentCode"));
-  let student = null;
-  let school = null;
-  const sKey = String(schoolCode || "").trim();
-  if (sKey) {
-    school = await schoolByCode(sKey);
-    if (!school) throw new Error(t("errSchoolCode"));
-    const rows = await base44.entities.StudentProfile.filter({ school_id: school.id, student_code: code });
-    student = rows?.[0] || null;
-    if (!student) throw new Error(t("errStudentCode"));
-  } else {
-    // الوضع الفردي: رمز الطالب فقط — يجب أن تنتمي لمدرسة بخطة شخصية
-    const rows = await base44.entities.StudentProfile.filter({ student_code: code });
-    for (const st of rows || []) {
-      const sc = await base44.entities.School.get(st.school_id).catch(() => null);
-      if (sc && String(sc.subscription_plan || "").startsWith("personal_") && sc.is_active !== false) {
-        student = st;
-        school = sc;
-        break;
-      }
-    }
-    if (!student) throw new Error(t("errInvalidCode"));
-  }
-  if (student.status === "disabled") throw new Error(t("errDisabled"));
-  if (student.status !== "approved") throw new Error(t("errNotApproved"));
-  const isPersonal = !!school && String(school.subscription_plan || "").startsWith("personal_");
-  return {
-    student_id: student.id,
-    school_id: school?.id || "",
-    student_code: student.student_code,
-    student_name: student.full_name || student.student_code,
-    preferred_language: student.preferred_language || "ar",
-    is_personal: isPersonal,
-    login_at: new Date().toISOString(),
-    fallback: true,
-    expires_at: fallbackExpiry(),
-  };
-}
-
-/** تسجيل دخول الطالب — رمز المدرسة + رمز الطالب (مدرسي) أو رمز الطالب فقط (فردي) */
+/** تسجيل دخول الطالب — لا يُحفظ أي دخول قبل التحقق من الخادم. */
 export async function studentLogin(schoolCode, studentCode) {
-  try {
-    const res = await invokeWithRetry("studentLogin", { schoolCode, studentCode });
-    return res.data;
-  } catch (e) {
-    if ((e?.status ?? e?.response?.status) === 402) {
-      return await studentLoginFallback(schoolCode, studentCode);
-    }
-    throw e;
-  }
+  const code = String(studentCode || "").trim();
+  const school = String(schoolCode || "").trim();
+  if (!code) throw new Error(t("errStudentCode"));
+  if (schoolCode != null && !school) throw new Error(t("errSchoolCode"));
+  return invokeCodeLogin("studentLogin", { schoolCode: school || null, studentCode: code }, "student_id");
 }
 
 /**
@@ -123,40 +77,9 @@ export async function studentApi(action, entity, payload = {}) {
     });
     return res.data;
   } catch (e) {
-    // الجلسة الحقيقية غير الصالحة تُمحى — الجلسة الاحتياطية تبقى (حتى لا يُطرد الطالب من التطبيق)
-    if (session.token && (e?.status === 401 || e?.data?.error === "Invalid session")) {
+    if ((e?.status ?? e?.response?.status) === 401 || (e?.data?.error ?? e?.response?.data?.error) === "Invalid session") {
       clearStudentSession();
     }
-    // تعذر الدوال الخلفية (402) → تنفيذ مباشر من قاعدة البيانات — لا 402 للمستخدم
-    if (isPlan402(e)) {
-      return await directEntityStudent(action, entity, payload);
-    }
     throw e;
-  }
-}
-
-/** نسخة مباشرة آمنة لبيانات الطالب: نشر الامتحانات فقط + إزالة مفاتيح الإجابة */
-async function directEntityStudent(action, entity, payload = {}) {
-  const E = base44.entities[entity];
-  const { query = {}, data = {}, id, sort, limit } = payload;
-  const stripExam = (exam) =>
-    exam && Array.isArray(exam.questions)
-      ? { ...exam, questions: exam.questions.map(({ answer, ...rest }) => rest) }
-      : exam;
-  switch (action) {
-    case "list": return await E.list(sort, limit);
-    case "filter": {
-      const q = entity === "Exam" ? { status: "published", ...(query || {}) } : (query || {});
-      const rows = await E.filter(q, sort, limit);
-      return entity === "Exam" ? (rows || []).map(stripExam) : rows;
-    }
-    case "get": {
-      const row = await E.get(id);
-      return entity === "Exam" ? stripExam(row) : row;
-    }
-    case "create": return await E.create(data);
-    case "update": return await E.update(id, data);
-    case "delete": return await E.delete(id);
-    default: throw new Error("Action not supported locally: " + action);
   }
 }

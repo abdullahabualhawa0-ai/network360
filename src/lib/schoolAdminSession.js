@@ -1,12 +1,12 @@
 /**
  * schoolAdminSession.js — إدارة جلسة مشرف المدرسة المستقلة عن Base44 Authentication
  * الجلسة تُحفظ في localStorage وتحتوي: school_id, school_code, school_name, admin_code, role
- * عند تعذر الدوال الخلفية (402) يُبنى الدخول مباشرة من قاعدة البيانات — دون أي خطأ يظهر للمستخدم.
+ * لا تُنشأ الجلسة إلا بعد التحقق من الرمز في الخادم.
  */
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { t } from "@/lib/i18n";
-import { invokeWithRetry, fallbackExpiry, isPlan402, directEntityAction } from "@/lib/loginRetry";
+import { invokeCodeLogin } from "@/lib/loginRetry";
 
 const SESSION_KEY = "school-admin-session";
 const SESSION_EVENT = "school-admin-session-change";
@@ -15,9 +15,9 @@ export function getSchoolAdminSession() {
   try {
     const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
     if (!s) return null;
-    // جلسة منتهية، أو بلا رمز خادم وليست احتياطية → تُعتبر غير موجودة
-    const expired = s.expires_at && new Date(s.expires_at).getTime() <= Date.now();
-    if (expired || (!s.token && !s.fallback)) {
+    // تُرفض الجلسات المحلية القديمة التي لم تصدر عن الخادم.
+    const expiresAt = Date.parse(s.expires_at);
+    if (typeof s.token !== "string" || !s.token || !s.school_id || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
@@ -52,44 +52,11 @@ export function useSchoolAdminSession() {
   return session;
 }
 
-/** النسخة الاحتياطية: دخول من قاعدة البيانات مباشرة برمز المشرف */
-async function schoolAdminLoginFallback(adminCode) {
+/** تسجيل دخول مشرف المدرسة عبر رمز المشرف، بتحقق من الخادم فقط. */
+export async function schoolAdminLogin(adminCode) {
   const code = String(adminCode || "").trim();
   if (!code) throw new Error(t("errAdminCode"));
-  let school = null;
-  for (const v of Array.from(new Set([code, code.toUpperCase(), code.toLowerCase()]))) {
-    const rows = await base44.entities.School.filter({ admin_code: v, is_active: true });
-    if (rows?.length) {
-      school = rows[0];
-      break;
-    }
-  }
-  if (!school) throw new Error(t("errAdminCode"));
-  if (school.subscription_status === "expired") throw new Error(t("errUnexpected"));
-  return {
-    school_id: school.id,
-    school_code: school.code,
-    school_name: school.name,
-    admin_name: school.admin_name || school.name,
-    admin_code: school.admin_code,
-    role: "school_admin",
-    login_at: new Date().toISOString(),
-    fallback: true,
-    expires_at: fallbackExpiry(),
-  };
-}
-
-/** تسجيل دخول مشرف المدرسة عبر رمز المشرف فقط (رمز فريد) */
-export async function schoolAdminLogin(adminCode) {
-  try {
-    const res = await invokeWithRetry("schoolAdminLogin", { adminCode });
-    return res.data;
-  } catch (e) {
-    if ((e?.status ?? e?.response?.status) === 402) {
-      return await schoolAdminLoginFallback(adminCode);
-    }
-    throw e;
-  }
+  return invokeCodeLogin("schoolAdminLogin", { adminCode: code }, "school_id");
 }
 
 /**
@@ -108,12 +75,8 @@ export async function schoolAdminApi(action, entity, payload = {}) {
     });
     return res.data;
   } catch (e) {
-    if (session.token && (e?.status === 401 || e?.data?.error === "Invalid session")) {
+    if ((e?.status ?? e?.response?.status) === 401 || (e?.data?.error ?? e?.response?.data?.error) === "Invalid session") {
       clearSchoolAdminSession();
-    }
-    // تعذر الدوال الخلفية (402) → تنفيذ مباشر من قاعدة البيانات — لا 402 للمستخدم
-    if (isPlan402(e)) {
-      return await directEntityAction(action, entity, payload);
     }
     throw e;
   }

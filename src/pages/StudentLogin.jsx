@@ -48,14 +48,20 @@ export default function StudentLogin() {
     setError(null);
   }, [sSchoolCode, sStudentCode, tSchoolCode, tTeacherCode, aAdminCode, iStudentCode]);
   useEffect(() => {
-    base44.auth.isAuthenticated().then((authed) => {
-      if (authed) {
-        base44.auth.me().then((u) => {
-          if (u?.role === "admin") navigate("/admin/schools", { replace: true });
-          else setChecking(false);
-        }).catch(() => setChecking(false));
-      } else setChecking(false);
-    });
+    let active = true;
+    const checkLogin = async () => {
+      try {
+        if (!(await base44.auth.isAuthenticated())) return;
+        const user = await base44.auth.me();
+        if (active && user?.role === "admin") navigate("/admin/schools", { replace: true });
+      } catch (err) {
+        if ((err?.status ?? err?.response?.status) !== 401) throw err;
+      } finally {
+        if (active) setChecking(false);
+      }
+    };
+    checkLogin();
+    return () => { active = false; };
   }, [navigate]);
 
   if (checking) {
