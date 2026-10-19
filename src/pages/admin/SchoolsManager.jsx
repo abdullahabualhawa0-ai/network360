@@ -227,7 +227,8 @@ export default function SchoolsManager() {
       const msg = err?.data?.error || err?.response?.data?.error;
       if (msg === "School not found") {
         /* محذوفة أصلاً */
-      } else if (status === 404) {
+      } else if (status === 404 || status === 402 || status === 403) {
+        // الدالة غير متاحة على الخطة → حذف مباشر من قاعدة البيانات (المالك لديه الصلاحية)
         try { await cascadeDeleteClient(sc); }
         catch { setDeleteError(t("schoolsDeleteFailed")); setDeleting(false); return; }
       } else {

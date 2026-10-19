@@ -23,6 +23,29 @@ export async function invokeWithRetry(name, payload, tries = 3) {
   throw lastErr;
 }
 
+/** هل الخطأ 402 (تعذر تنفيذ الدوال الخلفية على الخطة الحالية)؟ */
+export function isPlan402(e) {
+  return (e?.status ?? e?.response?.status) === 402;
+}
+
+/**
+ * تنفيذ العملية مباشرة على قاعدة البيانات — النسخة الاحتياطية عند 402
+ * تحاكي أفعال دوال الـAPI: list / filter / get / create / update / delete
+ */
+export async function directEntityAction(action, entity, payload = {}) {
+  const E = base44.entities[entity];
+  const { query = {}, data = {}, id, sort, limit } = payload;
+  switch (action) {
+    case "list": return await E.list(sort, limit);
+    case "filter": return await E.filter(query, sort, limit);
+    case "get": return await E.get(id);
+    case "create": return await E.create(data);
+    case "update": return await E.update(id, data);
+    case "delete": return await E.delete(id);
+    default: throw new Error("Action not supported locally: " + action);
+  }
+}
+
 /** صلاحية الجلسة الاحتياطية (12 ساعة) */
 export function fallbackExpiry() {
   return new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();

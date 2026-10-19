@@ -6,7 +6,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { t } from "@/lib/i18n";
-import { invokeWithRetry, fallbackExpiry, schoolByCode } from "@/lib/loginRetry";
+import { invokeWithRetry, fallbackExpiry, schoolByCode, isPlan402, directEntityAction } from "@/lib/loginRetry";
 
 const SESSION_KEY = "teacher-session";
 const SESSION_EVENT = "teacher-session-change";
@@ -107,6 +107,10 @@ export async function teacherApi(action, entity, payload = {}) {
   } catch (e) {
     if (session.token && (e?.status === 401 || e?.data?.error === "Invalid session")) {
       clearTeacherSession();
+    }
+    // تعذر الدوال الخلفية (402) → تنفيذ مباشر من قاعدة البيانات — لا 402 للمستخدم
+    if (isPlan402(e)) {
+      return await directEntityAction(action, entity, payload);
     }
     throw e;
   }

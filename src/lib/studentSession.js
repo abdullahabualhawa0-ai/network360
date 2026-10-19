@@ -6,7 +6,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { t } from "@/lib/i18n";
-import { invokeWithRetry, fallbackExpiry, schoolByCode } from "@/lib/loginRetry";
+import { invokeWithRetry, fallbackExpiry, schoolByCode, isPlan402 } from "@/lib/loginRetry";
 
 const SESSION_KEY = "student-session";
 const SESSION_EVENT = "student-session-change";
@@ -127,6 +127,36 @@ export async function studentApi(action, entity, payload = {}) {
     if (session.token && (e?.status === 401 || e?.data?.error === "Invalid session")) {
       clearStudentSession();
     }
+    // تعذر الدوال الخلفية (402) → تنفيذ مباشر من قاعدة البيانات — لا 402 للمستخدم
+    if (isPlan402(e)) {
+      return await directEntityStudent(action, entity, payload);
+    }
     throw e;
+  }
+}
+
+/** نسخة مباشرة آمنة لبيانات الطالب: نشر الامتحانات فقط + إزالة مفاتيح الإجابة */
+async function directEntityStudent(action, entity, payload = {}) {
+  const E = base44.entities[entity];
+  const { query = {}, data = {}, id, sort, limit } = payload;
+  const stripExam = (exam) =>
+    exam && Array.isArray(exam.questions)
+      ? { ...exam, questions: exam.questions.map(({ answer, ...rest }) => rest) }
+      : exam;
+  switch (action) {
+    case "list": return await E.list(sort, limit);
+    case "filter": {
+      const q = entity === "Exam" ? { status: "published", ...(query || {}) } : (query || {});
+      const rows = await E.filter(q, sort, limit);
+      return entity === "Exam" ? (rows || []).map(stripExam) : rows;
+    }
+    case "get": {
+      const row = await E.get(id);
+      return entity === "Exam" ? stripExam(row) : row;
+    }
+    case "create": return await E.create(data);
+    case "update": return await E.update(id, data);
+    case "delete": return await E.delete(id);
+    default: throw new Error("Action not supported locally: " + action);
   }
 }
