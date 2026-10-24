@@ -158,7 +158,7 @@ export default function TextToSpeech({ text, label = "قراءة النص" }) {
       {!speaking ? (
         <button
           onClick={handlePlay}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-l from-primary/10 to-secondary/10 border border-primary/20 text-primary hover:from-primary/20 hover:to-secondary/20 transition-all text-sm font-medium group"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all text-sm font-medium group"
         >
           <Volume2 size={15} className="group-hover:scale-110 transition-transform" />
           <span>{label}</span>
@@ -177,7 +177,7 @@ export default function TextToSpeech({ text, label = "قراءة النص" }) {
             {paused ? <Play size={13} /> : <Pause size={13} />}
           </button>
           <button onClick={handleStop}
-            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-red-500">
+            className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-destructive">
             <Square size={13} />
           </button>
         </div>

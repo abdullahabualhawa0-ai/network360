@@ -127,8 +127,8 @@ export default function Plans() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: "#173F5F" }}>
-            <Sparkles className="text-white" size={24} />
+          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-primary">
+            <Sparkles className="text-primary-foreground" size={24} />
           </div>
           <h1 className="font-black text-2xl mb-1">{t("regTitle")}</h1>
           <p className="text-xs text-muted-foreground">{t("regSubtitle")}</p>
@@ -141,14 +141,14 @@ export default function Plans() {
               icon={User}
               title={t("regTypeIndividual")}
               desc={t("regTypeIndividualDesc")}
-              color="#2E7D5B"
+              tone="success"
               onClick={() => { setStep("individual"); setError(null); }}
             />
             <TypeCard
               icon={SchoolIcon}
               title={t("regTypeSchool")}
               desc={t("regTypeSchoolDesc")}
-              color="#2F6690"
+              tone="secondary"
               onClick={() => { setStep("school"); setError(null); }}
             />
           </div>
@@ -159,7 +159,7 @@ export default function Plans() {
           <div className="max-w-2xl mx-auto">
             <BackBar onBack={() => { setStep("type"); setError(null); }} />
             <div className="rounded-2xl p-6 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-              <h2 className="font-black text-base mb-1" style={{ color: "#173F5F" }}>{t("regIndividualTitle")}</h2>
+              <h2 className="font-black text-base mb-1 text-primary">{t("regIndividualTitle")}</h2>
               <p className="text-[11px] text-muted-foreground mb-4">{t("regIndividualDesc")}</p>
               <form onSubmit={submitIndividual} className="grid sm:grid-cols-2 gap-3">
             <input type="text" name="website" value={hp} onChange={(e) => setHp(e.target.value)}
@@ -172,8 +172,7 @@ export default function Plans() {
                 <ErrorRow error={error} />
                 <div className="sm:col-span-2">
                   <button type="submit" disabled={busy}
-                    className="w-full py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-                    style={{ background: "#173F5F" }}>
+                    className="w-full py-3 rounded-xl text-sm font-black bg-primary text-primary-foreground transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                     {busy ? <Loader2 size={15} className="animate-spin" /> : null}
                     {busy ? t("regSubmitting") : t("regSubmit")}
                   </button>
@@ -194,7 +193,7 @@ export default function Plans() {
           <div className="max-w-2xl mx-auto">
             <BackBar onBack={() => { setStep("type"); setError(null); }} />
             <div className="rounded-2xl p-6 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-              <h2 className="font-black text-base mb-1" style={{ color: "#173F5F" }}>{t("regSchoolTitle")}</h2>
+              <h2 className="font-black text-base mb-1 text-primary">{t("regSchoolTitle")}</h2>
               <p className="text-[11px] text-muted-foreground mb-4">{t("regSchoolDesc")}</p>
               <form onSubmit={submitSchool} className="grid sm:grid-cols-2 gap-3">
             <input type="text" name="website" value={hp} onChange={(e) => setHp(e.target.value)}
@@ -207,7 +206,7 @@ export default function Plans() {
                   <Field label={`${t("regAdminName")} *`} value={schForm.adminName} onChange={(v) => setSchForm({ ...schForm, adminName: v })} required />
                 </div>
                 <div className="sm:col-span-2 mt-1 mb-1">
-                  <div className="text-[11px] font-bold" style={{ color: "#2F6690" }}>{t("regContactPerson")}</div>
+                  <div className="text-[11px] font-bold text-secondary dark:text-primary">{t("regContactPerson")}</div>
                 </div>
                 <Field label={`${t("regFullName")} *`} value={schForm.fullName} onChange={(v) => setSchForm({ ...schForm, fullName: v })} required />
                 <Field label={`${t("regEmail")} *`} type="email" dir="ltr" value={schForm.email} onChange={(v) => setSchForm({ ...schForm, email: v })} required />
@@ -221,8 +220,7 @@ export default function Plans() {
                 <ErrorRow error={error} />
                 <div className="sm:col-span-2">
                   <button type="submit" disabled={busy}
-                    className="w-full py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-                    style={{ background: "#173F5F" }}>
+                    className="w-full py-3 rounded-xl text-sm font-black bg-primary text-primary-foreground transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                     {busy ? <Loader2 size={15} className="animate-spin" /> : null}
                     {busy ? t("regSubmitting") : t("regSubmit")}
                   </button>
@@ -240,12 +238,12 @@ export default function Plans() {
 
         {/* الخطوة 3: نجاح */}
         {step === "done" && (
-          <div className="max-w-lg mx-auto rounded-2xl p-8 text-center bg-card" style={{ border: "1px solid rgba(46,125,91,0.35)" }}>
-            <CheckCircle2 size={44} className="mx-auto mb-3" style={{ color: "#2E7D5B" }} />
+          <div className="max-w-lg mx-auto rounded-2xl p-8 text-center bg-card border border-success/40">
+            <CheckCircle2 size={44} className="mx-auto mb-3 text-success" />
             <h2 className="font-black text-lg mb-2">{t("regSuccessTitle")}</h2>
             <p className="text-xs text-muted-foreground leading-relaxed mb-6">{t("regSuccessMsg")}</p>
             <button onClick={() => { window.location.href = "/student-login"; }}
-              className="px-6 py-2.5 rounded-xl text-sm font-black text-white" style={{ background: "#173F5F" }}>
+              className="px-6 py-2.5 rounded-xl text-sm font-black bg-primary text-primary-foreground">
               {t("regBackToLogin")}
             </button>
           </div>
@@ -272,32 +270,33 @@ async function sendRegistration(payload, legacyEntityData) {
   await base44.entities.RegistrationRequest.create(legacyEntityData);
 }
 
-const _inputStyle = { background: "#F7F9FC", border: "1px solid #E2E8F0" };
 const _labelCls = "block text-[11px] font-bold text-muted-foreground mb-1.5";
-const _inputCls = "w-full px-4 py-2.5 rounded-xl text-sm text-foreground focus:outline-none";
+const _inputCls = "w-full px-4 py-2.5 rounded-xl text-sm text-foreground bg-background border border-input focus:outline-none";
 
 function Field({ label, value, onChange, ...props }) {
   return (
     <div>
       <label className={_labelCls}>{label}</label>
       <input value={value} onChange={(e) => onChange(e.target.value)}
-        className={_inputCls} style={_inputStyle} {...props} />
+        className={_inputCls} {...props} />
     </div>
   );
 }
 
-function TypeCard({ icon: Icon, title, desc, color, onClick }) {
+function TypeCard({ icon: Icon, title, desc, tone, onClick }) {
+  const tones = {
+    success: "bg-success/10 border-success/30 text-success",
+    secondary: "bg-secondary/10 border-secondary/30 text-secondary dark:text-primary",
+  };
   return (
     <button onClick={onClick}
-      className="rounded-2xl p-6 text-start bg-card transition-all hover:scale-[1.02]"
-      style={{ border: `1px solid hsl(var(--border))` }}>
-      <div className="w-12 h-12 rounded-xl mb-3 flex items-center justify-center"
-        style={{ background: `${color}15`, border: `1px solid ${color}40` }}>
-        <Icon size={22} style={{ color }} />
+      className="rounded-2xl p-6 text-start bg-card border border-border transition-all hover:scale-[1.02]">
+      <div className={`w-12 h-12 rounded-xl mb-3 flex items-center justify-center border ${tones[tone]}`}>
+        <Icon size={22} />
       </div>
       <h3 className="font-black text-base mb-1">{title}</h3>
       <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">{desc}</p>
-      <span className="inline-flex items-center gap-1 text-[11px] font-bold" style={{ color }}>
+      <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${tones[tone].split(" ").slice(2).join(" ")}`}>
         {t("regSubmit")} <ArrowRight size={12} />
       </span>
     </button>
@@ -307,7 +306,7 @@ function TypeCard({ icon: Icon, title, desc, color, onClick }) {
 function BackBar({ onBack }) {
   return (
     <button onClick={onBack}
-      className="text-[11px] font-bold hover:underline mb-3 flex items-center gap-1" style={{ color: "#2F6690" }}>
+      className="text-[11px] font-bold text-secondary dark:text-primary hover:underline mb-3 flex items-center gap-1">
       ← {t("regBack")}
     </button>
   );
@@ -316,8 +315,7 @@ function BackBar({ onBack }) {
 function ErrorRow({ error }) {
   if (!error) return null;
   return (
-    <div className="sm:col-span-2 flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold"
-      style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
+    <div className="sm:col-span-2 flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive">
       <AlertTriangle size={13} /> {error}
     </div>
   );

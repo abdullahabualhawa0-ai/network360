@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { History, Trophy, Zap, FlaskConical, RefreshCw, CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { History, Trophy, Zap, FlaskConical, RefreshCw, CheckCircle2, Loader2 } from "lucide-react";
 import moment from "moment";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { SCENARIOS, getLessonInfo } from "@/lib/scenarios";
@@ -11,10 +11,10 @@ import { scenarioTitle } from "@/lib/scenarioI18n";
 import PullToRefresh from "@/components/PullToRefresh";
 
 const STATUS_MAP = {
-  completed: { key: "stCompleted", color: "#2E7D5B", bg: "rgba(46,125,91,0.10)", border: "rgba(46,125,91,0.35)" },
-  partially_completed: { key: "stPartial", color: "#D69E2E", bg: "rgba(214,158,46,0.10)", border: "rgba(214,158,46,0.35)" },
-  in_progress: { key: "stInProgress", color: "#2F6690", bg: "rgba(47,102,144,0.10)", border: "rgba(47,102,144,0.3)" },
-  not_started: { key: "stNotStarted", color: "#64748B", bg: "rgba(100,116,139,0.10)", border: "rgba(100,116,139,0.3)" },
+  completed: { key: "stCompleted", cls: "bg-success/10 border border-success/35 text-success" },
+  partially_completed: { key: "stPartial", cls: "bg-warning/10 border border-warning/35 text-warning" },
+  in_progress: { key: "stInProgress", cls: "bg-secondary/10 border border-secondary/30 text-secondary dark:text-primary" },
+  not_started: { key: "stNotStarted", cls: "bg-muted border border-border text-muted-foreground" },
 };
 
 function formatDate(d) {
@@ -61,9 +61,8 @@ export default function LabHistory() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-              style={{ background: "#173F5F" }}>
-              <History className="text-white" size={20} />
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-primary">
+              <History className="text-primary-foreground" size={20} />
             </div>
             <div>
               <h1 className="font-black text-xl">{t("historyTitle")}</h1>
@@ -71,8 +70,7 @@ export default function LabHistory() {
             </div>
           </div>
           <button onClick={load} disabled={refreshing}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
-            style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border border-border text-primary transition-all disabled:opacity-50">
             {refreshing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
             {t("refresh")}
           </button>
@@ -82,13 +80,13 @@ export default function LabHistory() {
         {records && records.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
-              { label: t("totalAttempts"), value: records.length, icon: <FlaskConical size={16} />, color: "#2F6690" },
-              { label: t("completedScenarios"), value: completedCount, icon: <CheckCircle2 size={16} />, color: "#2E7D5B" },
-              { label: t("totalXp"), value: totalXp, icon: <Zap size={16} />, color: "#D69E2E" },
-              { label: t("avgScore"), value: `${avgScore}%`, icon: <Trophy size={16} />, color: "#173F5F" },
+              { label: t("totalAttempts"), value: records.length, icon: <FlaskConical size={16} />, cls: "text-secondary dark:text-primary" },
+              { label: t("completedScenarios"), value: completedCount, icon: <CheckCircle2 size={16} />, cls: "text-success" },
+              { label: t("totalXp"), value: totalXp, icon: <Zap size={16} />, cls: "text-warning" },
+              { label: t("avgScore"), value: `${avgScore}%`, icon: <Trophy size={16} />, cls: "text-primary" },
             ].map((s) => (
-              <div key={s.label} className="rounded-2xl p-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-                <div className="flex items-center gap-2 mb-1.5" style={{ color: s.color }}>{s.icon}</div>
+              <div key={s.label} className="rounded-2xl p-4 bg-card border border-border">
+                <div className={`flex items-center gap-2 mb-1.5 ${s.cls}`}>{s.icon}</div>
                 <div className="text-xl font-black">{s.value}</div>
                 <div className="text-[10px] text-muted-foreground">{s.label}</div>
               </div>
@@ -99,7 +97,7 @@ export default function LabHistory() {
         {/* Loading */}
         {records === null && (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <Loader2 size={32} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
+            <Loader2 size={32} className="animate-spin text-primary" />
             <p className="text-xs text-muted-foreground">{t("loadingHistory")}</p>
           </div>
         )}
@@ -107,14 +105,13 @@ export default function LabHistory() {
         {/* Empty state */}
         {records && records.length === 0 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl p-10 text-center bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-            <FlaskConical size={44} className="mx-auto mb-4 opacity-40" style={{ color: "hsl(var(--primary))" }} />
+            className="rounded-2xl p-10 text-center bg-card border border-border">
+            <FlaskConical size={44} className="mx-auto mb-4 opacity-40 text-primary" />
             <h2 className="font-black text-lg mb-1">{t("noAttempts")}</h2>
             <p className="text-xs text-muted-foreground mb-5">{t("noAttemptsDesc")}</p>
             <Link to="/scenario-lab"
-              className="inline-block px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-              style={{ background: "linear-gradient(90deg,#0891b2,#7c3aed)" }}>
-              {t("startNow")} 🚀
+              className="inline-block px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-primary-foreground">
+              {t("startNow")}
             </Link>
           </motion.div>
         )}
@@ -133,11 +130,9 @@ export default function LabHistory() {
                 <motion.div key={r.id}
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.04 }}
-                  className="rounded-2xl p-4 bg-card flex flex-col sm:flex-row sm:items-center gap-4"
-                  style={{ border: "1px solid hsl(var(--border))" }}>
+                  className="rounded-2xl p-4 bg-card flex flex-col sm:flex-row sm:items-center gap-4 border border-border">
                   {/* Icon */}
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                    style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)" }}>
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 bg-secondary/10 border border-secondary/25">
                     {scenario?.icon || "🧪"}
                   </div>
 
@@ -145,51 +140,46 @@ export default function LabHistory() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-bold text-sm truncate">{scenarioTitle(scenario) || r.scenario_title || r.scenario_id}</span>
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>
                         {t(st.key)}
                       </span>
                       {r.scenario_difficulty && (
                         <span className="text-[9px] text-muted-foreground">{diffLabel(r.scenario_difficulty)}</span>
                       )}
                       {lesson && (
-                        <span className="text-[9px] text-muted-foreground">📖 {t("lessonLabel")}: {topicTitleById(lesson.lessonId, lesson.lessonTitle)}</span>
+                        <span className="text-[9px] text-muted-foreground">{t("lessonLabel")}: {topicTitleById(lesson.lessonId, lesson.lessonTitle)}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(23,63,95,0.08)" }}>
-                        <div className="h-full rounded-full"
-                          style={{
-                            width: `${pct}%`,
-                            background: r.status === "completed" ? "#2E7D5B" : "#2F6690",
-                          }} />
+                      <div className="flex-1 h-1.5 rounded-full bg-muted">
+                        <div className={`h-full rounded-full ${r.status === "completed" ? "bg-success" : "bg-secondary dark:bg-primary"}`}
+                          style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="text-[10px] font-bold flex-shrink-0" style={{ color: st.color }}>
+                      <span className={`text-[10px] font-bold flex-shrink-0 ${st.cls.split(" ").pop()}`}>
                         {done}/{total} {t("tasksLabel")}
                       </span>
                     </div>
                     <div className="text-[10px] text-muted-foreground leading-relaxed">
                       {t("startedAtLabel")}: {formatDate(r.started_at)} • {t("lastActivityLabel")}: {formatDate(r.last_activity_at)}
                       {r.status === "completed" && r.completed_at && (
-                        <> • <span style={{ color: "#2E7D5B" }}>{t("completedAtLabel")}: {formatDate(r.completed_at)}</span></>
+                        <> • <span className="text-success">{t("completedAtLabel")}: {formatDate(r.completed_at)}</span></>
                       )}
                     </div>
                   </div>
 
                   {/* Score & XP */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="px-3 py-1.5 rounded-xl text-center" style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)" }}>
-                      <div className="text-sm font-black" style={{ color: "#2F6690" }}>{r.score || 0}%</div>
+                    <div className="px-3 py-1.5 rounded-xl text-center bg-secondary/10 border border-secondary/25">
+                      <div className="text-sm font-black text-secondary dark:text-primary">{r.score || 0}%</div>
                       <div className="text-[8px] text-muted-foreground">{t("scoreLabel")}</div>
                     </div>
-                    <div className="px-3 py-1.5 rounded-xl text-center" style={{ background: "rgba(214,158,46,0.1)", border: "1px solid rgba(214,158,46,0.3)" }}>
-                      <div className="text-sm font-black" style={{ color: "#D69E2E" }}>+{r.xp_earned || 0}</div>
+                    <div className="px-3 py-1.5 rounded-xl text-center bg-warning/10 border border-warning/30">
+                      <div className="text-sm font-black text-warning">+{r.xp_earned || 0}</div>
                       <div className="text-[8px] text-muted-foreground">XP</div>
                     </div>
                     {r.status !== "completed" && (
                       <Link to="/scenario-lab"
-                        className="px-3 py-2 rounded-xl text-[10px] font-bold text-white whitespace-nowrap"
-                        style={{ background: "#173F5F" }}>
+                        className="px-3 py-2 rounded-xl text-[10px] font-bold bg-primary text-primary-foreground whitespace-nowrap">
                         {t("continueLabel")}
                       </Link>
                     )}

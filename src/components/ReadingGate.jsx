@@ -88,7 +88,7 @@ export default function ReadingGate({ content, children }) {
               onClick={() => setShowQuiz(true)}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-bold text-base hover:shadow-lg transition-shadow"
+              className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-base"
             >
               <CheckCircle2 size={18} />
               {t("readGateStartQuiz")}

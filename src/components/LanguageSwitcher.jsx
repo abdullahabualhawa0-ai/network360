@@ -23,12 +23,11 @@ export default function LanguageSwitcher({ compact = false }) {
         const active = current === l.id;
         return (
           <button key={l.id} onClick={() => setLang(l.id)}
-            className="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all"
-            style={{
-              background: active ? "#173F5F" : "transparent",
-              color: active ? "#fff" : "hsl(var(--muted-foreground))",
-              border: `1px solid ${active ? "#173F5F" : "hsl(var(--border))"}`,
-            }}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+              active
+                ? "bg-primary text-primary-foreground border border-primary"
+                : "text-muted-foreground border border-border"
+            }`}
             title={l.label}>
             {compact ? l.short : l.label}
           </button>

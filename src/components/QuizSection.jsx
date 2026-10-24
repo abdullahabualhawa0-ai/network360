@@ -65,9 +65,9 @@ export default function QuizSection({ quiz: sourceQuiz }) {
   };
 
   const getScoreInfo = () => {
-    if (score >= 80) return { label: t("quizExcellent"), color: "text-success", bg: "bg-success/10", border: "border-success/25", ring: "bg-success" };
-    if (score >= 60) return { label: t("quizGood"), color: "text-warning", bg: "bg-warning/10", border: "border-warning/25", ring: "bg-warning" };
-    return { label: t("quizReview"), color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/25", ring: "bg-destructive" };
+    if (score >= 80) return { label: t("quizExcellent"), color: "text-success", bg: "bg-success/10", border: "border-success/25", ring: "bg-success", fg: "text-success-foreground" };
+    if (score >= 60) return { label: t("quizGood"), color: "text-warning", bg: "bg-warning/10", border: "border-warning/25", ring: "bg-warning", fg: "text-warning-foreground" };
+    return { label: t("quizReview"), color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/25", ring: "bg-destructive", fg: "text-destructive-foreground" };
   };
 
   const scoreInfo = getScoreInfo();
@@ -77,7 +77,7 @@ export default function QuizSection({ quiz: sourceQuiz }) {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-          <BookOpen className="text-white" size={18} />
+          <BookOpen className="text-primary-foreground" size={18} />
         </div>
         <div>
           <h2 className="text-lg font-bold text-foreground">{quiz.title}</h2>
@@ -102,8 +102,8 @@ export default function QuizSection({ quiz: sourceQuiz }) {
             className={`mb-6 p-5 rounded-2xl border ${scoreInfo.bg} ${scoreInfo.border}`}
           >
             <div className="flex items-center gap-4">
-              <div className={`w-16 h-16 rounded-full ${scoreInfo.ring} flex items-center justify-center shadow-md`}>
-                <span className="text-white font-black text-xl">{score}%</span>
+              <div className={`w-16 h-16 rounded-full ${scoreInfo.ring} flex items-center justify-center`}>
+                <span className={`${scoreInfo.fg} font-black text-xl`}>{score}%</span>
               </div>
               <div>
                 <p className={`text-lg font-bold ${scoreInfo.color}`}>{scoreInfo.label}</p>
@@ -113,7 +113,7 @@ export default function QuizSection({ quiz: sourceQuiz }) {
               </div>
               <button
                 onClick={handleReset}
-                className="mr-auto flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-white/70 px-3 py-2 rounded-lg border border-border"
+                className="mr-auto flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors bg-card px-3 py-2 rounded-lg border border-border"
               >
                 <RotateCcw size={14} />
                 <span>{t("quizRetake")}</span>
@@ -136,8 +136,8 @@ export default function QuizSection({ quiz: sourceQuiz }) {
               key={qIndex}
               className={`bg-card border rounded-2xl overflow-hidden transition-all ${
                 submitted
-                  ? isCorrect ? "border-success/40 shadow-md"
-                  : isWrong ? "border-destructive/40 shadow-md"
+                  ? isCorrect ? "border-success/40"
+                  : isWrong ? "border-destructive/40"
                   : "border-border opacity-70"
                   : "border-border"
               }`}
@@ -184,9 +184,9 @@ export default function QuizSection({ quiz: sourceQuiz }) {
                         }`}
                       >
                         <span className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
-                          isCorrectOption ? "border-success bg-success text-white"
-                          : isWrongSelected ? "border-destructive bg-destructive text-white"
-                          : isSelected ? "border-primary bg-primary text-white"
+                          isCorrectOption ? "border-success bg-success text-success-foreground"
+                          : isWrongSelected ? "border-destructive bg-destructive text-destructive-foreground"
+                          : isSelected ? "border-primary bg-primary text-primary-foreground"
                           : "border-border"
                         }`}>
                           {isCorrectOption ? <CheckCircle2 size={12} /> : isWrongSelected ? <XCircle size={12} /> : String.fromCharCode(65 + oIndex)}
@@ -220,7 +220,7 @@ export default function QuizSection({ quiz: sourceQuiz }) {
                           <div className={`mt-2 p-3 rounded-xl text-sm leading-relaxed ${
                             isCorrect ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
                           }`}>
-                            💡 {question.explanation}
+                            {question.explanation}
                           </div>
                         </motion.div>
                       )}
@@ -245,7 +245,7 @@ export default function QuizSection({ quiz: sourceQuiz }) {
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all ${
               Object.keys(answers).length < totalQuestions
                 ? "bg-muted text-muted-foreground cursor-not-allowed"
-                : "bg-primary text-white hover:shadow-lg hover:scale-105"
+                : "bg-primary text-primary-foreground hover:bg-primary/90"
             }`}
           >
             <Trophy size={16} />

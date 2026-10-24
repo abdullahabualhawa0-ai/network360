@@ -5,7 +5,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   BookOpen, CheckCircle2, Star, TrendingUp, Award,
-  ChevronLeft, Lock, BarChart2, Target, Zap
+  ChevronLeft, Lock, BarChart2, Target, Zap,
+  Network as NetworkIcon, Tag, Shuffle, Radio, Shield, Cog, Lightbulb
 } from "lucide-react";
 import { t, useLang } from "@/lib/i18n";
 import { sectionTitle, topicTitle } from "@/lib/courseI18n";
@@ -23,13 +24,13 @@ function loadQuizResults() {
 }
 
 const SECTION_ICONS = {
-  "network-addresses": "🌐",
-  "vlan": "🏷️",
-  "routing": "🔀",
-  "wireless": "📡",
-  "security": "🛡️",
-  "network-services": "⚙️",
-  "iot": "💡",
+  "network-addresses": NetworkIcon,
+  "vlan": Tag,
+  "routing": Shuffle,
+  "wireless": Radio,
+  "security": Shield,
+  "network-services": Cog,
+  "iot": Lightbulb,
 };
 
 export default function Dashboard() {
@@ -79,19 +80,15 @@ export default function Dashboard() {
     <PullToRefresh onRefresh={refreshData}>
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="relative overflow-hidden border-b border-border" style={{ background: "#F7F9FC" }}>
-        <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(47,102,144,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(47,102,144,0.05) 1px, transparent 1px)`,
-          backgroundSize: "40px 40px"
-        }} />
+      <div className="relative overflow-hidden border-b border-border bg-background">
         <div className="relative max-w-5xl mx-auto px-6 py-10">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-2 text-sm mb-2" style={{ color: "rgba(47,102,144,0.7)" }}>
+            <div className="flex items-center gap-2 text-sm mb-2 text-muted-foreground">
               <Link to="/" className="transition-colors hover:text-primary">{t("backHome")}</Link>
               <ChevronLeft size={13} />
-              <span style={{ color: "#173F5F" }}>{t("navDashboard")}</span>
+              <span className="text-primary">{t("navDashboard")}</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black mb-1" style={{ color: "#173F5F" }}>{t("dashTitle")}</h1>
+            <h1 className="text-3xl sm:text-4xl font-black mb-1 text-primary">{t("dashTitle")}</h1>
             <p className="text-sm text-muted-foreground">{t("dashSubtitle")}</p>
           </motion.div>
         </div>
@@ -151,11 +148,11 @@ export default function Dashboard() {
               <motion.div key={sec.id}
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + i * 0.06 }}
-                className="bg-card border border-border rounded-2xl p-4 hover:shadow-md transition-shadow"
+                className="bg-card border border-border rounded-2xl p-4 shadow-card"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{SECTION_ICONS[sec.id] || "📚"}</span>
+                    {(() => { const I = SECTION_ICONS[sec.id] || BookOpen; return <I size={20} className="text-primary" />; })()}
                     <span className="font-semibold text-sm text-foreground">{sectionTitle(sec)}</span>
                   </div>
                   {sec.avgScore !== null && (
@@ -185,9 +182,9 @@ export default function Dashboard() {
                           qResult ? "bg-success" : visited ? "bg-primary/70" : "bg-muted"
                         }`}>
                           {qResult ? (
-                            <CheckCircle2 size={10} className="text-white" />
+                            <CheckCircle2 size={10} className="text-success-foreground" />
                           ) : visited ? (
-                            <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                            <div className="w-1.5 h-1.5 bg-primary-foreground rounded-full" />
                           ) : (
                             <Lock size={8} className="text-muted-foreground" />
                           )}

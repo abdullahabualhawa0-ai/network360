@@ -3,7 +3,11 @@ module.exports = {
     darkMode: ["class"],
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
-  	extend: {
+  extend: {
+  	boxShadow: {
+  		card: '0 1px 2px rgba(43,42,31,0.08)',
+  		none: 'none',
+  	},
       fontFamily: {
         main: ['var(--font-main)'],
       },
@@ -54,6 +58,10 @@ module.exports = {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
+  			terminal: {
+  				DEFAULT: 'hsl(var(--terminal))',
+  				foreground: 'hsl(var(--terminal-foreground))'
+  			},
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',

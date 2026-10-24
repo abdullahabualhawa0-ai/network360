@@ -205,40 +205,38 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <div className="relative overflow-hidden border-b border-border" style={{ background: "#F7F9FC" }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ backgroundImage: "linear-gradient(rgba(47,102,144,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(47,102,144,0.05) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
+      <div className="relative overflow-hidden border-b border-border bg-background">
         <div className="relative max-w-6xl mx-auto px-6 py-10">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-2 mb-3 text-sm" style={{ color: "rgba(47,102,144,0.75)" }}>
+            <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
               <Link to="/" className="hover:text-primary transition-colors">{t("backHome")}</Link>
               <ChevronLeft size={13} />
-              <span style={{ color: "#173F5F" }}>{t("scenarioLabTitle")}</span>
+              <span className="text-primary">{t("scenarioLabTitle")}</span>
             </div>
-            <h1 className="text-3xl font-black mb-2" style={{ color: "#173F5F" }}>
-              🧪 {lessonInfo ? t("lessonScenariosTitle") : t("scenarioLabTitle")}
+            <h1 className="text-3xl font-black mb-2 text-primary">
+              {lessonInfo ? t("lessonScenariosTitle") : t("scenarioLabTitle")}
             </h1>
             <p className="text-sm text-muted-foreground">
               {lessonInfo ? `${t("lessonScenariosDesc")} — ${lessonInfo.lessonTitle}` : t("scenarioLabSubtitle")}
             </p>
-            <p className="text-[10px] mt-1" style={{ color: dbReady ? "#2E7D5B" : "rgba(31,41,55,0.5)" }}>
+            <p className={`text-[10px] mt-1 ${dbReady ? "text-success" : "text-muted-foreground"}`}>
               {dbReady ? `✓ ${t("syncedNote")}` : t("syncingNote")}
             </p>
-            <p className="text-[10px] mt-0.5" style={{ color: "rgba(47,102,144,0.7)" }}>
+            <p className="text-[10px] mt-0.5 text-secondary dark:text-primary">
               {t("diffSortedNote")}
             </p>
 
             {/* شريط التقدم الكلي */}
             <div className="mt-4 max-w-md">
               <div className="flex items-center justify-between text-[10px] mb-1">
-                <span className="flex items-center gap-1 font-bold" style={{ color: "#2E7D5B" }}>
+                <span className="flex items-center gap-1 font-bold text-success">
                   <Trophy size={11} /> {t("completedProgress")}
                 </span>
                 <span className="font-bold text-muted-foreground">{completedCount} / {TOTAL_SCENARIOS} {t("ofScenarios")}</span>
               </div>
-              <div className="h-1.5 rounded-full" style={{ background: "rgba(23,63,95,0.08)" }}>
-                <div className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${Math.round((completedCount / TOTAL_SCENARIOS) * 100)}%`, background: "#2E7D5B" }} />
+              <div className="h-1.5 rounded-full bg-muted">
+                <div className="h-full rounded-full transition-all duration-700 bg-success"
+                  style={{ width: `${Math.round((completedCount / TOTAL_SCENARIOS) * 100)}%` }} />
               </div>
             </div>
           </motion.div>
@@ -251,8 +249,7 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
             {/* فلتر الدرس */}
             {lessonInfo && (
               <Link to="/scenario-lab"
-                className="inline-flex items-center gap-1.5 mb-5 px-3 py-1.5 rounded-xl text-[11px] font-bold"
-                style={{ background: "rgba(47,102,144,0.07)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}>
+                className="inline-flex items-center gap-1.5 mb-5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-secondary/[0.07] border border-secondary/25 text-secondary dark:text-primary">
                 <ChevronLeft size={12} /> {t("backToAllScenarios")}
               </Link>
             )}
@@ -260,16 +257,14 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
             {available.length === 0 ? (
               /* اكتملت جميع السيناريوهات — لا تعود المكتملة للظهور */
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl p-12 text-center bg-card"
-                style={{ border: "1px solid rgba(46,125,91,0.35)" }}>
-                <div className="text-5xl mb-4">🏆</div>
-                <h2 className="text-xl font-black mb-2" style={{ color: "#2E7D5B" }}>{t("allCompletedMsg")}</h2>
+                className="rounded-2xl p-12 text-center bg-card border border-success/40">
+                <Trophy size={44} className="mx-auto mb-4 text-success" />
+                <h2 className="text-xl font-black mb-2 text-success">{t("allCompletedMsg")}</h2>
                 <p className="text-xs text-muted-foreground mb-6">
                   {completedCount} / {TOTAL_SCENARIOS} {t("ofScenarios")}
                 </p>
                 <Link to="/lab-history"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-                  style={{ background: "#173F5F" }}>
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-primary-foreground">
                   <History size={14} /> {t("viewHistory")}
                 </Link>
               </motion.div>
@@ -286,26 +281,21 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className="rounded-2xl p-6 cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 group bg-white"
-                      style={{
-                        border: inProgress ? "1px solid rgba(214,158,46,0.45)" : "1px solid #E2E8F0",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = inProgress ? "rgba(214,158,46,0.6)" : "#3A86A8"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = inProgress ? "rgba(214,158,46,0.45)" : "#E2E8F0"; }}
+                      className={`rounded-2xl p-6 cursor-pointer transition-all hover:shadow-card hover:-translate-y-0.5 group bg-card border ${
+                        inProgress ? "border-warning/45" : "border-border hover:border-primary/50"
+                      }`}
                       onClick={() => { setSelected(scRaw); setResult(null); setAiTip(""); setShowHints(false); startLab(scRaw); }}
                     >
                       <div className="flex items-start justify-between mb-4">
                         <span className="text-3xl">{sc.icon}</span>
                         <div className="flex items-center gap-2">
                           {inProgress && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                              style={{ background: "rgba(214,158,46,0.1)", color: "#D69E2E", border: "1px solid rgba(214,158,46,0.3)" }}>
-                              ⏳ {t("continueLabel")} ({rec.score}%)
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-warning/10 text-warning border border-warning/30">
+                              {t("continueLabel")} ({rec.score}%)
                             </span>
                           )}
                           {!rec && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                              style={{ background: "rgba(47,102,144,0.08)", color: "#2F6690", border: "1px solid rgba(47,102,144,0.25)" }}>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-secondary/10 text-secondary dark:text-primary border border-secondary/25">
                               {t("newLabel")}
                             </span>
                           )}
@@ -314,10 +304,10 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                           </span>
                         </div>
                       </div>
-                      <h3 className="font-black text-lg mb-2" style={{ color: "#173F5F" }}>{sc.title}</h3>
-                      <p className="text-sm mb-3 leading-relaxed" style={{ color: "rgba(31,41,55,0.7)" }}>{sc.desc}</p>
+                      <h3 className="font-black text-lg mb-2 text-primary">{sc.title}</h3>
+                      <p className="text-sm mb-3 leading-relaxed text-foreground/70">{sc.desc}</p>
                       {lesson && (
-                        <div className="flex items-center gap-1.5 text-[10px] mb-4" style={{ color: "#2F6690" }}>
+                        <div className="flex items-center gap-1.5 text-[10px] mb-4 text-secondary dark:text-primary">
                           <BookOpen size={11} /> {t("relatedLesson")}: {topicTitleById(lesson.lessonId, lesson.lessonTitle)}
                         </div>
                       )}
@@ -348,12 +338,11 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
             {(() => {
               const sc = localizeScenario(selected);
               return (
-            <div className="rounded-2xl p-6 mb-4 bg-white"
-              style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(23,63,95,0.06)" }}>
+            <div className="rounded-2xl p-6 mb-4 bg-card border border-border shadow-card">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-4xl">{sc.icon}</span>
                 <div>
-                  <h2 className="text-xl font-black" style={{ color: "#173F5F" }}>{sc.title}</h2>
+                  <h2 className="text-xl font-black text-primary">{sc.title}</h2>
                   <div className="flex items-center gap-2 flex-wrap mt-1">
                     <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${sc.diffColor}`}>
                       {diffLabel(sc.difficulty)} • {sc.time} • {sc.xp} XP
@@ -362,7 +351,7 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                       const lesson = getLessonInfo(sc.lessonId);
                       return lesson ? (
                         <Link to={`/topic/${lesson.unitId}/${lesson.lessonId}`}
-                          className="text-[10px] flex items-center gap-1 hover:underline" style={{ color: "#2F6690" }}>
+                          className="text-[10px] flex items-center gap-1 text-secondary dark:text-primary hover:underline">
                           <BookOpen size={10} /> {topicTitleById(lesson.lessonId, lesson.lessonTitle)}
                         </Link>
                       ) : null;
@@ -370,7 +359,7 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                   </div>
                 </div>
               </div>
-              <p className="text-sm mb-5 leading-relaxed" style={{ color: "rgba(31,41,55,0.75)" }}>{sc.desc}</p>
+              <p className="text-sm mb-5 leading-relaxed text-foreground/75">{sc.desc}</p>
 
               {/* Objectives with live check */}
               {(() => {
@@ -385,14 +374,14 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                 return (
                   <div className="mb-5">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "#2F6690" }}>{t("objectivesTitle")}</h3>
-                      <span className="text-[10px] font-bold" style={{ color: pct === 100 ? "#2E7D5B" : "#2F6690" }}>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-secondary dark:text-primary">{t("objectivesTitle")}</h3>
+                      <span className={`text-[10px] font-bold ${pct === 100 ? "text-success" : "text-secondary dark:text-primary"}`}>
                         {completedCountTasks}/{totalCount} {t("completedCount")}
                       </span>
                       </div>
-                      <div className="h-1 rounded-full mb-3" style={{ background: "rgba(23,63,95,0.08)" }}>
-                      <div className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, background: pct === 100 ? "#2E7D5B" : "#2F6690" }} />
+                      <div className="h-1 rounded-full mb-3 bg-muted">
+                      <div className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? "bg-success" : "bg-secondary dark:bg-primary"}`}
+                        style={{ width: `${pct}%` }} />
                     </div>
                     <ul className="space-y-2">
                       {trDetails.map((d, i) => (
@@ -402,7 +391,7 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                           ) : (
                             <AlertCircle size={14} className="flex-shrink-0 mt-0.5 text-muted-foreground" />
                           )}
-                          <span style={{ color: d.ok ? "#2E7D5B" : "rgba(31,41,55,0.7)" }}>{d.label}</span>
+                          <span className={d.ok ? "text-success" : "text-foreground/70"}>{d.label}</span>
                         </li>
                       ))}
                     </ul>
@@ -413,23 +402,19 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
               {/* Actions */}
               <div className="flex flex-wrap gap-2">
                 <button onClick={openInSimulator}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105"
-                  style={{ background: "#173F5F" }}>
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-primary text-primary-foreground transition-all hover:scale-105">
                   <Play size={14} /> {t("openInSimulator")}
                 </button>
                 <button onClick={evaluate}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105"
-                  style={{ background: "#2E7D5B" }}>
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-success text-success-foreground transition-all hover:scale-105">
                   <Target size={14} /> {t("evaluate")}
                 </button>
                 <button onClick={() => setShowHints(!showHints)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105"
-                  style={{ background: showHints ? "rgba(214,158,46,0.15)" : "rgba(214,158,46,0.08)", border: "1px solid rgba(214,158,46,0.35)", color: "#D69E2E" }}>
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 border border-warning/35 text-warning ${showHints ? "bg-warning/20" : "bg-warning/10"}`}>
                   <Lightbulb size={14} /> {t("hints")}
                 </button>
                 <button onClick={getAiTip} disabled={loadingTip}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 disabled:opacity-60"
-                  style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)", color: "#2F6690" }}>
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-secondary/10 border border-secondary/30 text-secondary dark:text-primary transition-all hover:scale-105 disabled:opacity-60">
                   <Bot size={14} /> {loadingTip ? t("aiThinking") : t("aiHintBtn")}
                 </button>
               </div>
@@ -444,16 +429,15 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="rounded-2xl p-5 mb-4 overflow-hidden"
-                  style={{ background: "rgba(214,158,46,0.05)", border: "1px solid rgba(214,158,46,0.25)" }}
+                  className="rounded-2xl p-5 mb-4 overflow-hidden bg-warning/[0.06] border border-warning/25"
                 >
-                  <h3 className="font-bold text-sm mb-3 flex items-center gap-2" style={{ color: "#D69E2E" }}>
+                  <h3 className="font-bold text-sm mb-3 flex items-center gap-2 text-warning">
                     <Lightbulb size={14} /> {t("hints")}
                   </h3>
                   <ul className="space-y-2">
                     {localizeScenario(selected).hints.map((h, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "rgba(31,41,55,0.75)" }}>
-                        <span className="flex-shrink-0 mt-0.5" style={{ color: "#D69E2E" }}>•</span> {h}
+                      <li key={i} className="flex items-start gap-2 text-sm text-foreground/75">
+                        <span className="flex-shrink-0 mt-0.5 text-warning">•</span> {h}
                       </li>
                     ))}
                   </ul>
@@ -468,14 +452,13 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="rounded-2xl p-5 mb-4"
-                  style={{ background: "rgba(47,102,144,0.05)", border: "1px solid rgba(47,102,144,0.25)" }}
+                  className="rounded-2xl p-5 mb-4 bg-secondary/[0.05] border border-secondary/25"
                   >
                   <div className="flex items-center gap-2 mb-2">
                     <Bot size={14} className="text-secondary" />
-                    <h3 className="text-secondary font-bold text-sm">{t("aiHintBtn")}</h3>
+                    <h3 className="text-secondary dark:text-primary font-bold text-sm">{t("aiHintBtn")}</h3>
                   </div>
-                  <p className="text-sm leading-relaxed" style={{ color: "rgba(31,41,55,0.8)" }}>{aiTip}</p>
+                  <p className="text-sm leading-relaxed text-foreground/80">{aiTip}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -493,24 +476,23 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-2xl p-6"
-                  style={{
-                    background: result.passed ? "rgba(46,125,91,0.06)" : "rgba(201,76,76,0.06)",
-                    border: `1px solid ${result.passed ? "rgba(46,125,91,0.35)" : "rgba(201,76,76,0.35)"}`,
-                  }}
+                  className={`rounded-2xl p-6 border ${
+                    result.passed ? "bg-success/[0.06] border-success/35" : "bg-destructive/[0.06] border-destructive/35"
+                  }`}
                 >
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black"
-                      style={{ background: result.passed ? "#2E7D5B" : "#C94C4C", color: "white" }}>
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black ${
+                      result.passed ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"
+                    }`}>
                       {result.score}%
                     </div>
                     <div>
-                      <h3 className="text-lg font-black" style={{ color: result.passed ? "#2E7D5B" : "#C94C4C" }}>
-                        {result.passed ? `🎉 ${t("passedMsg")}` : `❌ ${t("failedMsg")}`}
+                      <h3 className={`text-lg font-black ${result.passed ? "text-success" : "text-destructive"}`}>
+                        {result.passed ? t("passedMsg") : t("failedMsg")}
                       </h3>
-                      <p className="text-sm" style={{ color: "rgba(31,41,55,0.75)" }}>{feedback}</p>
+                      <p className="text-sm text-foreground/75">{feedback}</p>
                       {result.passed && (
-                        <p className="text-[10px] mt-1" style={{ color: "#2E7D5B" }}>
+                        <p className="text-[10px] mt-1 text-success">
                           → <Link to="/lab-history" className="underline">{t("viewHistory")}</Link>
                         </p>
                       )}
@@ -520,7 +502,7 @@ Give me ONE useful hint WITHOUT spoiling the full solution. Two sentences only, 
                     {trDetails.map((d, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
                         {d.ok ? <CheckCircle2 size={14} className="text-success" /> : <AlertCircle size={14} className="text-destructive" />}
-                        <span style={{ color: d.ok ? "#2E7D5B" : "#C94C4C" }}>{d.label}</span>
+                        <span className={d.ok ? "text-success" : "text-destructive"}>{d.label}</span>
                       </div>
                     ))}
                   </div>

@@ -15,7 +15,7 @@ export default function AdminGuard() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 size={28} className="animate-spin" style={{ color: "#173F5F" }} />
+        <Loader2 size={28} className="animate-spin text-primary" />
       </div>
     );
   }

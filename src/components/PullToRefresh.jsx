@@ -60,8 +60,8 @@ export default function PullToRefresh({ onRefresh, children, className = "" }) {
         className="flex items-center justify-center overflow-hidden">
         <motion.div style={{ rotate }}>
           {refreshing
-            ? <RefreshCw size={20} className="animate-spin" style={{ color: "#2F6690" }} />
-            : <ChevronDown size={20} style={{ color: "#2F6690" }} />}
+            ? <RefreshCw size={20} className="animate-spin text-secondary dark:text-primary" />
+            : <ChevronDown size={20} className="text-secondary dark:text-primary" />}
         </motion.div>
       </motion.div>
       <motion.div style={{ y: pull }}>

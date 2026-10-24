@@ -19,7 +19,7 @@ export default function CategoryCard({ section, index }) {
       {/* الألوان عبر متغيرات الثيم (bg-card / border-border / accent) فتتكيف مع الوضع الداكن تلقائياً.
           تأثير الـ hover صار بـ CSS بدل onMouseEnter/Leave (أخف، ويعمل على اللمس أيضاً). */}
       <div
-        className="group rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 cursor-default bg-card border border-border hover:border-accent hover:shadow-[0_6px_18px_rgba(23,63,95,0.08)] dark:hover:shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
+        className="group rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 cursor-default bg-card border border-border hover:border-accent shadow-card"
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-4">

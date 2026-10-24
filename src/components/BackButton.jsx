@@ -38,8 +38,7 @@ export default function BackButton({ fallback = "/", label, compact = false }) {
 
   return (
     <button onClick={handleBack}
-      className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
-      style={{ color: "#2F6690", background: "rgba(47,102,144,0.06)", border: "1px solid rgba(47,102,144,0.2)" }}>
+      className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-secondary/10 border border-secondary/30 text-secondary dark:text-primary">
       <Arrow size={13} /> {label || t("back")}
     </button>
   );

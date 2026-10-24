@@ -37,14 +37,10 @@ export default function Sidebar({ onClose }) {
         <Link
           to={to}
           onClick={onClose}
-          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-sm font-medium group relative overflow-hidden ${
-            isActive ? "font-bold text-primary" : "text-muted-foreground hover:text-foreground"}`
+          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
+            isActive ? "font-bold text-primary bg-sidebar-accent" : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/40"}`
           }
-          style={isActive ? { background: "rgba(47,102,144,0.1)" } : {}}>
-          {!isActive &&
-            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ background: "rgba(47,102,144,0.06)" }} />
-          }
+          >
           {icon}
           <span>{label}</span>
         </Link>
@@ -58,9 +54,8 @@ export default function Sidebar({ onClose }) {
       {/* Logo */}
       <div className="p-5" style={{ borderBottom: "1px solid hsl(var(--sidebar-border))" }}>
         <Link to="/" onClick={onClose} className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105"
-            style={{ background: "#173F5F" }}>
-            <BookOpen className="text-white" size={20} />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 bg-primary">
+            <BookOpen className="text-primary-foreground" size={20} />
           </div>
           <div>
             <h1 className="font-black text-foreground text-base">{t("appName")}</h1>
@@ -94,8 +89,7 @@ export default function Sidebar({ onClose }) {
       {schoolAdminSession && (
         <div className="p-3" style={{ borderTop: "1px solid hsl(var(--sidebar-border))" }}>
           <button onClick={() => { clearSchoolAdminSession(); window.location.href = "/login"; }}
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all"
-            style={{ background: "rgba(201,76,76,0.06)", border: "1px solid rgba(201,76,76,0.2)", color: "#C94C4C" }}>
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all bg-destructive/10 border border-destructive/30 text-destructive">
             <LogOut size={14} /> {t("logout")}
           </button>
         </div>

@@ -10,9 +10,9 @@ import { useExamsListTranslation } from "@/lib/useExamTranslation";
 import PullToRefresh from "@/components/PullToRefresh";
 
 const REQ_STATUS = {
-  pending: { key: "accessPending", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
-  approved: { label: "", color: "#2E7D5B", bg: "rgba(46,125,91,0.1)", border: "rgba(46,125,91,0.35)" },
-  rejected: { key: "accessRejected", color: "#C94C4C", bg: "rgba(201,76,76,0.1)", border: "rgba(201,76,76,0.35)" },
+  pending: "bg-warning/10 border border-warning/35 text-warning",
+  approved: "bg-success/10 border border-success/35 text-success",
+  rejected: "bg-destructive/10 border border-destructive/35 text-destructive",
 };
 
 export default function Exams() {
@@ -79,7 +79,7 @@ export default function Exams() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background">
-        <Loader2 size={32} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
+        <Loader2 size={32} className="animate-spin text-primary" />
         <p className="text-xs text-muted-foreground">{t("loading")}</p>
       </div>
     );
@@ -91,9 +91,8 @@ export default function Exams() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-            style={{ background: "#173F5F" }}>
-            <ClipboardList className="text-white" size={20} />
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-primary">
+            <ClipboardList className="text-primary-foreground" size={20} />
           </div>
           <div>
             <h1 className="font-black text-xl">{t("examsTitle")}</h1>
@@ -103,8 +102,8 @@ export default function Exams() {
 
         {/* Empty */}
         {visibleExams.length === 0 && (
-          <div className="rounded-2xl p-10 text-center bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-            <FileQuestion size={44} className="mx-auto mb-4 opacity-40" style={{ color: "hsl(var(--primary))" }} />
+          <div className="rounded-2xl p-10 text-center bg-card border border-border">
+            <FileQuestion size={44} className="mx-auto mb-4 opacity-40 text-primary" />
             <h2 className="font-black text-lg mb-1">{t("noExamsTitle")}</h2>
             <p className="text-xs text-muted-foreground">{t("noExamsDesc")}</p>
           </div>
@@ -135,11 +134,9 @@ export default function Exams() {
             return (
               <motion.div key={exam.id}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                className="rounded-2xl p-4 bg-card flex flex-col sm:flex-row sm:items-center gap-4"
-                style={{ border: "1px solid hsl(var(--border))" }}>
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.2)" }}>
-                  📋
+                className="rounded-2xl p-4 bg-card flex flex-col sm:flex-row sm:items-center gap-4 border border-border">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-secondary/10 border border-secondary/20 text-primary">
+                  <ClipboardList size={18} />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -153,7 +150,7 @@ export default function Exams() {
                     <span className="flex items-center gap-1"><FileQuestion size={10} /> {exam.questions?.length || 0} {t("questionsCount")}</span>
                     {exam.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {exam.duration_minutes} {t("minutesCount")}</span>}
                     {bestResult && (
-                      <span className="flex items-center gap-1 font-bold" style={{ color: "#2E7D5B" }}>
+                      <span className="flex items-center gap-1 font-bold text-success">
                         <Trophy size={10} /> {t("bestResultLabel")}: {bestResult.percentage}%
                         <span className="text-muted-foreground font-normal">({moment(bestResult.submission_time).format("YYYY/MM/DD")})</span>
                       </span>
@@ -164,8 +161,7 @@ export default function Exams() {
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {bestResult && (
-                    <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1"
-                      style={{ background: "rgba(46,125,91,0.08)", border: "1px solid rgba(46,125,91,0.3)", color: "#2E7D5B" }}>
+                    <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 bg-success/10 border border-success/30 text-success">
                       <CheckCircle2 size={11} /> {t("performedLabel")}
                     </span>
                   )}
@@ -173,25 +169,22 @@ export default function Exams() {
                   {/* لا يوجد طلب بعد — طلب دخول أولي */}
                   {!lastRequest && (
                     <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap disabled:opacity-60"
-                      style={{ background: "#173F5F" }}>
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground whitespace-nowrap disabled:opacity-60">
                       {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestAccess")}</span>}
                     </button>
                   )}
 
                   {/* الطلب الحالي معلّق — بانتظار الموافقة */}
                   {lastRequest?.status === "pending" && (
-                    <span className="px-3 py-2 rounded-xl text-[10px] font-bold"
-                      style={{ background: REQ_STATUS.pending.bg, border: `1px solid ${REQ_STATUS.pending.border}`, color: REQ_STATUS.pending.color }}>
-                      {t("accessPending")} ⏳
+                    <span className={`px-3 py-2 rounded-xl text-[10px] font-bold ${REQ_STATUS.pending}`}>
+                      {t("accessPending")}
                     </span>
                   )}
 
                   {/* آخر طلب مرفوض — يمكن إرسال طلب جديد */}
                   {lastRequest?.status === "rejected" && (
                     <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
-                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap disabled:opacity-60"
-                      style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
+                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap disabled:opacity-60 bg-destructive/10 border border-destructive/35 text-destructive">
                       {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestAccess")}</span>}
                     </button>
                   )}
@@ -199,17 +192,15 @@ export default function Exams() {
                   {/* إذن نشط لم يُستهلك — ابدأ التأدية */}
                   {canTakeNow && (
                     <Link to={`/exams/${exam.id}`}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap"
-                      style={{ background: "#2E7D5B" }}>
-                      {bestResult ? t("retakeLabel") : t("startExam")} 🚀
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-success text-success-foreground whitespace-nowrap">
+                      {bestResult ? t("retakeLabel") : t("startExam")}
                     </Link>
                   )}
 
                   {/* تأدى الامتحان ولا يوجد إذن جديد — يجب طلب إذن لإعادة التأدية */}
                   {bestResult && !canTakeNow && lastRequest?.status !== "pending" && (
                     <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
-                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap disabled:opacity-60"
-                      style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.3)", color: "#2F6690" }}>
+                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap disabled:opacity-60 bg-secondary/10 border border-secondary/30 text-secondary dark:text-primary">
                       {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestRetake")}</span>}
                     </button>
                   )}

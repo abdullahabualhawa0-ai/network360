@@ -60,7 +60,7 @@ export default function ContactUsButton() {
       <button
         onClick={() => setOpen(true)}
         title={t("contactButton")}
-        className="fixed bottom-5 left-5 z-50 flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-black bg-primary text-primary-foreground shadow-[0_6px_18px_rgba(23,63,95,0.25)] dark:shadow-[0_6px_18px_rgba(0,0,0,0.5)] transition-all hover:scale-105">
+        className="fixed bottom-5 left-5 z-50 flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-black bg-primary text-primary-foreground shadow-card transition-all hover:scale-105">
         <MessageCircle size={15} />
         <span className="hidden sm:inline">{t("contactButton")}</span>
       </button>
@@ -70,13 +70,13 @@ export default function ContactUsButton() {
         {open &&
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-[4px]"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-terminal/75"
           onClick={() => setOpen(false)}>
 
           <motion.div
             initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, opacity: 0 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className="w-full max-w-md rounded-2xl p-5 bg-card text-card-foreground border border-border shadow-[0_24px_60px_rgba(23,63,95,0.25)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
+            className="w-full max-w-md rounded-2xl p-5 bg-card text-card-foreground border border-border"
             onClick={(e) => e.stopPropagation()}
             dir={direction}>
 

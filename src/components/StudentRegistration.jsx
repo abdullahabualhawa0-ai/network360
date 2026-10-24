@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { getSchoolName } from "@/lib/schoolUtils";
 import { registerStudent } from "@/lib/registrationUtils";
-import { KeyRound, Loader2, AlertTriangle, LogOut, UserPlus, User } from "lucide-react";
+import { KeyRound, Loader2, AlertTriangle, LogOut, UserPlus, User, Hourglass, Ban } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { t, useLang } from "@/lib/i18n";
@@ -40,21 +40,18 @@ export default function StudentRegistration({ onRegistered }) {
   };
 
   const inputStyle = {
-    background: "#F7F9FC",
-    border: "1px solid #E2E8F0",
+    background: "hsl(var(--background))",
+    border: "1px solid hsl(var(--input))",
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" dir="rtl"
-      style={{ background: "#F7F9FC" }}>
-      <div className="w-full max-w-md rounded-2xl p-6 bg-white"
-        style={{ border: "1px solid #E2E8F0", boxShadow: "0 4px 20px rgba(23,63,95,0.08)" }}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background" dir="rtl">
+      <div className="w-full max-w-md rounded-2xl p-6 bg-card border border-border shadow-card">
         <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-            style={{ background: "#173F5F" }}>
-            <KeyRound className="text-white" size={24} />
+          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-primary">
+            <KeyRound className="text-primary-foreground" size={24} />
           </div>
-          <h1 className="font-black text-lg" style={{ color: "#173F5F" }}>{t("loginTitle")}</h1>
+          <h1 className="font-black text-lg text-primary">{t("loginTitle")}</h1>
           <p className="text-xs mt-1 text-muted-foreground">{t("loginSubtitle")}</p>
         </div>
 
@@ -63,27 +60,25 @@ export default function StudentRegistration({ onRegistered }) {
             <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("schoolCode")}</label>
             <input value={schoolCode} onChange={(e) => setSchoolCode(e.target.value)}
               required placeholder="SCH2026A" dir="ltr"
-              className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none bg-background border border-input"
               style={inputStyle} />
           </div>
           <div>
             <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("studentCode")}</label>
             <input value={studentCode} onChange={(e) => setStudentCode(e.target.value)}
               required placeholder="ST10025" dir="ltr"
-              className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none bg-background border border-input"
               style={inputStyle} />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold"
-              style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive">
               <AlertTriangle size={13} /> {error}
             </div>
           )}
 
           <button type="submit" disabled={busy}
-            className="w-full py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-60"
-            style={{ background: "#173F5F" }}>
+            className="w-full py-3 rounded-xl text-sm font-black bg-primary text-primary-foreground transition-all disabled:opacity-60">
             {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : t("loginBtn")}
           </button>
         </form>
@@ -92,19 +87,17 @@ export default function StudentRegistration({ onRegistered }) {
           {t("loginPendingNote")}
         </p>
 
-        <div className="mt-4 pt-4 text-center" style={{ borderTop: "1px solid #E2E8F0" }}>
-          <Link to="/plans" className="inline-flex items-center gap-1.5 text-xs font-black"
-            style={{ color: "#2F6690" }}>
+        <div className="mt-4 pt-4 text-center border-t border-border">
+          <Link to="/plans" className="inline-flex items-center gap-1.5 text-xs font-black text-secondary dark:text-primary">
             <UserPlus size={13} /> {t("createAccount")}
           </Link>
           <p className="text-[10px] text-muted-foreground mt-1">{t("createAccountNote")}</p>
 
           {/* التسجيل بشكل مستقل بدون مدرسة */}
-          <Link to="/plans" className="mt-4 flex items-center gap-2.5 w-full px-4 py-3 rounded-xl transition-all hover:shadow-md"
-            style={{ background: "rgba(46,125,91,0.06)", border: "1px solid rgba(46,125,91,0.3)" }}>
-            <User size={15} style={{ color: "#2E7D5B" }} />
+          <Link to="/plans" className="mt-4 flex items-center gap-2.5 w-full px-4 py-3 rounded-xl bg-success/[0.06] border border-success/30">
+            <User size={15} className="text-success" />
             <span className="text-right">
-              <span className="block text-[11px] font-black" style={{ color: "#2E7D5B" }}>{t("personalOption")}</span>
+              <span className="block text-[11px] font-black text-success">{t("personalOption")}</span>
               <span className="block text-[9px] text-muted-foreground">{t("personalOptionDesc")}</span>
             </span>
           </Link>
@@ -126,19 +119,19 @@ export function AccountStatusScreen({ profile, onLogout }) {
   const isPending = profile.status === "pending";
   const isRejected = profile.status === "rejected";
 
+  const StatusIcon = isPending ? Hourglass : isRejected ? Ban : AlertTriangle;
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" dir="rtl"
-      style={{ background: "#F7F9FC" }}>
-      <div className="w-full max-w-md rounded-2xl p-8 text-center bg-white"
-        style={{
-          border: `1px solid ${isPending ? "rgba(214,158,46,0.4)" : "rgba(201,76,76,0.4)"}`,
-          boxShadow: "0 4px 20px rgba(23,63,95,0.08)",
-        }}>
-        <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl"
-          style={{ background: isPending ? "rgba(214,158,46,0.12)" : "rgba(201,76,76,0.12)" }}>
-          {isPending ? "⏳" : isRejected ? "🚫" : "⛔"}
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background" dir="rtl">
+      <div className={`w-full max-w-md rounded-2xl p-8 text-center bg-card border shadow-card ${
+        isPending ? "border-warning/40" : "border-destructive/40"
+      }`}>
+        <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center ${
+          isPending ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"
+        }`}>
+          <StatusIcon size={30} />
         </div>
-        <h1 className="font-black text-lg mb-1" style={{ color: "#173F5F" }}>
+        <h1 className="font-black text-lg mb-1 text-primary">
           {isPending ? t("pendingTitle") : isRejected ? t("rejectedTitle") : t("errDisabled")}
         </h1>
         <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
@@ -150,8 +143,7 @@ export function AccountStatusScreen({ profile, onLogout }) {
           {profile.full_name} • {t("studentCodeLabel")}: {profile.student_code}
         </div>
         <button onClick={() => (onLogout || logout)()}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
-          style={{ border: "1px solid #E2E8F0", color: "rgba(31,41,55,0.65)" }}>
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-border text-muted-foreground">
           <LogOut size={12} /> {t("logout")}
         </button>
       </div>
@@ -161,9 +153,8 @@ export function AccountStatusScreen({ profile, onLogout }) {
 
 export function FullSpinner() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center" style={{ background: "#F7F9FC" }}>
-      <div className="w-8 h-8 rounded-full animate-spin"
-        style={{ border: "3px solid rgba(47,102,144,0.2)", borderTopColor: "#173F5F" }} />
+    <div className="fixed inset-0 flex items-center justify-center bg-background">
+      <div className="w-8 h-8 rounded-full animate-spin border-[3px] border-primary/20 border-t-primary" />
     </div>
   );
 }

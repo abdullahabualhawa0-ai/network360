@@ -100,7 +100,7 @@ export default function MobileTabBar() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 right-0 left-0 z-50 flex items-stretch justify-around safe-area-bottom bg-card/[0.98] backdrop-blur-[20px] border-t border-border shadow-[0_-2px_12px_rgba(23,63,95,0.06)] dark:shadow-[0_-2px_12px_rgba(0,0,0,0.4)]"
+      className="md:hidden fixed bottom-0 right-0 left-0 z-50 flex items-stretch justify-around safe-area-bottom bg-card border-t border-border"
     >
       {tabs.map((tab) => {
         const isActive = isTabActive(tab);

@@ -64,14 +64,13 @@ export default function SidebarUserBadge({ compact = false }) {
 
   if (compact) {
     return (
-      <div className="rounded-lg px-2 py-1 flex items-center gap-1.5 min-w-0"
-        style={{ background: "rgba(47,102,144,0.06)", border: "1px solid rgba(47,102,144,0.15)" }}>
-        <div className="flex-shrink-0" style={{ color: "#173F5F" }}>{info.icon}</div>
+      <div className="rounded-lg px-2 py-1 flex items-center gap-1.5 min-w-0 bg-secondary/[0.06] border border-secondary/20">
+        <div className="flex-shrink-0 text-primary">{info.icon}</div>
         <div className="min-w-0">
           <div className="text-[10px] font-black text-foreground truncate leading-tight">{info.name || "—"}</div>
           {info.code && (
             <div className="text-[9px] text-muted-foreground truncate leading-tight" dir="ltr">
-              <span className="font-bold" style={{ color: "#2F6690" }}>{info.code}</span>
+              <span className="font-bold text-secondary dark:text-primary">{info.code}</span>
             </div>
           )}
         </div>
@@ -80,10 +79,8 @@ export default function SidebarUserBadge({ compact = false }) {
   }
 
   return (
-    <div className="mt-3 rounded-xl p-2.5 flex items-center gap-2.5"
-      style={{ background: "rgba(47,102,144,0.06)", border: "1px solid rgba(47,102,144,0.15)" }}>
-      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-        style={{ background: "#173F5F", color: "#fff" }}>
+    <div className="mt-3 rounded-xl p-2.5 flex items-center gap-2.5 bg-secondary/[0.06] border border-secondary/20">
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-primary text-primary-foreground">
         {info.icon}
       </div>
       <div className="min-w-0 flex-1">
@@ -91,7 +88,7 @@ export default function SidebarUserBadge({ compact = false }) {
         <div className="text-xs font-black text-foreground truncate leading-tight">{info.name || "—"}</div>
         {info.code && (
           <div className="text-[10px] text-muted-foreground truncate leading-tight" dir="ltr">
-            {info.codeLabel}: <span className="font-bold" style={{ color: "#2F6690" }}>{info.code}</span>
+            {info.codeLabel}: <span className="font-bold text-secondary dark:text-primary">{info.code}</span>
           </div>
         )}
       </div>

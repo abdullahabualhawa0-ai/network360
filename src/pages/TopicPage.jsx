@@ -86,7 +86,7 @@ export default function TopicPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="relative overflow-hidden border-b border-border" style={{ background: "#F7F9FC" }}>
+      <div className="relative overflow-hidden border-b border-border bg-background">
         <div className="relative max-w-4xl mx-auto px-6 py-10 lg:py-14">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -94,21 +94,21 @@ export default function TopicPage() {
             transition={{ duration: 0.3 }}
           >
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm mb-4" style={{ color: "rgba(47,102,144,0.75)" }}>
+            <div className="flex items-center gap-2 text-sm mb-4 text-muted-foreground">
               <Link to="/" className="transition-colors hover:text-primary">{t("backHome")}</Link>
               <ChevronLeft size={14} />
               <span>{sectionTitle(section)}</span>
               <ChevronLeft size={14} />
-              <span style={{ color: "#173F5F" }}>{topicTitle(topic)}</span>
+              <span className="text-primary">{topicTitle(topic)}</span>
             </div>
 
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#2F6690" }}>
-                <Icon className="text-white" size={20} />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary">
+                <Icon className="text-secondary-foreground" size={20} />
               </div>
-              <span className="text-sm font-medium" style={{ color: "#2F6690" }}>{sectionTitle(section)}</span>
+              <span className="text-sm font-medium text-secondary dark:text-primary">{sectionTitle(section)}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black" style={{ color: "#173F5F" }}>{topicTitle(topic)}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-primary">{topicTitle(topic)}</h1>
           </motion.div>
         </div>
       </div>
@@ -128,14 +128,13 @@ export default function TopicPage() {
 
           {/* شريط الترجمة الآلية أثناء تجهيز النص */}
           {translating && (
-            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl text-[11px] font-bold"
-              style={{ background: "rgba(47,102,144,0.07)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}>
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl text-[11px] font-bold bg-secondary/[0.07] border border-secondary/25 text-secondary dark:text-primary">
               <Loader2 size={12} className="animate-spin" /> {t("translatingLesson")}
             </div>
           )}
 
           <ReactMarkdown
-            className="prose prose-sm sm:prose-base prose-slate max-w-none
+            className="prose prose-sm sm:prose-base max-w-none
               prose-headings:font-bold prose-headings:text-foreground
               prose-h2:text-xl prose-h2:mt-0 prose-h2:mb-4
               prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3
@@ -143,7 +142,7 @@ export default function TopicPage() {
               prose-p:text-muted-foreground prose-p:leading-relaxed
               prose-strong:text-foreground
               prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:text-primary
-              prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:rounded-xl prose-pre:p-4 prose-pre:text-sm prose-pre:overflow-x-auto prose-pre:direction-ltr prose-pre:text-left
+              prose-pre:bg-terminal prose-pre:text-terminal-foreground prose-pre:rounded-xl prose-pre:p-4 prose-pre:text-sm prose-pre:overflow-x-auto prose-pre:direction-ltr prose-pre:text-left
               prose-table:text-sm
               prose-th:bg-muted prose-th:px-3 prose-th:py-2 prose-th:font-semibold
               prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-border
@@ -154,14 +153,14 @@ export default function TopicPage() {
               code: ({ inline, className, children, ...props }) => {
                 if (!inline && className) {
                   return (
-                    <pre className="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm" dir="ltr" style={{ textAlign: 'left' }}>
+                    <pre className="bg-terminal text-terminal-foreground rounded-xl p-4 overflow-x-auto text-sm" dir="ltr" style={{ textAlign: 'left' }}>
                       <code className={className} {...props}>{children}</code>
                     </pre>
                   );
                 }
                 if (!inline) {
                   return (
-                    <pre className="bg-slate-900 text-slate-100 rounded-xl p-4 overflow-x-auto text-sm" dir="ltr" style={{ textAlign: 'left' }}>
+                    <pre className="bg-terminal text-terminal-foreground rounded-xl p-4 overflow-x-auto text-sm" dir="ltr" style={{ textAlign: 'left' }}>
                       <code {...props}>{children}</code>
                     </pre>
                   );
@@ -212,8 +211,7 @@ export default function TopicPage() {
               <div className="grid sm:grid-cols-2 gap-3">
                 {lessonScenarios.map((sc) => (
                   <Link key={sc.id} to={`/scenario-lab?lesson=${topicId}&open=${sc.id}`}
-                    className="rounded-xl p-4 transition-all hover:shadow-md"
-                    style={{ background: "rgba(47,102,144,0.04)", border: "1px solid rgba(47,102,144,0.22)" }}>
+                    className="rounded-xl p-4 transition-all hover:shadow-card bg-secondary/[0.04] border border-secondary/20">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xl">{sc.icon}</span>
                       <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${sc.diffColor}`}>
@@ -240,7 +238,7 @@ export default function TopicPage() {
                 ? `/topic/${sectionId}/${prevTopic.id}` 
                 : `/topic/${prevSection.id}/${prevSection.topics[prevSection.topics.length - 1].id}`
               }
-              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-card border border-border hover:shadow-md transition-all group flex-1 max-w-xs"
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-card border border-border hover:bg-accent/40 transition-all group flex-1 max-w-xs"
             >
               <ArrowRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
               <div className="text-right">

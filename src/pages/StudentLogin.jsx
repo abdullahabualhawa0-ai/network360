@@ -144,7 +144,7 @@ export default function StudentLogin() {
       <div className="fixed top-4 end-4 z-10">
         <LanguageSwitcher />
       </div>
-      <div className="w-full max-w-md rounded-2xl p-6 bg-card border border-border shadow-[0_4px_20px_rgba(23,63,95,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
+      <div className="w-full max-w-md rounded-2xl p-6 bg-card border border-border shadow-card">
         {/* Header — مع رابط دخول المشرف جنب اسم المنصة */}
         <div className="text-center mb-5">
           <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-primary">
@@ -159,7 +159,7 @@ export default function StudentLogin() {
             <button type="button" onClick={() => { setShowIndividualLogin(!showIndividualLogin); setShowAdminLogin(false); setTab("student"); setError(null); }}
               aria-pressed={showIndividualLogin}
               className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all border ${
-                showIndividualLogin ? "bg-success text-white border-success" : "bg-success/[0.06] text-foreground/70 border-success/25"
+                showIndividualLogin ? "bg-success text-success-foreground border-success" : "bg-success/[0.06] text-foreground/70 border-success/25"
               }`}>
               <User size={14} /> {t("individualLoginLink")}
             </button>
@@ -186,7 +186,7 @@ export default function StudentLogin() {
         {showAdminLogin && (
           <form onSubmit={submitAdmin} className="space-y-3">
             <button type="button" onClick={() => { setShowAdminLogin(false); setError(null); }}
-              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all" style={{ color: "#2F6690" }}>
+              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all text-secondary dark:text-primary">
               <ArrowLeft size={12} className="rotate-180" /> {t("back")}
             </button>
             <LoginField value={aAdminCode} onChange={setAAdminCode} label={t("adminCode")} placeholder={t("adminCodePlaceholder")} />
@@ -200,7 +200,7 @@ export default function StudentLogin() {
         {showIndividualLogin && (
           <form onSubmit={submitIndividual} className="space-y-3">
             <button type="button" onClick={() => { setShowIndividualLogin(false); setError(null); }}
-              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all" style={{ color: "#2E7D5B" }}>
+              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all text-success">
               <ArrowLeft size={12} className="rotate-180" /> {t("back")}
             </button>
             <LoginField value={iStudentCode} onChange={setIStudentCode} label={t("individualCode")} placeholder={t("individualCodePlaceholder")} />
@@ -235,18 +235,16 @@ export default function StudentLogin() {
         {/* Create account tab */}
         {tab === "create" && !showAdminLogin && !showIndividualLogin && (
           <div className="space-y-3">
-            <div className="rounded-xl p-4 text-center" style={{ background: "rgba(47,102,144,0.06)", border: "1px solid rgba(47,102,144,0.2)" }}>
-              <UserPlus size={22} className="mx-auto mb-2" style={{ color: "#2F6690" }} />
+            <div className="rounded-xl p-4 text-center bg-secondary/[0.06] border border-secondary/20">
+              <UserPlus size={22} className="mx-auto mb-2 text-secondary dark:text-primary" />
               <p className="text-xs text-muted-foreground leading-relaxed">{t("createAccountPrompt")}</p>
             </div>
             <Link to="/plans?type=individual"
-              className="w-full py-3 rounded-xl text-sm font-black text-white flex items-center justify-center gap-2 transition-all"
-              style={{ background: "#2E7D5B" }}>
+              className="w-full py-3 rounded-xl text-sm font-black bg-success text-success-foreground flex items-center justify-center gap-2 transition-all">
               <User size={15} /> {t("regTypeIndividual")}
             </Link>
             <Link to="/plans?type=school"
-              className="w-full py-3 rounded-xl text-sm font-black text-white flex items-center justify-center gap-2 transition-all"
-              style={{ background: "#173F5F" }}>
+              className="w-full py-3 rounded-xl text-sm font-black bg-primary text-primary-foreground flex items-center justify-center gap-2 transition-all">
               <BookOpen size={15} /> {t("regTypeSchool")}
             </Link>
           </div>
@@ -266,8 +264,7 @@ export default function StudentLogin() {
 
 function ErrorBox({ text }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold"
-      style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
+    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive">
       <AlertTriangle size={13} /> {text}
     </div>
   );

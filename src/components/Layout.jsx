@@ -26,7 +26,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-background font-main">
       {/* Mobile header — مع مساحات آمنة علوية */}
-      <div className="md:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3 safe-area-top bg-card/[0.97] backdrop-blur-[20px] border-b border-border">
+      <div className="md:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3 safe-area-top bg-card border-b border-border">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Menu"
@@ -36,9 +36,8 @@ export default function Layout() {
         </button>
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {nestedFallback && <BackButton compact fallback={nestedFallback} />}
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "#173F5F" }}>
-            <span className="text-white text-xs font-black">ش</span>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-primary">
+            <span className="text-primary-foreground text-xs font-black">ش</span>
           </div>
           <span className="font-black text-sm text-primary flex-shrink-0">{t("appName")}</span>
           <div className="hidden sm:block flex-1 min-w-0 max-w-[200px]">
@@ -51,9 +50,8 @@ export default function Layout() {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="md:hidden fixed inset-0 z-40"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
-          onClick={() => setSidebarOpen(false)}
+        className="md:hidden fixed inset-0 z-40 bg-terminal/70"
+        onClick={() => setSidebarOpen(false)}
         />
       )}
 
@@ -71,7 +69,7 @@ export default function Layout() {
       </div>
 
       {/* حقوق النشر — السنة تتحدث تلقائياً */}
-      <footer className="md:mr-80 py-4 text-center text-[11px] text-white" style={{ background: "#173F5F" }}>
+      <footer className="md:mr-80 py-4 text-center text-[11px] bg-primary text-primary-foreground">
         © {new Date().getFullYear()} {t("footerRights")}
       </footer>
 
