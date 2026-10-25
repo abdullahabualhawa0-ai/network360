@@ -98,8 +98,10 @@ export default function NetworkCanvas({
       className="flex-1 w-full h-full relative overflow-hidden select-none"
       style={{
         cursor,
-        background: dragOver ? "rgba(47,102,144,0.05)" : "#F7F9FC",
       }}
+      className={`flex-1 w-full h-full relative overflow-hidden select-none bg-background ${
+        dragOver ? "bg-accent/40" : ""
+      }`}
       onDrop={handleDrop}
       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
@@ -112,21 +114,21 @@ export default function NetworkCanvas({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Cyber grid */}
-      <div className="canvas-bg absolute inset-0 pointer-events-none"
+      {/* Grid */}
+      <div className="canvas-bg absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(47,102,144,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(47,102,144,0.06) 1px, transparent 1px)
+            linear-gradient(hsl(var(--border)) 1px, transparent 1px),
+            linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)
           `,
           backgroundSize: `${32 * zoom}px ${32 * zoom}px`,
           backgroundPosition: `${pan.x % (32 * zoom)}px ${pan.y % (32 * zoom)}px`,
         }}
       />
       {/* Dots at intersections */}
-      <div className="canvas-bg absolute inset-0 pointer-events-none"
+      <div className="canvas-bg absolute inset-0 pointer-events-none opacity-50 dark:opacity-25"
         style={{
-          backgroundImage: `radial-gradient(circle, rgba(47,102,144,0.12) 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)`,
           backgroundSize: `${32 * zoom}px ${32 * zoom}px`,
           backgroundPosition: `${pan.x % (32 * zoom)}px ${pan.y % (32 * zoom)}px`,
         }}
@@ -135,30 +137,26 @@ export default function NetworkCanvas({
       {/* Empty state hint */}
       {nodes.length === 0 && !dragOver && !selectedDeviceType && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <div className="text-center opacity-20">
+          <div className="text-center opacity-40">
             <div className="text-5xl mb-3">🖧</div>
-            <p className="font-bold text-sm" style={{ color: "#2F6690" }}>{t("simEmptyDrag")}</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(47,102,144,0.6)" }}>{t("simEmptyDrop")}</p>
+            <p className="font-bold text-sm text-foreground">{t("simEmptyDrag")}</p>
+            <p className="text-xs mt-1 text-muted-foreground">{t("simEmptyDrop")}</p>
           </div>
         </div>
       )}
 
       {/* Tap-to-place indicator — يظهر عند اختيار جهاز على الموبايل */}
       {selectedDeviceType && (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center"
-          style={{ border: "2px dashed rgba(47,102,144,0.5)", background: "rgba(47,102,144,0.03)" }}>
-          <div className="px-4 py-2 rounded-xl text-sm font-bold animate-pulse"
-            style={{ background: "#FFFFFF", border: "1px solid rgba(47,102,144,0.4)", color: "#2F6690" }}>
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center border-2 border-dashed border-primary/50 bg-primary/5">
+          <div className="px-4 py-2 rounded-[10px] text-xs font-bold animate-pulse bg-card border border-primary text-brand">
             {t("simTapHere")}
           </div>
         </div>
       )}
 
       {dragOver && (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center"
-          style={{ border: "2px dashed rgba(47,102,144,0.5)" }}>
-          <div className="px-4 py-2 rounded-xl text-sm font-bold"
-            style={{ background: "#FFFFFF", border: "1px solid rgba(47,102,144,0.4)", color: "#2F6690" }}>
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center border-2 border-dashed border-primary">
+          <div className="px-4 py-2 rounded-[10px] text-xs font-bold bg-card border border-primary text-brand">
             {t("simDropHere")}
           </div>
         </div>

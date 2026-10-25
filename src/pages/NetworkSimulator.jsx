@@ -14,7 +14,7 @@ import { getScenarioById } from "../lib/scenarios";
 import { getConnectionType } from "../lib/connectionTypes";
 import { CABLE_TYPES } from "../lib/ports";
 import ConnectionDialog from "../components/network-sim/ConnectionDialog";
-import { Activity, ChevronLeft, AlertTriangle } from "lucide-react";
+import { Activity, ChevronLeft, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { AnimatePresence as AP, motion } from "framer-motion";
 import { t, useLang } from "@/lib/i18n";
 
@@ -58,7 +58,6 @@ function loadState() {
 }
 
 function generatePacketSegments(path, connections, nodes, protocol) {
-  // Generate one packet per hop — each carries the full hop plan so we can chain them
   const segments = [];
   for (let i = 0; i < path.nodePath.length - 1; i++) {
     const fromNode = nodes.find((n) => n.id === path.nodePath[i]);
@@ -83,7 +82,6 @@ function generatePacketSegments(path, connections, nodes, protocol) {
 
 export default function NetworkSimulator() {
   useLang();
-  // جلسة المحاكاة — تُحسب مرة واحدة عند الفتح (مفتاح خاص لكل سيناريو)
   const [session] = useState(loadState);
   const [nodes, setNodes] = useState(session.state.nodes);
   const [connections, setConnections] = useState(session.state.connections);
@@ -108,21 +106,19 @@ export default function NetworkSimulator() {
   const [snifferLog, setSnifferLog] = useState([]);
   const [showSniffer, setShowSniffer] = useState(false);
   const [showAI, setShowAI] = useState(false);
-  const [packetSpeed, setPacketSpeed] = useState(1); // 0.5 | 1 | 2 | 3
-  // Queue of pending hops: [{segments, currentHop}] — one chain per send action
+  const [packetSpeed, setPacketSpeed] = useState(1);
   const pendingChains = useRef([]);
 
   // Error/toast
   const [errorMsg, setErrorMsg] = useState(null);
-  const [statusMsg, setStatusMsg] = useState(null); // success status messages
-  const [connInfo, setConnInfo] = useState(null); // connection type tooltip
-  const [pendingConnection, setPendingConnection] = useState(null); // { fromId, toId } — dialog open
+  const [statusMsg, setStatusMsg] = useState(null);
+  const [connInfo, setConnInfo] = useState(null);
+  const [pendingConnection, setPendingConnection] = useState(null);
 
-  // Scenario — load by ID from the module (never from JSON to preserve eval functions)
-  // Also clean up any old "active-scenario" key left from previous version
+  // Scenario
   const [activeScenario, setActiveScenario] = useState(() => {
     try {
-      localStorage.removeItem("active-scenario"); // clean legacy key
+      localStorage.removeItem("active-scenario");
       const id = localStorage.getItem("active-scenario-id");
       return id ? getScenarioById(id) : null;
     } catch { return null; }
@@ -131,7 +127,7 @@ export default function NetworkSimulator() {
   // History
   const { pushHistory, undo: undoHistory, redo: redoHistory, reset: resetHistory } = useHistory(setNodes, setConnections);
 
-  // Auto-save — داخل مفتاح جلسة السيناريو الحالي
+  // Auto-save
   useEffect(() => {
     localStorage.setItem(session.key, JSON.stringify({ nodes, connections, nextId }));
   }, [nodes, connections, nextId]);
@@ -156,7 +152,6 @@ export default function NetworkSimulator() {
           }
         }
 
-        // For each completed packet, check if there's a next hop in its chain
         if (completedPacketIds.length > 0) {
           const nextHops = [];
           for (const pid of completedPacketIds) {
@@ -165,13 +160,11 @@ export default function NetworkSimulator() {
               const chain = pendingChains.current[chainIdx];
               const nextHopIdx = chain.currentHop + 1;
               if (nextHopIdx < chain.segments.length) {
-                // Launch next hop
                 const seg = chain.segments[nextHopIdx];
                 const nextId = `pkt-${Date.now()}-${nextHopIdx}-${Math.random()}`;
                 pendingChains.current[chainIdx] = { ...chain, currentHop: nextHopIdx, currentPacketId: nextId };
                 nextHops.push({ id: nextId, ...seg, progress: 0, status: "transit", startedAt: Date.now() });
               } else {
-                // Chain done
                 if (chain.segments.length > 0) {
                   const lastSeg = chain.segments[chain.segments.length - 1];
                   setStatusMsg({ text: `✅ ${t("simPacketReceived")} — ${lastSeg.protocol}`, type: "success" });
@@ -195,7 +188,6 @@ export default function NetworkSimulator() {
     setTimeout(() => setErrorMsg(null), 3000);
   };
 
-  // Switch active tool (deactivates other tools)
   const setTool = useCallback((tool) => {
     setActiveTool((prev) => prev === tool ? null : tool);
     setConnectFrom(null);
@@ -248,7 +240,6 @@ export default function NetworkSimulator() {
     });
   }, [connections, pushHistory]);
 
-  // إنشاء الاتصال بعد اختيار الكابل والمنافذ من النافذة
   const confirmConnection = useCallback(({ cableType, fromPort, toPort }) => {
     const pc = pendingConnection;
     if (!pc) return;
@@ -282,13 +273,11 @@ export default function NetworkSimulator() {
   }, [nodes, pushHistory]);
 
   const handleNodeClick = useCallback((id) => {
-    // Delete tool
     if (activeTool === "delete") {
       deleteNode(id);
       return;
     }
 
-    // Packet mode
     if (activeTool === "packet") {
       if (!packetFrom) {
         setPacketFrom(id);
@@ -303,7 +292,6 @@ export default function NetworkSimulator() {
             const segments = generatePacketSegments(path, connections, nodes, selectedProtocol);
             if (segments.length === 0) { showError(t("simErrNoSegments")); return; }
 
-            // Random packet loss (10%)
             const lostIdx = Math.random() < 0.1 ? Math.floor(Math.random() * segments.length) : -1;
             if (lostIdx !== -1) {
               showError(`⚠️ ${t("simErrPacketLost")} ${lostIdx + 1}! ${t("simErrRetransmit")}`);
@@ -311,7 +299,6 @@ export default function NetworkSimulator() {
               if (segments.length === 0) return;
             }
 
-            // Launch first hop immediately, chain the rest
             const firstSeg = segments[0];
             const firstId = `pkt-${Date.now()}-0-${Math.random()}`;
             pendingChains.current.push({ segments, currentHop: 0, currentPacketId: firstId });
@@ -336,7 +323,6 @@ export default function NetworkSimulator() {
       return;
     }
 
-    // Connect mode
     if (activeTool === "connect") {
       if (!connectFrom) {
         setConnectFrom(id);
@@ -345,7 +331,6 @@ export default function NetworkSimulator() {
           (c) => (c.from === connectFrom && c.to === id) || (c.from === id && c.to === connectFrom)
         );
         if (!exists) {
-          // افتح نافذة اختيار نوع الكابل والمنافذ
           setPendingConnection({ fromId: connectFrom, toId: id });
         } else {
           showError(t("simErrConnExists"));
@@ -356,7 +341,6 @@ export default function NetworkSimulator() {
       return;
     }
 
-    // No tool — select/deselect node to show info
     setSelectedNode((prev) => (prev === id ? null : id));
   }, [activeTool, packetFrom, connectFrom, connections, nodes, pushHistory, selectedProtocol, deleteNode]);
 
@@ -393,40 +377,35 @@ export default function NetworkSimulator() {
   const zoomOut = () => setZoom((z) => Math.max(z - 0.15, 0.2));
   const resetView = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
 
-  // Derived mode flags for child components
   const connectMode = activeTool === "connect";
   const packetMode = activeTool === "packet";
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden" style={{ background: "#F7F9FC", color: "#1F2937" }}>
+    <div className="h-screen flex flex-col overflow-hidden bg-background text-foreground font-main">
       {/* Slim Top Bar */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-2"
-        style={{ background: "#FFFFFF", borderBottom: "1px solid #E2E8F0", height: 48 }}>
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 bg-card border-b border-border h-12">
         <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-1 text-xs transition-colors"
-            style={{ color: "rgba(31,41,55,0.55)" }}
-            onMouseEnter={(e) => e.currentTarget.style.color = "#173F5F"}
-            onMouseLeave={(e) => e.currentTarget.style.color = "rgba(31,41,55,0.55)"}>
-            <ChevronLeft size={12} /> {t("simBackHome")}
+          <Link to="/" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors font-bold">
+            <ChevronLeft size={14} /> {t("simBackHome")}
           </Link>
-          <div className="w-px h-4" style={{ background: "#E2E8F0" }} />
+          <div className="w-px h-4 bg-border" />
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: "#173F5F" }}>
-              <Activity size={12} className="text-white" />
+            <div className="w-6 h-6 rounded-[6px] flex items-center justify-center bg-primary text-primary-foreground">
+              <Activity size={14} />
             </div>
-            <span className="font-black text-sm" style={{ color: "#173F5F" }}>
+            <span className="font-black text-sm text-foreground">
                {t("simTitle")}
              </span>
           </div>
           {/* Active tool indicator */}
           {activeTool && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold animate-pulse"
-              style={{
-                background: connectMode ? "rgba(47,102,144,0.1)" : packetMode ? "rgba(58,134,168,0.1)" : "rgba(201,76,76,0.1)",
-                border: `1px solid ${connectMode ? "rgba(47,102,144,0.35)" : packetMode ? "rgba(58,134,168,0.35)" : "rgba(201,76,76,0.4)"}`,
-                color: connectMode ? "#2F6690" : packetMode ? "#3A86A8" : "#C94C4C",
-              }}>
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold animate-pulse border ${
+              connectMode
+                ? "bg-accent border-primary text-brand"
+                : packetMode
+                ? "bg-secondary/10 border-secondary text-secondary dark:text-primary"
+                : "bg-destructive/10 border-destructive text-destructive"
+            }`}>
               <div className="w-1.5 h-1.5 rounded-full bg-current" />
               {connectMode
                  ? (connectFrom ? t("simClickSecond") : t("simClickFirst"))
@@ -443,25 +422,23 @@ export default function NetworkSimulator() {
       <AP>
         {errorMsg && (
           <motion.div key="err" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-            className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xl"
-            style={{ background: "#FFFFFF", border: "1px solid rgba(201,76,76,0.5)", color: "#C94C4C", boxShadow: "0 8px 24px rgba(23,63,95,0.15)" }}>
-            <AlertTriangle size={15} className="text-destructive" />
+            className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-[12px] text-xs font-bold bg-card border border-destructive/50 text-destructive shadow-card">
+            <AlertTriangle size={15} />
             {errorMsg}
           </motion.div>
         )}
         {statusMsg && (
           <motion.div key="status" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-            className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-bold shadow-2xl"
-            style={{ background: "#FFFFFF", border: "1px solid rgba(46,125,91,0.5)", color: "#2E7D5B", boxShadow: "0 8px 24px rgba(23,63,95,0.15)" }}>
+            className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-[12px] text-xs font-bold bg-card border border-success/50 text-success shadow-card">
+            <CheckCircle2 size={15} />
             {statusMsg.text}
           </motion.div>
         )}
         {connInfo && (
           <motion.div key="conn" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-            className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-2xl"
-            style={{ background: "#FFFFFF", border: "1px solid rgba(47,102,144,0.45)", boxShadow: "0 8px 24px rgba(23,63,95,0.15)" }}>
-            <span className="font-black text-sm" style={{ color: "#2F6690" }}>🔗 {connInfo.label}</span>
-            <span className="text-xs text-muted-foreground">{connInfo.desc}</span>
+            className="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-[12px] bg-card border border-border text-foreground shadow-card">
+            <span className="font-black text-xs text-brand">🔗 {connInfo.label}</span>
+            <span className="text-[11px] text-muted-foreground">{connInfo.desc}</span>
           </motion.div>
         )}
       </AP>
@@ -501,7 +478,7 @@ export default function NetworkSimulator() {
 
         {/* Canvas area */}
         <div className="flex-1 relative overflow-hidden">
-          {/* Scenario Panel — overlaid on canvas */}
+          {/* Scenario Panel */}
           <AnimatePresence>
             {activeScenario && (
               <ScenarioPanel
@@ -516,7 +493,7 @@ export default function NetworkSimulator() {
             )}
           </AnimatePresence>
 
-          {/* Connection dialog — cable type + ports */}
+          {/* Connection dialog */}
           <AnimatePresence>
             {pendingConnection && (
               <ConnectionDialog
@@ -529,7 +506,7 @@ export default function NetworkSimulator() {
             )}
           </AnimatePresence>
 
-          {/* Node config — only shown when no tool active */}
+          {/* Node config */}
           <AnimatePresence>
             {selectedNode && !activeTool && (
               <NodeConfigPanel

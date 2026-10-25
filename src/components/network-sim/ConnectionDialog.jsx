@@ -13,14 +13,12 @@ function PortList({ node, connections, selected, onSelect }) {
   const used = useMemo(() => (node ? getUsedPorts(connections, node.id) : new Set()), [connections, node]);
 
   return (
-    <div className="rounded-xl p-3"
-      style={{ background: "rgba(23,63,95,0.03)", border: "1px solid #E2E8F0" }}>
+    <div className="rounded-[12px] p-3 bg-muted border border-border">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-bold" style={{ color: "#173F5F" }}>
+        <span className="text-xs font-bold text-foreground">
           {node?.label}
         </span>
-        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded"
-          style={{ background: "rgba(47,102,144,0.1)", color: "#2F6690" }}>
+        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-accent border border-border text-brand font-bold">
           {node?.type}
         </span>
       </div>
@@ -29,7 +27,6 @@ function PortList({ node, connections, selected, onSelect }) {
           const status = getPortStatus(port, used);
           const st = PORT_STATUS_LABELS[status];
           const stLabel = t(st.labelKey);
-          const stColor = st.color;
           const noteText = port.noteKey ? t(port.noteKey) : (port.note || "");
           const selectable = status === "available";
           const isSel = selected === port.name;
@@ -39,17 +36,18 @@ function PortList({ node, connections, selected, onSelect }) {
               disabled={!selectable}
               onClick={() => onSelect(port.name)}
               title={noteText || stLabel}
-              className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[10px] font-mono transition-all disabled:cursor-not-allowed"
-              style={{
-                background: isSel ? "rgba(47,102,144,0.12)" : "rgba(23,63,95,0.03)",
-                border: `1px solid ${isSel ? "#2F6690" : "#E2E8F0"}`,
-                opacity: selectable ? 1 : 0.55,
-              }}
+              className={`w-full flex items-center justify-between px-2 py-1.5 rounded-[8px] text-[10px] font-mono transition-all border disabled:cursor-not-allowed ${
+                isSel
+                  ? "bg-primary text-primary-foreground font-bold border-primary"
+                  : selectable
+                  ? "bg-card border-border text-foreground hover:bg-accent"
+                  : "bg-muted/40 border-border/50 text-muted-foreground opacity-50"
+              }`}
             >
-              <span style={{ color: isSel ? "#2F6690" : "rgba(31,41,55,0.75)" }}>{port.name}</span>
+              <span>{port.name}</span>
               <span className="flex items-center gap-1 font-sans">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: stColor }} />
-                <span style={{ color: stColor }}>{stLabel}</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${selectable ? "bg-success" : "bg-destructive"}`} />
+                <span className={selectable ? "text-success font-bold" : "text-muted-foreground"}>{stLabel}</span>
               </span>
             </button>
           );
@@ -76,33 +74,27 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="absolute inset-0 z-40 flex items-center justify-center p-4"
-      style={{ background: "rgba(2,6,23,0.75)", backdropFilter: "blur(4px)" }}
+      className="absolute inset-0 z-40 flex items-center justify-center p-4 bg-terminal/70 backdrop-blur-none"
       onClick={onCancel}
     >
       <motion.div
-        initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, opacity: 0 }}
-        transition={{ type: "spring", duration: 0.3 }}
-        className="w-full max-w-2xl rounded-2xl p-5 max-h-[90%] overflow-y-auto"
-        style={{
-          background: "#FFFFFF",
-          border: "1px solid #E2E8F0",
-          boxShadow: "0 24px 60px rgba(23,63,95,0.25)",
-        }}
+        initial={{ scale: 0.95, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="w-full max-w-2xl rounded-[16px] p-5 max-h-[90%] overflow-y-auto bg-card text-card-foreground border border-border shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-black" style={{ color: "#173F5F" }}>
+            <h3 className="text-sm font-black text-foreground">
               🔗 {t("simConnDialogTitle")} {fromNode?.label} → {toNode?.label}
             </h3>
-            <p className="text-[10px] mt-0.5" style={{ color: "rgba(31,41,55,0.55)" }}>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               {t("simConnDialogDesc")}
             </p>
-            </div>
-            <button onClick={onCancel}
-            className="p-1.5 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted">
+          </div>
+          <button onClick={onCancel}
+            className="p-1.5 rounded-[8px] transition-colors text-muted-foreground hover:text-foreground hover:bg-muted">
             <X size={16} />
           </button>
         </div>
@@ -118,14 +110,14 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
                 key={cable.id}
                 onClick={() => { setCableId(cable.id); setFromPort(null); setToPort(null); }}
                 disabled={!ok}
-                className="flex flex-col items-center gap-1 p-2.5 rounded-xl transition-all disabled:opacity-25 disabled:cursor-not-allowed"
-                style={{
-                  background: active ? `${cable.color}1A` : "rgba(23,63,95,0.03)",
-                  border: `1px solid ${active ? cable.color : "#E2E8F0"}`,
-                }}
+                className={`flex flex-col items-center gap-1 p-2.5 rounded-[10px] transition-all border disabled:opacity-30 disabled:cursor-not-allowed ${
+                  active
+                    ? "bg-accent border-primary text-brand font-bold"
+                    : "bg-muted border-border text-foreground hover:bg-accent/70"
+                }`}
               >
                 <span className="text-lg leading-none">{cable.icon}</span>
-                <span className="text-[10px] font-bold" style={{ color: active ? cable.color : "rgba(31,41,55,0.7)" }}>
+                <span className="text-[10px] font-bold">
                   {label}
                 </span>
               </button>
@@ -135,8 +127,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
 
         {/* Incompatible warning */}
         {incompatible && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3 text-[11px] font-bold"
-            style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] mb-3 text-[11px] font-bold bg-destructive/10 border border-destructive/30 text-destructive">
             <AlertTriangle size={13} />
             {t("simConnIncompatible")} {fromNode?.type} {t("simConnAnd")} {toNode?.type}
           </div>
@@ -144,7 +135,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
 
         {/* Cable description */}
         {cableId && !incompatible && (
-          <p className="text-[10px] mb-3 px-1" style={{ color: `${selectedCable?.color}` }}>
+          <p className="text-[10px] mb-3 px-1 text-brand font-bold">
             {selectedCable?.icon} {cableDesc}
           </p>
         )}
@@ -161,8 +152,7 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
 
         {/* Wireless note */}
         {isWireless && (
-          <div className="px-3 py-2.5 rounded-xl mb-4 text-[11px]"
-            style={{ background: "rgba(46,125,91,0.08)", border: "1px solid rgba(46,125,91,0.3)", color: "#2E7D5B" }}>
+          <div className="px-3 py-2.5 rounded-[10px] mb-4 text-[11px] font-bold bg-success/10 border border-success/30 text-success">
             {t("simConnWirelessNote")}
           </div>
         )}
@@ -170,19 +160,13 @@ export default function ConnectionDialog({ fromNode, toNode, connections, onConf
         {/* Actions */}
         <div className="flex gap-2">
           <button onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-muted"
-            style={{ border: "1px solid #E2E8F0", color: "rgba(31,41,55,0.65)" }}>
+            className="flex-1 py-2.5 rounded-[10px] text-xs font-bold transition-all border border-border text-muted-foreground hover:text-foreground hover:bg-muted">
             {t("simConnCancel")}
           </button>
           <button
             disabled={!canConfirm}
             onClick={() => onConfirm({ cableType: cableId, fromPort: isWireless ? null : fromPort, toPort: isWireless ? null : toPort })}
-            className="flex-1 py-2.5 rounded-xl text-xs font-black transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            style={{
-              background: canConfirm ? "#173F5F" : "rgba(23,63,95,0.05)",
-              border: "1px solid rgba(23,63,95,0.4)",
-              color: "#fff",
-            }}
+            className="flex-1 py-2.5 rounded-[10px] text-xs font-black transition-all bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {canConfirm ? t("simConnConfirm") : t("simConnSelectPrompt")}
           </button>

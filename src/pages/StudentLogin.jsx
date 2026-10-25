@@ -15,8 +15,6 @@ import { friendlyError } from "@/lib/errorMessage";
  *  1) طالب: School Code + Student Code
  *  2) أستاذ: School Code + Teacher Code
  *  3) إنشاء حساب: رابط لصفحة الخطط (Personal / School)
- * لا بريد، لا كلمة مرور، لا دخول اجتماعي للطلاب والأساتذة.
- * دخول الإدارة/المالك عبر Base44 يبقى متاحًا عبر الرابط السفلي.
  */
 export default function StudentLogin() {
   useLang();
@@ -40,13 +38,12 @@ export default function StudentLogin() {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  // المالك (Base44 auth) لا يرى صفحة دخول الطلاب — يُوجّه للوحة الإدارة
   const [checking, setChecking] = useState(true);
 
-  // اختفاء رسالة الخطأ بمجرد أن يبدأ المستخدم بتعديل الرمز (بدل بقائها حتى الإرسال التالي)
   useEffect(() => {
     setError(null);
   }, [sSchoolCode, sStudentCode, tSchoolCode, tTeacherCode, aAdminCode, iStudentCode]);
+
   useEffect(() => {
     let active = true;
     const checkLogin = async () => {
@@ -67,8 +64,6 @@ export default function StudentLogin() {
   if (checking) {
     return <PageLoader fullScreen />;
   }
-
-  // inputStyle moved to module scope (see LoginField below)
 
   const submitStudent = async (e) => {
     e.preventDefault();
@@ -139,54 +134,67 @@ export default function StudentLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground" dir={direction}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground font-main" dir={direction}>
       {/* زر تغيير اللغة — ثابت أعلى الصفحة */}
       <div className="fixed top-4 end-4 z-10">
         <LanguageSwitcher />
       </div>
-      <div className="w-full max-w-md rounded-2xl p-6 bg-card border border-border shadow-card">
-        {/* Header — مع رابط دخول المشرف جنب اسم المنصة */}
+      <div className="w-full max-w-md rounded-[16px] p-6 bg-card border border-border shadow-card">
+        {/* Header */}
         <div className="text-center mb-5">
-          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-primary">
-            <BookOpen className="text-primary-foreground" size={24} />
+          <div className="w-14 h-14 rounded-[12px] mx-auto mb-3 flex items-center justify-center bg-primary text-primary-foreground shadow-sm">
+            <BookOpen size={24} />
           </div>
-          <h1 className="font-black text-lg text-primary">{t("appName")}</h1>
+          <h1 className="font-black text-xl text-foreground">{t("appName")}</h1>
           <p className="text-xs mt-1 text-muted-foreground">
             {showAdminLogin ? t("loginAdminSubtitle") : showIndividualLogin ? t("individualLoginSubtitle") : t("loginSubtitle")}
           </p>
-          {/* خيارات الدخول الأخرى — أزرار بحجم لمس مريح (≥44px) بدل الأزرار الصغيرة */}
+          {/* خيارات الدخول الأخرى */}
           <div className="flex gap-2 mt-3">
-            <button type="button" onClick={() => { setShowIndividualLogin(!showIndividualLogin); setShowAdminLogin(false); setTab("student"); setError(null); }}
+            <button
+              type="button"
+              onClick={() => { setShowIndividualLogin(!showIndividualLogin); setShowAdminLogin(false); setTab("student"); setError(null); }}
               aria-pressed={showIndividualLogin}
-              className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all border ${
-                showIndividualLogin ? "bg-success text-success-foreground border-success" : "bg-success/[0.06] text-foreground/70 border-success/25"
-              }`}>
+              className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-bold transition-all border ${
+                showIndividualLogin
+                  ? "bg-secondary text-secondary-foreground border-secondary"
+                  : "bg-muted text-foreground border-border hover:bg-accent"
+              }`}
+            >
               <User size={14} /> {t("individualLoginLink")}
             </button>
-            <button type="button" onClick={() => { setShowAdminLogin(!showAdminLogin); setShowIndividualLogin(false); setTab("student"); setError(null); }}
+            <button
+              type="button"
+              onClick={() => { setShowAdminLogin(!showAdminLogin); setShowIndividualLogin(false); setTab("student"); setError(null); }}
               aria-pressed={showAdminLogin}
-              className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all border ${
-                showAdminLogin ? "bg-primary text-primary-foreground border-primary" : "bg-primary/[0.06] text-foreground/70 border-primary/20"
-              }`}>
+              className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 px-3 rounded-[10px] text-xs font-bold transition-all border ${
+                showAdminLogin
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-muted text-foreground border-border hover:bg-accent"
+              }`}
+            >
               <Shield size={14} /> {t("adminLoginLink")}
             </button>
           </div>
         </div>
 
-        {/* Tabs — تُخفى عند تفعيل دخول المشرف أو الدخول الفردي */}
+        {/* Tabs */}
         {!showAdminLogin && !showIndividualLogin && (
-        <div className="flex gap-1 p-1 rounded-xl mb-4 bg-primary/5">
-          <TabButton id="student" active={tab === "student"} icon={KeyRound} label={t("loginTabStudent")} onClick={() => { setTab("student"); setError(null); }} />
-          <TabButton id="teacher" active={tab === "teacher"} icon={GraduationCap} label={t("loginTabTeacher")} onClick={() => { setTab("teacher"); setError(null); }} />
-          <TabButton id="create" active={tab === "create"} icon={UserPlus} label={t("createAccountTab")} onClick={() => { setTab("create"); setError(null); }} />
-        </div>
+          <div className="flex gap-1 p-1 rounded-[10px] mb-4 bg-muted border border-border">
+            <TabButton id="student" active={tab === "student"} icon={KeyRound} label={t("loginTabStudent")} onClick={() => { setTab("student"); setError(null); }} />
+            <TabButton id="teacher" active={tab === "teacher"} icon={GraduationCap} label={t("loginTabTeacher")} onClick={() => { setTab("teacher"); setError(null); }} />
+            <TabButton id="create" active={tab === "create"} icon={UserPlus} label={t("createAccountTab")} onClick={() => { setTab("create"); setError(null); }} />
+          </div>
         )}
 
-        {/* Admin login — يظهر بدلاً من التبويبات عند تفعيله */}
+        {/* Admin login */}
         {showAdminLogin && (
           <form onSubmit={submitAdmin} className="space-y-3">
-            <button type="button" onClick={() => { setShowAdminLogin(false); setError(null); }}
-              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all text-secondary dark:text-primary">
+            <button
+              type="button"
+              onClick={() => { setShowAdminLogin(false); setError(null); }}
+              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all text-brand hover:underline"
+            >
               <ArrowLeft size={12} className="rotate-180" /> {t("back")}
             </button>
             <LoginField value={aAdminCode} onChange={setAAdminCode} label={t("adminCode")} placeholder={t("adminCodePlaceholder")} />
@@ -196,11 +204,14 @@ export default function StudentLogin() {
           </form>
         )}
 
-        {/* Individual login — رمز واحد فقط للخطة الشخصية */}
+        {/* Individual login */}
         {showIndividualLogin && (
           <form onSubmit={submitIndividual} className="space-y-3">
-            <button type="button" onClick={() => { setShowIndividualLogin(false); setError(null); }}
-              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all text-success">
+            <button
+              type="button"
+              onClick={() => { setShowIndividualLogin(false); setError(null); }}
+              className="flex items-center gap-1 text-[11px] font-bold mb-1 transition-all text-brand hover:underline"
+            >
               <ArrowLeft size={12} className="rotate-180" /> {t("back")}
             </button>
             <LoginField value={iStudentCode} onChange={setIStudentCode} label={t("individualCode")} placeholder={t("individualCodePlaceholder")} />
@@ -235,28 +246,31 @@ export default function StudentLogin() {
         {/* Create account tab */}
         {tab === "create" && !showAdminLogin && !showIndividualLogin && (
           <div className="space-y-3">
-            <div className="rounded-xl p-4 text-center bg-secondary/[0.06] border border-secondary/20">
-              <UserPlus size={22} className="mx-auto mb-2 text-secondary dark:text-primary" />
+            <div className="rounded-[12px] p-4 text-center bg-muted border border-border">
+              <UserPlus size={22} className="mx-auto mb-2 text-brand" />
               <p className="text-xs text-muted-foreground leading-relaxed">{t("createAccountPrompt")}</p>
             </div>
-            <Link to="/plans?type=individual"
-              className="w-full py-3 rounded-xl text-sm font-black bg-success text-success-foreground flex items-center justify-center gap-2 transition-all">
+            <Link
+              to="/plans?type=individual"
+              className="w-full py-3 rounded-[10px] text-xs font-black bg-secondary text-secondary-foreground flex items-center justify-center gap-2 transition-all hover:bg-secondary/90"
+            >
               <User size={15} /> {t("regTypeIndividual")}
             </Link>
-            <Link to="/plans?type=school"
-              className="w-full py-3 rounded-xl text-sm font-black bg-primary text-primary-foreground flex items-center justify-center gap-2 transition-all">
+            <Link
+              to="/plans?type=school"
+              className="w-full py-3 rounded-[10px] text-xs font-black bg-primary text-primary-foreground flex items-center justify-center gap-2 transition-all hover:bg-primary/90"
+            >
               <BookOpen size={15} /> {t("regTypeSchool")}
             </Link>
           </div>
         )}
 
-        {/* روابط قانونية — مطلوبة لمتاجر التطبيقات */}
+        {/* روابط قانونية */}
         <div className="mt-5 pt-4 border-t border-border flex items-center justify-center gap-x-4 gap-y-2 flex-wrap text-[11px] text-muted-foreground">
-          <Link to="/privacy" className="hover:text-primary underline-offset-2 hover:underline">{t("legalPrivacy")}</Link>
-          <Link to="/terms" className="hover:text-primary underline-offset-2 hover:underline">{t("legalTerms")}</Link>
-          <Link to="/account-deletion" className="hover:text-primary underline-offset-2 hover:underline">{t("legalDeletion")}</Link>
+          <Link to="/privacy" className="hover:text-brand underline-offset-2 hover:underline">{t("legalPrivacy")}</Link>
+          <Link to="/terms" className="hover:text-brand underline-offset-2 hover:underline">{t("legalTerms")}</Link>
+          <Link to="/account-deletion" className="hover:text-brand underline-offset-2 hover:underline">{t("legalDeletion")}</Link>
         </div>
-
       </div>
     </div>
   );
@@ -264,7 +278,7 @@ export default function StudentLogin() {
 
 function ErrorBox({ text }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive">
+    <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive">
       <AlertTriangle size={13} /> {text}
     </div>
   );
@@ -272,8 +286,11 @@ function ErrorBox({ text }) {
 
 function SubmitButton({ busy }) {
   return (
-    <button type="submit" disabled={busy}
-      className="w-full min-h-[44px] py-3 rounded-xl text-sm font-black bg-primary text-primary-foreground transition-all disabled:opacity-60">
+    <button
+      type="submit"
+      disabled={busy}
+      className="w-full min-h-[44px] py-3 rounded-[10px] text-xs font-black bg-primary text-primary-foreground transition-all disabled:opacity-60 hover:bg-primary/90"
+    >
       {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : t("loginBtn")}
     </button>
   );
@@ -283,21 +300,34 @@ function LoginField({ value, onChange, label, placeholder }) {
   return (
     <div>
       <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{label}</label>
-      {/* الرموز: لا تصحيح تلقائي ولا حرف كبير تلقائي (لوحات الجوال كانت تغيّر الحرف الأول فيفشل الدخول) */}
-      <input value={value} onChange={(e) => onChange(e.target.value)}
-        required placeholder={placeholder} dir="ltr"
-        autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false} inputMode="text"
-        className="w-full px-4 py-3 rounded-xl text-sm text-foreground font-mono focus:outline-none bg-background border border-border focus:border-primary" />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required
+        placeholder={placeholder}
+        dir="ltr"
+        autoCapitalize="none"
+        autoCorrect="off"
+        autoComplete="off"
+        spellCheck={false}
+        inputMode="text"
+        className="w-full px-4 py-3 rounded-[10px] text-xs text-foreground font-mono focus:outline-none bg-background border border-input focus:ring-1 focus:ring-primary"
+      />
     </div>
   );
 }
 
 function TabButton({ id, active, icon: Icon, label, onClick }) {
   return (
-    <button type="button" onClick={onClick}
-      className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-        active ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"
-      }`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex-1 min-h-[44px] flex items-center justify-center gap-1.5 py-2.5 rounded-[8px] text-xs font-bold transition-all ${
+        active
+          ? "bg-primary text-primary-foreground font-bold shadow-sm"
+          : "bg-transparent text-muted-foreground hover:text-foreground"
+      }`}
+    >
       <Icon size={13} /> {label}
     </button>
   );

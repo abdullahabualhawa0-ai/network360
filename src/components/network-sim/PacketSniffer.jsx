@@ -6,7 +6,7 @@ import { t, useLang } from "@/lib/i18n";
 const PROTOCOL_COLORS = {
   ICMP: "text-warning bg-warning/10",
   TCP: "text-secondary bg-secondary/10",
-  UDP: "text-accent bg-accent/10",
+  UDP: "text-brand bg-accent",
   ARP: "text-success bg-success/10",
   DNS: "text-muted-foreground bg-muted",
   HTTP: "text-primary bg-primary/10",
@@ -25,22 +25,14 @@ export default function PacketSniffer({ packets, onClose }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="absolute bottom-4 left-4 right-4 z-50 rounded-2xl overflow-hidden"
-      style={{
-        background: "#FFFFFF",
-        border: "1px solid #E2E8F0",
-        boxShadow: "0 12px 32px rgba(23,63,95,0.18)",
-        maxHeight: "260px",
-      }}
+      className="absolute bottom-4 left-4 right-4 z-50 rounded-[16px] overflow-hidden bg-card text-card-foreground border border-border shadow-card"
+      style={{ maxHeight: "260px" }}
     >
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-4 py-2 border-b"
-        style={{ borderColor: "#E2E8F0" }}
-      >
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted">
         <div className="flex items-center gap-2">
-          <Wifi size={14} className="text-secondary" />
-          <span className="text-secondary font-mono text-xs font-bold">
+          <Wifi size={14} className="text-brand" />
+          <span className="text-foreground font-mono text-xs font-bold">
             {t("simSnifferTitle")}
           </span>
           <span className="text-muted-foreground text-xs font-mono">
@@ -53,10 +45,10 @@ export default function PacketSniffer({ packets, onClose }) {
               <button
                 key={p}
                 onClick={() => setFilter(p)}
-                className={`text-[9px] font-mono px-2 py-0.5 rounded transition-all ${
+                className={`text-[9px] font-mono px-2 py-0.5 rounded-[6px] transition-all ${
                   filter === p
-                    ? "bg-secondary/15 text-secondary border border-secondary/40"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground font-bold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
                 }`}
               >
                 {p}
@@ -65,7 +57,7 @@ export default function PacketSniffer({ packets, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-destructive transition-colors"
+            className="text-muted-foreground hover:text-destructive transition-colors p-1"
           >
             <X size={14} />
           </button>
@@ -74,10 +66,9 @@ export default function PacketSniffer({ packets, onClose }) {
 
       {/* Table header */}
       <div
-        className="grid text-[9px] font-mono font-bold text-muted-foreground px-4 py-1 border-b"
+        className="grid text-[9px] font-mono font-bold text-muted-foreground px-4 py-1.5 border-b border-border bg-card"
         style={{
           gridTemplateColumns: "60px 1fr 1fr 60px 50px 60px 80px",
-          borderColor: "#E2E8F0",
         }}
       >
         <span>#</span>
@@ -102,10 +93,9 @@ export default function PacketSniffer({ packets, onClose }) {
                 key={p.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="grid items-center px-4 py-1 hover:bg-muted/50 transition-colors"
+                className="grid items-center px-4 py-1.5 hover:bg-muted/50 transition-colors border-b border-border text-foreground"
                 style={{
                   gridTemplateColumns: "60px 1fr 1fr 60px 50px 60px 80px",
-                  borderBottom: "1px solid #F1F5F9",
                 }}
               >
                 <span className="text-muted-foreground font-mono text-[9px]">
@@ -114,7 +104,7 @@ export default function PacketSniffer({ packets, onClose }) {
                 <span className="text-success font-mono text-[9px]">
                   {p.srcIP}
                 </span>
-                <span className="text-secondary font-mono text-[9px]">
+                <span className="text-brand font-mono text-[9px]">
                   {p.dstIP}
                 </span>
                 <span
