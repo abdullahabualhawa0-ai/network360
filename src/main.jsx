@@ -3,16 +3,19 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 
-// مزامنة الوضع الداكن مع تفضيل النظام (system-preference dark mode sync)
-function syncDarkMode() {
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  document.documentElement.classList.toggle('dark', prefersDark);
-}
-syncDarkMode();
+import { getTheme, applyTheme } from '@/lib/theme';
+
+// تطبيق السمة المحفوظة (الافتراضي هو الوضع الداكن Charcoal & Amber)
+applyTheme(getTheme());
 if (window.matchMedia) {
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
-  if (mq.addEventListener) mq.addEventListener('change', syncDarkMode);
-  else if (mq.addListener) mq.addListener(syncDarkMode);
+  const handleSysChange = () => {
+    if (getTheme() === 'system') {
+      applyTheme('system');
+    }
+  };
+  if (mq.addEventListener) mq.addEventListener('change', handleSysChange);
+  else if (mq.addListener) mq.addListener(handleSysChange);
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
