@@ -47,9 +47,23 @@ export function rateLimit(key: string, max: number, windowMs: number): { ok: boo
 
 export function clientIp(req: Request): string {
   const headers = req.headers;
-  const forwarded = headers.get("x-forwarded-for") || headers.get("x-real-ip") || headers.get("cf-connecting-ip") || "";
-  const ip = forwarded.split(",")[0]?.trim();
-  return ip || "unknown";
+  // تفضيل الترويسات الموثوقة من البروكسي/الطرفية (غير قابلة للتلاعب من العميل)
+  const cf = headers.get("cf-connecting-ip")?.trim();
+  if (cf) return cf;
+
+  const realIp = headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+
+  const forwarded = headers.get("x-forwarded-for");
+  if (forwarded) {
+    // الخوادم الوسيطة تُلحق IP العميل المتصل في نهاية السلسلة، بينما العنصر الأول قابل للتزوير
+    const parts = forwarded.split(",").map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 0) {
+      return parts[parts.length - 1];
+    }
+  }
+
+  return "unknown";
 }
 
 /* ───────────────────────── حماية دائمة (Persistent) ─────────────────────────

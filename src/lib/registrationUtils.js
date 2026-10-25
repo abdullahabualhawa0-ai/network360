@@ -62,9 +62,9 @@ export async function registerStudent({ user, fullName, email, schoolCode, stude
     status: "pending",
   });
 
-  // حفظ المدرسة ونوع الحساب على حساب المستخدم (يُستخدم في عزل البيانات على مستوى القاعدة)
+  // حفظ نوع الحساب على حساب المستخدم (حقل school_id مقفل في RLS ومحمي من التعديل المباشر)
   // account_type = school → مستخدم تابع لمدرسة (مقابل personal للمستخدم المستقل)
-  await base44.auth.updateMe({ school_id: school.id, account_type: "school" }).catch(() => {});
+  await base44.auth.updateMe({ account_type: "school" }).catch(() => {});
 
   return { ok: true };
 }

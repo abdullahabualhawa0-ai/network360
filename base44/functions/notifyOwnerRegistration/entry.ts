@@ -148,13 +148,7 @@ export default async function(req) {
         await svc.integrations.Core.SendEmail({ to: emailAddr, subject, html });
         sent++;
       } catch (e) {
-        try {
-          // احتياط: بعض البيئات تتيح التكامل عبر العميل العادي فقط
-          await base44.integrations.Core.SendEmail({ to: emailAddr, subject, html });
-          sent++;
-        } catch (e2) {
-          console.log("SendEmail failed for a recipient:", e2?.message);
-        }
+        console.log("SendEmail failed for a recipient:", e?.message);
       }
     }
     return Response.json({ created: true, sent });
