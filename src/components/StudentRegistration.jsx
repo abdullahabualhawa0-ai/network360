@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { getSchoolName } from "@/lib/schoolUtils";
 import { registerStudent } from "@/lib/registrationUtils";
@@ -39,46 +38,52 @@ export default function StudentRegistration({ onRegistered }) {
     }
   };
 
-  const inputStyle = {
-    background: "hsl(var(--background))",
-    border: "1px solid hsl(var(--input))",
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background" dir="rtl">
-      <div className="w-full max-w-md rounded-2xl p-6 bg-card border border-border shadow-card">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background font-main" dir="rtl">
+      <div className="w-full max-w-md rounded-[16px] p-6 bg-card border border-border">
         <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-primary">
+          <div className="w-14 h-14 rounded-[12px] mx-auto mb-3 flex items-center justify-center bg-primary">
             <KeyRound className="text-primary-foreground" size={24} />
           </div>
-          <h1 className="font-black text-lg text-primary">{t("loginTitle")}</h1>
+          <h1 className="font-black text-lg text-brand">{t("loginTitle")}</h1>
           <p className="text-xs mt-1 text-muted-foreground">{t("loginSubtitle")}</p>
         </div>
 
         <form onSubmit={submit} className="space-y-3">
           <div>
             <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("schoolCode")}</label>
-            <input value={schoolCode} onChange={(e) => setSchoolCode(e.target.value)}
-              required placeholder="SCH2026A" dir="ltr"
-              className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none bg-background border border-input"
-              style={inputStyle} />
+            <input
+              value={schoolCode}
+              onChange={(e) => setSchoolCode(e.target.value)}
+              required
+              placeholder="SCH2026A"
+              dir="ltr"
+              className="w-full px-4 py-2.5 rounded-[10px] text-sm text-foreground font-mono focus:outline-none bg-background border border-input"
+            />
           </div>
           <div>
             <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("studentCode")}</label>
-            <input value={studentCode} onChange={(e) => setStudentCode(e.target.value)}
-              required placeholder="ST10025" dir="ltr"
-              className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground font-mono focus:outline-none bg-background border border-input"
-              style={inputStyle} />
+            <input
+              value={studentCode}
+              onChange={(e) => setStudentCode(e.target.value)}
+              required
+              placeholder="ST10025"
+              dir="ltr"
+              className="w-full px-4 py-2.5 rounded-[10px] text-sm text-foreground font-mono focus:outline-none bg-background border border-input"
+            />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive">
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive">
               <AlertTriangle size={13} /> {error}
             </div>
           )}
 
-          <button type="submit" disabled={busy}
-            className="w-full py-3 rounded-xl text-sm font-black bg-primary text-primary-foreground transition-all disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={busy}
+            className="w-full min-h-[44px] py-3 rounded-[10px] text-sm font-black bg-primary text-primary-foreground transition-all disabled:opacity-60"
+          >
             {busy ? <Loader2 size={15} className="animate-spin mx-auto" /> : t("loginBtn")}
           </button>
         </form>
@@ -88,16 +93,16 @@ export default function StudentRegistration({ onRegistered }) {
         </p>
 
         <div className="mt-4 pt-4 text-center border-t border-border">
-          <Link to="/plans" className="inline-flex items-center gap-1.5 text-xs font-black text-secondary dark:text-primary">
+          <Link to="/plans" className="inline-flex items-center gap-1.5 text-xs font-black text-brand hover:underline">
             <UserPlus size={13} /> {t("createAccount")}
           </Link>
           <p className="text-[10px] text-muted-foreground mt-1">{t("createAccountNote")}</p>
 
           {/* التسجيل بشكل مستقل بدون مدرسة */}
-          <Link to="/plans" className="mt-4 flex items-center gap-2.5 w-full px-4 py-3 rounded-xl bg-success/[0.06] border border-success/30">
-            <User size={15} className="text-success" />
+          <Link to="/plans" className="mt-4 flex items-center gap-2.5 w-full px-4 py-3 rounded-[10px] bg-accent border border-border">
+            <User size={15} className="text-brand" />
             <span className="text-right">
-              <span className="block text-[11px] font-black text-success">{t("personalOption")}</span>
+              <span className="block text-[11px] font-black text-foreground">{t("personalOption")}</span>
               <span className="block text-[9px] text-muted-foreground">{t("personalOptionDesc")}</span>
             </span>
           </Link>
@@ -122,16 +127,16 @@ export function AccountStatusScreen({ profile, onLogout }) {
   const StatusIcon = isPending ? Hourglass : isRejected ? Ban : AlertTriangle;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background" dir="rtl">
-      <div className={`w-full max-w-md rounded-2xl p-8 text-center bg-card border shadow-card ${
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background font-main text-foreground" dir="rtl">
+      <div className={`w-full max-w-md rounded-[16px] p-8 text-center bg-card border ${
         isPending ? "border-warning/40" : "border-destructive/40"
       }`}>
-        <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center ${
+        <div className={`w-16 h-16 rounded-[12px] mx-auto mb-4 flex items-center justify-center ${
           isPending ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"
         }`}>
           <StatusIcon size={30} />
         </div>
-        <h1 className="font-black text-lg mb-1 text-primary">
+        <h1 className="font-black text-lg mb-1 text-foreground">
           {isPending ? t("pendingTitle") : isRejected ? t("rejectedTitle") : t("errDisabled")}
         </h1>
         <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
@@ -142,8 +147,10 @@ export function AccountStatusScreen({ profile, onLogout }) {
         <div className="text-[10px] text-muted-foreground mb-5">
           {profile.full_name} • {t("studentCodeLabel")}: {profile.student_code}
         </div>
-        <button onClick={() => (onLogout || logout)()}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-border text-muted-foreground">
+        <button
+          onClick={() => (onLogout || logout)()}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold border border-border text-muted-foreground hover:text-foreground"
+        >
           <LogOut size={12} /> {t("logout")}
         </button>
       </div>
@@ -154,7 +161,7 @@ export function AccountStatusScreen({ profile, onLogout }) {
 export function FullSpinner() {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-background">
-      <div className="w-8 h-8 rounded-full animate-spin border-[3px] border-primary/20 border-t-primary" />
+      <div className="w-8 h-8 rounded-full animate-spin border-[3px] border-muted border-t-brand" />
     </div>
   );
 }

@@ -8,18 +8,21 @@ export default function PersonalPlans({ isStudent, busy, onSelect }) {
   const direction = useDir();
   const plans = [PLANS.personal_monthly, PLANS.personal_annual];
   return (
-    <section className="mb-10" dir={direction}>
-      <h2 className="font-black text-base mb-1">{t("personalPlanSection")}</h2>
+    <section className="mb-10 font-main text-foreground" dir={direction}>
+      <h2 className="font-black text-base mb-1 text-foreground">{t("personalPlanSection")}</h2>
       <p className="text-[11px] text-muted-foreground mb-4">{t("personalPlanDesc")}</p>
       <div className="grid sm:grid-cols-2 gap-4">
         {plans.map((p) => (
-          <div key={p.id} className="rounded-2xl p-5 bg-card"
-            style={{ border: `1px solid ${p.highlight ? "rgba(46,125,91,0.4)" : "hsl(var(--border))"}` }}>
-            <div className="text-[11px] font-black mb-2" style={{ color: "#2F6690" }}>{p.period}</div>
-            <div className="text-3xl font-black mb-2">{p.price}</div>
+          <div
+            key={p.id}
+            className={`rounded-[16px] p-5 bg-card border ${
+              p.highlight ? "border-success/40" : "border-border"
+            }`}
+          >
+            <div className="text-[11px] font-black mb-2 text-brand">{p.period}</div>
+            <div className="text-3xl font-black mb-2 text-foreground">{p.price}</div>
             {p.highlight && (
-              <div className="mb-3 px-3 py-2 rounded-xl text-xs font-black text-center"
-                style={{ background: "rgba(46,125,91,0.1)", border: "1px solid rgba(46,125,91,0.45)", color: "#2E7D5B" }}>
+              <div className="mb-3 px-3 py-2 rounded-[10px] text-xs font-black text-center bg-success/10 border border-success/40 text-success">
                 {p.highlight}
               </div>
             )}
@@ -27,10 +30,11 @@ export default function PersonalPlans({ isStudent, busy, onSelect }) {
               <li>• {t("personalFeature1")}</li>
               <li>• {t("personalFeature2")}</li>
             </ul>
-            <button onClick={() => onSelect(p.id)}
+            <button
+              onClick={() => onSelect(p.id)}
               disabled={!isStudent || busy !== null}
-              className="w-full py-2.5 rounded-xl text-xs font-black text-white transition-all disabled:opacity-50"
-              style={{ background: "#173F5F" }}>
+              className="w-full min-h-[44px] py-2.5 rounded-[10px] text-xs font-black bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50"
+            >
               {busy === p.id ? <Loader2 size={13} className="animate-spin mx-auto" />
                 : !isStudent ? t("studentsOnly")
                 : t("choosePlan")}

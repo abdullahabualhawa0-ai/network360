@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Plus, Trash2, Check, X, Loader2, RefreshCw, KeyRound, Ban, Pencil,
@@ -68,7 +68,7 @@ export default function TeachersList({ school, onBack }) {
         setShowForm(false);
         try {
           await base44.entities.Teacher.update(editId, updatedData);
-        } catch (err) {
+        } catch {
           setTeachers(prev);
           setFormError(t("errUnexpected"));
         }
@@ -92,7 +92,7 @@ export default function TeachersList({ school, onBack }) {
         setForm({ full_name: "", teacher_code: "" });
         setShowForm(false);
       }
-    } catch (err) {
+    } catch {
       setFormError(t("errUnexpected"));
     } finally {
       setBusy(false);
@@ -105,7 +105,7 @@ export default function TeachersList({ school, onBack }) {
     setTeachers((p) => (p || []).map((x) => (x.id === tc.id ? { ...x, status: next } : x)));
     try {
       await base44.entities.Teacher.update(tc.id, { status: next });
-    } catch (err) {
+    } catch {
       setTeachers(prev);
       await alertDialog(t("errUnexpected"));
     }
@@ -117,7 +117,7 @@ export default function TeachersList({ school, onBack }) {
     setTeachers((p) => (p || []).filter((item) => item.id !== tc.id));
     try {
       await base44.entities.Teacher.delete(tc.id);
-    } catch (err) {
+    } catch {
       setTeachers(prev);
       await alertDialog(t("errUnexpected"));
     }
@@ -132,24 +132,24 @@ export default function TeachersList({ school, onBack }) {
   if (!school) {
     return (
       <div className="py-20 flex justify-center">
-        <Loader2 size={26} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
+        <Loader2 size={26} className="animate-spin text-brand" />
       </div>
     );
   }
 
-  const inputStyle = { background: "#F7F9FC", border: "1px solid hsl(var(--border))" };
   const labelCls = "block text-[10px] font-bold text-muted-foreground mb-1";
-  const inputCls = "w-full px-3 py-2 rounded-xl text-xs bg-transparent focus:outline-none";
+  const inputCls = "w-full px-3 py-2 rounded-[10px] text-xs bg-background border border-input focus:outline-none";
 
   return (
-    <div dir={direction}>
+    <div dir={direction} className="font-main text-foreground">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-5">
         <div className="flex items-center gap-3 min-w-0">
           {onBack && (
-            <button onClick={onBack}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold"
-              style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
+            <button
+              onClick={onBack}
+              className="px-3 py-1.5 rounded-[10px] text-xs font-bold border border-border text-brand hover:bg-accent"
+            >
               {t("smBack")}
             </button>
           )}
@@ -161,13 +161,16 @@ export default function TeachersList({ school, onBack }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={load} className="p-2 rounded-xl hover:bg-white/5"
-            style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
+          <button
+            onClick={load}
+            className="p-2 rounded-[10px] border border-border text-brand hover:bg-accent"
+          >
             <RefreshCw size={13} />
           </button>
-          <button onClick={() => { setEditId(null); setForm({ full_name: "", teacher_code: "" }); setShowForm(!showForm); }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white"
-            style={{ background: "#173F5F" }}>
+          <button
+            onClick={() => { setEditId(null); setForm({ full_name: "", teacher_code: "" }); setShowForm(!showForm); }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90"
+          >
             <Plus size={13} /> {t("addTeacher")}
           </button>
         </div>
@@ -175,35 +178,52 @@ export default function TeachersList({ school, onBack }) {
 
       {/* Add/Edit form */}
       {showForm && (
-        <motion.form initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} onSubmit={submit}
-          className="rounded-2xl p-4 mb-4 grid sm:grid-cols-3 gap-3 items-end bg-card"
-          style={{ border: "1px solid hsl(var(--border))" }}>
+        <motion.form
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          onSubmit={submit}
+          className="rounded-[16px] p-4 mb-4 grid sm:grid-cols-3 gap-3 items-end bg-card border border-border"
+        >
           <div>
             <label className={labelCls}>{t("teacherName")} *</label>
-            <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              dir={direction} className={inputCls} style={inputStyle} required />
+            <input
+              value={form.full_name}
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              dir={direction}
+              className={inputCls}
+              required
+            />
           </div>
           <div>
             <label className={labelCls}>{t("teacherCode")}</label>
-            <input value={form.teacher_code} onChange={(e) => setForm({ ...form, teacher_code: e.target.value })} dir="ltr"
-              disabled={!!editId} placeholder="TCH-00125"
-              className={`${inputCls} font-mono disabled:opacity-50`} style={inputStyle} />
+            <input
+              value={form.teacher_code}
+              onChange={(e) => setForm({ ...form, teacher_code: e.target.value })}
+              dir="ltr"
+              disabled={!!editId}
+              placeholder="TCH-00125"
+              className={`${inputCls} font-mono disabled:opacity-50`}
+            />
             {!editId && <p className="text-[9px] text-muted-foreground mt-0.5">{t("teacherCodeAuto")}</p>}
           </div>
           <div className="flex gap-2">
-            <button type="submit" disabled={busy}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-60"
-              style={{ background: "#2E7D5B" }}>
+            <button
+              type="submit"
+              disabled={busy}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            >
               {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} {t("teacherSave")}
             </button>
-            <button type="button" onClick={() => { setShowForm(false); setEditId(null); }}
-              className="px-3 py-2 rounded-xl text-xs" style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
+            <button
+              type="button"
+              onClick={() => { setShowForm(false); setEditId(null); }}
+              className="px-3 py-2 rounded-[10px] text-xs border border-border text-muted-foreground hover:text-foreground"
+            >
               <X size={12} />
             </button>
           </div>
           {formError && (
-            <div className="sm:col-span-3 text-[11px] font-bold px-3 py-2 rounded-xl"
-              style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.35)", color: "#C94C4C" }}>
+            <div className="sm:col-span-3 text-[11px] font-bold px-3 py-2 rounded-[10px] bg-destructive/10 border border-destructive/35 text-destructive">
               {formError}
             </div>
           )}
@@ -213,51 +233,60 @@ export default function TeachersList({ school, onBack }) {
       {/* List */}
       {teachers === null ? (
         <div className="py-20 flex justify-center">
-          <Loader2 size={26} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
+          <Loader2 size={26} className="animate-spin text-brand" />
         </div>
       ) : teachers.length === 0 ? (
-        <div className="rounded-2xl p-10 text-center bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-          <KeyRound size={36} className="mx-auto mb-3 opacity-40" style={{ color: "hsl(var(--primary))" }} />
+        <div className="rounded-[16px] p-10 text-center bg-card border border-border">
+          <KeyRound size={36} className="mx-auto mb-3 opacity-40 text-brand" />
           <p className="text-xs font-bold mb-1">{t("teacherNoTeachers")}</p>
           <p className="text-[11px] text-muted-foreground">{t("teacherNoTeachersDesc")}</p>
         </div>
       ) : (
         <div className="space-y-2">
           {teachers.map((tc, i) => (
-            <motion.div key={tc.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}
-              className="rounded-xl p-3.5 bg-card flex flex-col sm:flex-row sm:items-center gap-3"
-              style={{ border: "1px solid hsl(var(--border))" }}>
+            <motion.div
+              key={tc.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.02 }}
+              className="rounded-[12px] p-3.5 bg-card border border-border flex flex-col sm:flex-row sm:items-center gap-3"
+            >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-bold truncate">{tc.full_name}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg"
-                    style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-[6px] bg-accent border border-border text-brand">
                     {tc.teacher_code}
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                    style={tc.status === "active"
-                      ? { background: "rgba(46,125,91,0.1)", border: "1px solid rgba(46,125,91,0.35)", color: "#2E7D5B" }
-                      : { background: "rgba(148,163,184,0.1)", border: "1px solid rgba(148,163,184,0.3)", color: "#94a3b8" }}>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                    tc.status === "active"
+                      ? "bg-success/10 border-success/35 text-success"
+                      : "bg-muted border-border text-muted-foreground"
+                  }`}>
                     {tc.status === "active" ? t("teacherActive") : t("teacherDisabled")}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <button onClick={() => startEdit(tc)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold"
-                  style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
+                <button
+                  onClick={() => startEdit(tc)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[11px] font-bold border border-border text-brand hover:bg-accent"
+                >
                   <Pencil size={11} /> {t("examMgmtEdit")}
                 </button>
-                <button onClick={() => toggleStatus(tc)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold"
-                  style={tc.status === "active"
-                    ? { border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }
-                    : { border: "1px solid rgba(46,125,91,0.35)", color: "#2E7D5B" }}>
+                <button
+                  onClick={() => toggleStatus(tc)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[11px] font-bold border ${
+                    tc.status === "active"
+                      ? "border-border text-muted-foreground hover:text-foreground"
+                      : "border-success/35 text-success hover:bg-success/10"
+                  }`}
+                >
                   {tc.status === "active" ? <><Ban size={11} /> {t("teacherDisable")}</> : <><Check size={11} /> {t("teacherEnable")}</>}
                 </button>
-                <button onClick={() => deleteTeacher(tc)}
-                  className="p-1.5 rounded-xl"
-                  style={{ background: "rgba(201,76,76,0.06)", border: "1px solid rgba(201,76,76,0.2)", color: "#C94C4C" }}>
+                <button
+                  onClick={() => deleteTeacher(tc)}
+                  className="p-1.5 rounded-[8px] bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20"
+                >
                   <Trash2 size={11} />
                 </button>
               </div>

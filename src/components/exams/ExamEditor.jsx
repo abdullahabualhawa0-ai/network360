@@ -10,19 +10,6 @@ import { sectionTitle as sectionTitleTr, topicTitle as topicTitleTr } from "@/li
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
 
-const BRAND = {
-  primary: "#173F5F",
-  secondary: "#2F6690",
-  accent: "#3A86A8",
-  bg: "#F7F9FC",
-  card: "#FFFFFF",
-  border: "#E2E8F0",
-  text: "#1F2937",
-  success: "#2E7D5B",
-  warning: "#D69E2E",
-  error: "#C94C4C",
-};
-
 const QUESTION_TYPES = [
   { value: "mcq", labelKey: "examEditorTypeMcq" },
   { value: "truefalse", labelKey: "examEditorTypeTrueFalse" },
@@ -45,7 +32,7 @@ export default function ExamEditor({ exam, onSave, onCancel }) {
   const [sectionTitle, setSectionTitle] = useState(exam?.section_title || "");
   const [questions, setQuestions] = useState(exam?.questions || [emptyQuestion()]);
   const [duration, setDuration] = useState(exam?.duration_minutes || 30);
-  const [status, setStatus] = useState(exam?.status || "draft");
+  const [status] = useState(exam?.status || "draft");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [openQ, setOpenQ] = useState(0);
@@ -137,7 +124,7 @@ ${t("aiGenPromptJsonFormat", lang)}
         answer: q.answer || "",
       })));
       setOpenQ(0);
-    } catch (e) {
+    } catch {
       await alertDialog(t("examEditorGenError"));
     } finally {
       setGenerating(false);
@@ -186,35 +173,38 @@ ${t("aiGenPromptJsonFormat", lang)}
     }
   };
 
-  const inputStyle = { background: BRAND.bg, border: `1px solid ${BRAND.border}` };
   const labelCls = "block text-[11px] font-bold text-muted-foreground mb-1.5";
 
   return (
-    <div className="min-h-screen" dir={direction} style={{ background: BRAND.bg }}>
+    <div className="min-h-screen bg-background font-main text-foreground" dir={direction}>
       {/* Header */}
-      <div className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 py-3"
-        style={{ background: BRAND.card, borderBottom: `1px solid ${BRAND.border}` }}>
+      <div className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 py-3 bg-card border-b border-border">
         <div className="flex items-center gap-3">
-          <button onClick={onCancel}
-            className="flex items-center gap-1.5 text-sm transition-colors"
-            style={{ color: BRAND.secondary }}>
+          <button
+            onClick={onCancel}
+            className="flex items-center gap-1.5 text-sm transition-colors text-brand hover:underline"
+          >
             <ChevronLeft size={16} /> {t("examEditorBack")}
           </button>
-          <span style={{ color: BRAND.border }}>|</span>
-          <span className="font-black text-sm" style={{ color: BRAND.primary }}>
+          <span className="text-border">|</span>
+          <span className="font-black text-sm text-foreground">
             {exam ? t("examEditorEdit") : t("examEditorCreate")}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => handleSave("draft")} disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-60"
-            style={{ background: "rgba(214,158,46,0.08)", border: "1px solid rgba(214,158,46,0.35)", color: BRAND.warning }}>
+          <button
+            onClick={() => handleSave("draft")}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold transition-all disabled:opacity-60 bg-warning/10 border border-warning/35 text-warning hover:bg-warning/20"
+          >
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
             {t("examEditorSaveDraft")}
           </button>
-          <button onClick={() => handleSave("published")} disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all disabled:opacity-60"
-            style={{ background: BRAND.success }}>
+          <button
+            onClick={() => handleSave("published")}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-60"
+          >
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
             {t("examEditorPublish")}
           </button>
@@ -223,49 +213,59 @@ ${t("aiGenPromptJsonFormat", lang)}
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Basic info */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl p-5 sm:p-6" style={{ background: BRAND.card, border: `1px solid ${BRAND.border}` }}>
-          <div className="flex items-center gap-2 mb-4" style={{ color: BRAND.secondary }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-[16px] p-5 sm:p-6 bg-card border border-border"
+        >
+          <div className="flex items-center gap-2 mb-4 text-brand">
             <FileText size={15} />
-            <h2 className="text-sm font-black">{t("examEditorInfo")}</h2>
+            <h2 className="text-sm font-black text-foreground">{t("examEditorInfo")}</h2>
           </div>
           <div className="space-y-4">
             <div>
               <label className={labelCls}>{t("examEditorTitle")}</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)}
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder={t("examEditorTitlePh")}
-                className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground focus:outline-none"
-                style={inputStyle} />
+                className="w-full px-4 py-2.5 rounded-[10px] text-sm text-foreground focus:outline-none bg-background border border-input"
+              />
             </div>
             <div>
               <label className={labelCls}>
                 <Clock size={11} className="inline ml-1" />{t("examEditorDuration")}
               </label>
-              <input type="number" value={duration}
+              <input
+                type="number"
+                value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                min={5} max={180}
-                className="w-full px-4 py-2.5 rounded-xl text-sm text-foreground focus:outline-none"
-                style={inputStyle} />
+                min={5}
+                max={180}
+                className="w-full px-4 py-2.5 rounded-[10px] text-sm text-foreground focus:outline-none bg-background border border-input"
+              />
             </div>
           </div>
         </motion.div>
 
-        {/* Lesson selection — بطاقات واضحة */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl p-5 sm:p-6" style={{ background: BRAND.card, border: `1px solid ${BRAND.border}` }}>
-          <div className="flex items-center gap-2 mb-1" style={{ color: BRAND.secondary }}>
+        {/* Lesson selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-[16px] p-5 sm:p-6 bg-card border border-border"
+        >
+          <div className="flex items-center gap-2 mb-1 text-brand">
             <BookOpen size={15} />
-            <h2 className="text-sm font-black">{t("examEditorSelectLesson")}</h2>
+            <h2 className="text-sm font-black text-foreground">{t("examEditorSelectLesson")}</h2>
           </div>
           <p className="text-[11px] text-muted-foreground mb-4">{t("examEditorSelectLessonDesc")}</p>
 
           {selectedTopic && (
-            <div className="mb-4 rounded-xl p-3 flex items-center gap-2"
-              style={{ background: "rgba(58,134,168,0.08)", border: "1px solid rgba(58,134,168,0.35)" }}>
-              <Check size={14} style={{ color: BRAND.accent }} />
+            <div className="mb-4 rounded-[10px] p-3 flex items-center gap-2 bg-accent border border-border">
+              <Check size={14} className="text-brand" />
               <div>
                 <span className="text-[10px] text-muted-foreground">{t("examEditorLessonSelected")}: </span>
-                <span className="text-xs font-bold" style={{ color: BRAND.primary }}>
+                <span className="text-xs font-bold text-foreground">
                   {selectedTopic.sectionTitle} › {selectedTopic.title}
                 </span>
               </div>
@@ -277,26 +277,25 @@ ${t("aiGenPromptJsonFormat", lang)}
               section.topics.map((topic) => {
                 const active = topicId === topic.id;
                 return (
-                  <button key={topic.id} onClick={() => handleTopicChange(topic.id)}
-                    className="text-start rounded-xl p-3 transition-all flex items-start gap-2.5"
-                    style={{
-                      background: active ? "rgba(58,134,168,0.06)" : BRAND.bg,
-                      border: `1px solid ${active ? BRAND.accent : BRAND.border}`,
-                    }}>
+                  <button
+                    key={topic.id}
+                    onClick={() => handleTopicChange(topic.id)}
+                    className={`text-start rounded-[10px] p-3 transition-all flex items-start gap-2.5 border ${
+                      active ? "bg-accent border-primary" : "bg-background border-border hover:bg-muted"
+                    }`}
+                  >
                     <div className="flex-shrink-0 mt-0.5">
                       {active ? (
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center"
-                          style={{ background: BRAND.accent }}>
-                          <Check size={11} className="text-white" />
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+                          <Check size={11} />
                         </div>
                       ) : (
-                        <div className="w-5 h-5 rounded-full" style={{ border: `1.5px solid ${BRAND.border}` }} />
+                        <div className="w-5 h-5 rounded-full border border-border" />
                       )}
                     </div>
                     <div className="min-w-0">
                       <div className="text-[10px] text-muted-foreground truncate">{sectionTitleTr(section)}</div>
-                      <div className="text-xs font-bold truncate"
-                        style={{ color: active ? BRAND.primary : BRAND.text }}>
+                      <div className={`text-xs font-bold truncate ${active ? "text-brand" : "text-foreground"}`}>
                         {topicTitleTr(topic)}
                       </div>
                     </div>
@@ -307,84 +306,101 @@ ${t("aiGenPromptJsonFormat", lang)}
           </div>
         </motion.div>
 
-        {/* AI Generation — عدد ونوع الأسئلة قبل التوليد */}
+        {/* AI Generation */}
         {topicId && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl p-5 sm:p-6" style={{ background: BRAND.card, border: `1px solid ${BRAND.border}` }}>
-          <div className="flex items-center gap-2 mb-1" style={{ color: BRAND.secondary }}>
-            <Sparkles size={15} />
-            <h2 className="text-sm font-black">{t("examEditorAiGen")}</h2>
-          </div>
-          <p className="text-[11px] text-muted-foreground mb-4">{t("examEditorAiDesc")}</p>
-
-          {/* عدد الأسئلة */}
-          <div className="mb-4">
-            <label className={labelCls}>{t("examEditorQuestionCount")}</label>
-            <div className="flex items-center gap-3">
-              <button onClick={() => setQuestionCount(Math.max(1, questionCount - 1))}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black"
-                style={{ background: BRAND.bg, border: `1px solid ${BRAND.border}`, color: BRAND.primary }}>
-                −
-              </button>
-              <input type="number" value={questionCount} min={1} max={50}
-                onChange={(e) => setQuestionCount(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
-                className="w-20 px-3 py-2 rounded-xl text-sm font-bold text-center text-foreground focus:outline-none"
-                style={inputStyle} />
-              <button onClick={() => setQuestionCount(Math.min(50, questionCount + 1))}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black"
-                style={{ background: BRAND.bg, border: `1px solid ${BRAND.border}`, color: BRAND.primary }}>
-                +
-              </button>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[16px] p-5 sm:p-6 bg-card border border-border"
+          >
+            <div className="flex items-center gap-2 mb-1 text-brand">
+              <Sparkles size={15} />
+              <h2 className="text-sm font-black text-foreground">{t("examEditorAiGen")}</h2>
             </div>
-          </div>
+            <p className="text-[11px] text-muted-foreground mb-4">{t("examEditorAiDesc")}</p>
 
-          {/* نوع الأسئلة */}
-          <div className="mb-4">
-            <label className={labelCls}>{t("examEditorQuestionTypes")}</label>
-            <div className="flex flex-wrap gap-2">
-              {QUESTION_TYPES.map((qt) => {
-                const active = selectedTypes.includes(qt.value);
-                return (
-                  <button key={qt.value} onClick={() => toggleType(qt.value)}
-                    className="px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5"
-                    style={{
-                      background: active ? "rgba(58,134,168,0.1)" : BRAND.bg,
-                      border: `1px solid ${active ? BRAND.accent : BRAND.border}`,
-                      color: active ? BRAND.primary : "hsl(var(--muted-foreground))",
-                    }}>
-                    {active && <Check size={11} style={{ color: BRAND.accent }} />}
-                    {t(qt.labelKey)}
-                  </button>
-                );
-              })}
+            {/* عدد الأسئلة */}
+            <div className="mb-4">
+              <label className={labelCls}>{t("examEditorQuestionCount")}</label>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setQuestionCount(Math.max(1, questionCount - 1))}
+                  className="w-9 h-9 rounded-[10px] flex items-center justify-center text-sm font-black bg-background border border-border text-foreground hover:bg-accent"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  value={questionCount}
+                  min={1}
+                  max={50}
+                  onChange={(e) => setQuestionCount(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                  className="w-20 px-3 py-2 rounded-[10px] text-sm font-bold text-center text-foreground focus:outline-none bg-background border border-input"
+                />
+                <button
+                  onClick={() => setQuestionCount(Math.min(50, questionCount + 1))}
+                  className="w-9 h-9 rounded-[10px] flex items-center justify-center text-sm font-black bg-background border border-border text-foreground hover:bg-accent"
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
 
-          <button onClick={generateQuestions} disabled={generating || selectedTypes.length === 0}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-60"
-            style={{ background: BRAND.primary }}>
-            {generating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-            {generating ? t("examEditorGenerating") : t("examEditorGenerate")}
-          </button>
+            {/* نوع الأسئلة */}
+            <div className="mb-4">
+              <label className={labelCls}>{t("examEditorQuestionTypes")}</label>
+              <div className="flex flex-wrap gap-2">
+                {QUESTION_TYPES.map((qt) => {
+                  const active = selectedTypes.includes(qt.value);
+                  return (
+                    <button
+                      key={qt.value}
+                      onClick={() => toggleType(qt.value)}
+                      className={`px-3 py-1.5 rounded-[10px] text-[11px] font-bold transition-all flex items-center gap-1.5 border ${
+                        active
+                          ? "bg-accent border-primary text-brand"
+                          : "bg-background border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {active && <Check size={11} className="text-brand" />}
+                      {t(qt.labelKey)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              onClick={generateQuestions}
+              disabled={generating || selectedTypes.length === 0}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-60"
+            >
+              {generating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              {generating ? t("examEditorGenerating") : t("examEditorGenerate")}
+            </button>
           </motion.div>
         )}
 
         {/* Questions */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-black" style={{ color: BRAND.primary }}>
+            <h2 className="text-sm font-black text-foreground">
               {t("examEditorQuestions")} ({questions.length})
             </h2>
-            <button onClick={addQuestion}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
-              style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)", color: BRAND.secondary }}>
+            <button
+              onClick={addQuestion}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-bold border border-border text-brand hover:bg-accent"
+            >
               <Plus size={12} /> {t("examEditorAddQuestion")}
             </button>
           </div>
 
           <div className="space-y-3">
             {questions.map((q, qi) => (
-              <QuestionCard key={qi} index={qi} question={q}
+              <QuestionCard
+                key={qi}
+                index={qi}
+                question={q}
                 isOpen={openQ === qi}
                 onToggle={() => setOpenQ(openQ === qi ? -1 : qi)}
                 onChange={(field, value) => updateQuestion(qi, field, value)}
@@ -401,30 +417,32 @@ ${t("aiGenPromptJsonFormat", lang)}
 
 function QuestionCard({ index, question, isOpen, onToggle, onChange, onOptionChange, onRemove }) {
   const labelCls = "block text-[11px] font-bold text-muted-foreground mb-1.5";
-  const inputStyle = { background: BRAND.bg, border: `1px solid ${BRAND.border}` };
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: BRAND.card, border: `1px solid ${BRAND.border}` }}>
+    <div className="rounded-[16px] overflow-hidden bg-card border border-border">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 cursor-pointer select-none"
+      <div
+        className={`flex items-center justify-between px-4 py-3 cursor-pointer select-none ${
+          isOpen ? "border-b border-border" : ""
+        }`}
         onClick={onToggle}
-        style={{ borderBottom: isOpen ? `1px solid ${BRAND.border}` : "none" }}>
+      >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
-            style={{ background: "rgba(47,102,144,0.1)", color: BRAND.secondary }}>
+          <span className="w-6 h-6 rounded-[6px] flex items-center justify-center text-xs font-black flex-shrink-0 bg-accent text-brand">
             {index + 1}
           </span>
-          <span className="text-sm truncate" style={{ color: BRAND.text }}>
+          <span className="text-sm truncate text-foreground">
             {question.text || t("examEditorNewQuestion")}
           </span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0"
-            style={{ background: "rgba(47,102,144,0.06)", border: `1px solid ${BRAND.border}`, color: BRAND.secondary }}>
+          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 bg-muted border border-border text-muted-foreground">
             {QUESTION_TYPES.find((qt) => qt.value === question.type) ? t(QUESTION_TYPES.find((qt) => qt.value === question.type).labelKey) : question.type}
           </span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="p-1 rounded-lg transition-colors" style={{ color: BRAND.error }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            className="p-1 rounded-[6px] text-destructive hover:bg-destructive/10"
+          >
             <Trash2 size={12} />
           </button>
           {isOpen ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronLeft size={14} className="text-muted-foreground -rotate-90" />}
@@ -440,22 +458,27 @@ function QuestionCard({ index, question, isOpen, onToggle, onChange, onOptionCha
               {/* Question text */}
               <div>
                 <label className={labelCls}>{t("examEditorQuestionText")}</label>
-                <textarea value={question.text} onChange={(e) => onChange("text", e.target.value)}
-                  placeholder={t("examEditorQuestionTextPh")} rows={2}
-                  className="w-full px-3 py-2 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none"
-                  style={inputStyle} />
+                <textarea
+                  value={question.text}
+                  onChange={(e) => onChange("text", e.target.value)}
+                  placeholder={t("examEditorQuestionTextPh")}
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-[10px] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none bg-background border border-input"
+                />
               </div>
 
               {/* Type */}
               <div className="flex gap-2 flex-wrap">
                 {QUESTION_TYPES.map((qt) => (
-                  <button key={qt.value} onClick={() => onChange("type", qt.value)}
-                    className="px-3 py-1 rounded-lg text-[11px] font-bold transition-all"
-                    style={{
-                      background: question.type === qt.value ? "rgba(58,134,168,0.12)" : BRAND.bg,
-                      border: `1px solid ${question.type === qt.value ? BRAND.accent : BRAND.border}`,
-                      color: question.type === qt.value ? BRAND.primary : "hsl(var(--muted-foreground))",
-                    }}>
+                  <button
+                    key={qt.value}
+                    onClick={() => onChange("type", qt.value)}
+                    className={`px-3 py-1 rounded-[8px] text-[11px] font-bold transition-all border ${
+                      question.type === qt.value
+                        ? "bg-accent border-primary text-brand"
+                        : "bg-background border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
                     {t(qt.labelKey)}
                   </button>
                 ))}
@@ -468,14 +491,15 @@ function QuestionCard({ index, question, isOpen, onToggle, onChange, onOptionCha
                   <div className="space-y-2">
                     {(question.options.length >= 4 ? question.options : [...question.options, ...Array(4 - question.options.length).fill("")]).slice(0, 4).map((opt, oi) => (
                       <div key={oi} className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                          style={{ background: "rgba(47,102,144,0.08)", color: BRAND.secondary }}>
+                        <span className="w-5 h-5 rounded-[6px] flex items-center justify-center text-[10px] font-black flex-shrink-0 bg-accent text-brand">
                           {String.fromCharCode(0x0623 + oi)}
                         </span>
-                        <input value={opt} onChange={(e) => onOptionChange(oi, e.target.value)}
+                        <input
+                          value={opt}
+                          onChange={(e) => onOptionChange(oi, e.target.value)}
                           placeholder={`${t("examEditorOptionN")} ${oi + 1}`}
-                          className="flex-1 px-3 py-1.5 rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
-                          style={inputStyle} />
+                          className="flex-1 px-3 py-1.5 rounded-[8px] text-xs text-foreground placeholder:text-muted-foreground focus:outline-none bg-background border border-input"
+                        />
                       </div>
                     ))}
                   </div>
@@ -483,23 +507,25 @@ function QuestionCard({ index, question, isOpen, onToggle, onChange, onOptionCha
               )}
               {question.type === "truefalse" && (
                 <div className="flex gap-3">
-                  {[t("examEditorTrue"), t("examEditorFalse")].map((opt) => (
-                    <button key={opt} onClick={() => onChange("answer", opt)}
-                      className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
-                      style={{
-                        background: question.answer === opt
-                          ? (opt === t("examEditorTrue") ? "rgba(46,125,91,0.1)" : "rgba(201,76,76,0.1)")
-                          : BRAND.bg,
-                        border: `1px solid ${question.answer === opt
-                          ? (opt === t("examEditorTrue") ? "rgba(46,125,91,0.4)" : "rgba(201,76,76,0.4)")
-                          : BRAND.border}`,
-                        color: question.answer === opt
-                          ? (opt === t("examEditorTrue") ? BRAND.success : BRAND.error)
-                          : "hsl(var(--muted-foreground))",
-                      }}>
-                      {opt}
-                    </button>
-                  ))}
+                  {[t("examEditorTrue"), t("examEditorFalse")].map((opt) => {
+                    const isSelected = question.answer === opt;
+                    const isTrue = opt === t("examEditorTrue");
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => onChange("answer", opt)}
+                        className={`flex-1 py-2 rounded-[10px] text-sm font-bold transition-all border ${
+                          isSelected
+                            ? isTrue
+                              ? "bg-success/15 border-success text-success"
+                              : "bg-destructive/15 border-destructive text-destructive"
+                            : "bg-background border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
@@ -509,10 +535,12 @@ function QuestionCard({ index, question, isOpen, onToggle, onChange, onOptionCha
                   <label className={labelCls}>
                     {question.type === "mcq" ? t("examEditorCorrectAnswer") : t("examEditorModelAnswer")}
                   </label>
-                  <input value={question.answer} onChange={(e) => onChange("answer", e.target.value)}
+                  <input
+                    value={question.answer}
+                    onChange={(e) => onChange("answer", e.target.value)}
                     placeholder={question.type === "mcq" ? t("examEditorCopyAnswerPh") : t("examEditorModelAnswerPh")}
-                    className="w-full px-3 py-2 rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
-                    style={{ background: "rgba(46,125,91,0.04)", border: "1px solid rgba(46,125,91,0.2)" }} />
+                    className="w-full px-3 py-2 rounded-[10px] text-xs text-foreground placeholder:text-muted-foreground focus:outline-none bg-background border border-input"
+                  />
                 </div>
               )}
             </div>
