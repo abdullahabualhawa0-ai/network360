@@ -246,41 +246,41 @@ export default function Settings() {
         </div>
 
         {/* Account */}
-        <div className="rounded-2xl p-5 mb-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-4 text-secondary dark:text-primary">
+        <div className="rounded-[16px] p-5 mb-4 bg-card border border-border">
+          <div className="flex items-center gap-2 mb-4 text-brand">
             <User size={15} />
-            <h2 className="text-sm font-black">{t("accountSection")}</h2>
+            <h2 className="text-sm font-black text-foreground">{t("accountSection")}</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-3 text-xs">
-            <div className="rounded-xl p-3 bg-muted/50">
+            <div className="rounded-[10px] p-3 bg-muted">
               <div className="text-[10px] text-muted-foreground mb-1">{t("nameLabel")}</div>
               <div className="font-bold">{displayName}</div>
             </div>
-            <div className="rounded-xl p-3 bg-muted/50">
+            <div className="rounded-[10px] p-3 bg-muted">
               <div className="text-[10px] text-muted-foreground mb-1">{codeLabel}</div>
               <div className="font-bold truncate" dir="ltr">{codeValue}</div>
             </div>
             {(isSchoolAdmin || isTeacher) && active.schoolCode && (
-              <div className="rounded-xl p-3 bg-muted/50">
+              <div className="rounded-[10px] p-3 bg-muted">
                 <div className="text-[10px] text-muted-foreground mb-1">{t("schoolCode")}</div>
                 <div className="font-bold truncate" dir="ltr">{active.schoolCode}</div>
               </div>
             )}
-            <div className="rounded-xl p-3 bg-muted/50">
+            <div className="rounded-[10px] p-3 bg-muted">
               <div className="text-[10px] text-muted-foreground mb-1">{t("roleLabel")}</div>
               <div className="font-bold flex items-center gap-1.5">
-                {isOwner && <Shield size={12} style={{ color: "#173F5F" }} />}
+                {isOwner && <Shield size={12} className="text-brand" />}
                 {roleLabel}
               </div>
             </div>
-            <div className="rounded-xl p-3 bg-muted/50">
+            <div className="rounded-[10px] p-3 bg-muted">
               <div className="text-[10px] text-muted-foreground mb-1">{t("statusLabel")}</div>
               <div className={`font-bold ${statusInfo?.cls || "text-success"}`}>
                 {isStudent ? (statusInfo ? t(statusInfo.key) : t("settingsStatusApproved")) : t("settingsRegistered")}
               </div>
             </div>
             {displayEmail !== "—" && (
-              <div className="rounded-xl p-3 sm:col-span-2" style={{ background: "rgba(23,63,95,0.03)" }}>
+              <div className="rounded-[10px] p-3 sm:col-span-2 bg-accent">
                 <div className="text-[10px] text-muted-foreground mb-1">{t("emailLabel")}</div>
                 <div className="font-bold truncate" dir="ltr">{displayEmail}</div>
               </div>
@@ -289,23 +289,27 @@ export default function Settings() {
         </div>
 
         {/* Language */}
-        <div className="rounded-2xl p-5 mb-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-4 text-secondary dark:text-primary">
+        <div className="rounded-[16px] p-5 mb-4 bg-card border border-border">
+          <div className="flex items-center gap-2 mb-4 text-brand">
             <GraduationCap size={15} />
-            <h2 className="text-sm font-black">{t("languageSection")}</h2>
+            <h2 className="text-sm font-black text-foreground">{t("languageSection")}</h2>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {LANGUAGES.map((l) => {
               const activeLang = lang === l.id;
               return (
-                <button key={l.id} onClick={() => saveLanguage(l.id)} disabled={saving}
-                  className={`rounded-xl p-4 text-center transition-all disabled:opacity-60 border ${
+                <button
+                  key={l.id}
+                  onClick={() => saveLanguage(l.id)}
+                  disabled={saving}
+                  className={`rounded-[10px] p-4 text-center transition-all disabled:opacity-60 border ${
                     activeLang
-                      ? "bg-secondary/10 border-secondary"
-                      : "bg-muted/50 border-border"
-                  }`}>
+                      ? "bg-accent border-primary"
+                      : "bg-muted border-border hover:bg-muted/80"
+                  }`}
+                >
                   <div className="text-2xl mb-1.5">{l.flag}</div>
-                  <div className={`text-xs font-bold ${activeLang ? "text-primary" : "text-foreground"}`}>
+                  <div className={`text-xs font-bold ${activeLang ? "text-brand" : "text-foreground"}`}>
                     {l.native}
                   </div>
                 </button>
@@ -317,22 +321,21 @@ export default function Settings() {
             {saving ? (
               <span className="flex items-center gap-1 text-muted-foreground"><Loader2 size={10} className="animate-spin" /> {t("saving")}</span>
             ) : saved ? (
-              <span className="flex items-center gap-1" style={{ color: "#2E7D5B" }}><Check size={10} /> {t("saved")}</span>
+              <span className="flex items-center gap-1 text-success"><Check size={10} /> {t("saved")}</span>
             ) : null}
           </div>
         </div>
 
         {/* School — يُخفى للخطة الشخصية */}
         {!isPersonalStudent && (
-        <div className="rounded-2xl p-5 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-4 text-secondary dark:text-primary">
+        <div className="rounded-[16px] p-5 bg-card border border-border">
+          <div className="flex items-center gap-2 mb-4 text-brand">
             <School size={15} />
-            <h2 className="text-sm font-black">{t("schoolSection")}</h2>
+            <h2 className="text-sm font-black text-foreground">{t("schoolSection")}</h2>
           </div>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between rounded-xl p-3"
-            style={{ background: "rgba(23,63,95,0.03)" }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-between rounded-[10px] p-3 bg-accent">
             <div>
-              <div className="text-xs font-bold">{schoolName}</div>
+              <div className="text-xs font-bold text-foreground">{schoolName}</div>
               <div className="text-[10px] text-muted-foreground">
                 {isStudent ? t("settingsSchoolLinkedNote") : t("settingsSchoolGeneralNote")}
               </div>
@@ -348,17 +351,24 @@ export default function Settings() {
 
         {/* معلومات التواصل — للمالك فقط تعديل */}
         {isOwner && (
-          <div className="rounded-2xl p-5 mt-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-            <div className="flex items-center gap-2 mb-4 text-secondary dark:text-primary">
+          <div className="rounded-[16px] p-5 mt-4 bg-card border border-border">
+            <div className="flex items-center gap-2 mb-4 text-brand">
               <Mail size={15} />
-              <h2 className="text-sm font-black">{t("contactSection")}</h2>
+              <h2 className="text-sm font-black text-foreground">{t("contactSection")}</h2>
             </div>
             <p className="text-[11px] text-muted-foreground mb-3">{t("contactSectionDesc")}</p>
             <div className="flex flex-col sm:flex-row gap-2">
-              <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} dir="ltr"
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm bg-background border border-input focus:outline-none" />
-              <button onClick={saveContactEmail} disabled={savingContact || !contactEmail.trim()}
-                className="px-4 py-2.5 rounded-xl text-xs font-black bg-primary text-primary-foreground disabled:opacity-50 flex items-center justify-center gap-1.5">
+              <input
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                dir="ltr"
+                className="flex-1 px-4 py-2.5 rounded-[10px] text-sm bg-background border border-input focus:outline-none"
+              />
+              <button
+                onClick={saveContactEmail}
+                disabled={savingContact || !contactEmail.trim()}
+                className="px-4 py-2.5 rounded-[10px] text-xs font-black bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
                 {savingContact ? <Loader2 size={12} className="animate-spin" /> : contactSaved ? <Check size={12} /> : null}
                 {savingContact ? t("saving") : contactSaved ? t("saved") : t("saveEmail")}
               </button>
@@ -368,29 +378,32 @@ export default function Settings() {
 
         {/* حذف الحساب — للطلاب والأساتذة وحسابات الإدارة المسجَّلة بالبريد */}
         {canDelete && (
-          <button onClick={() => setShowDeleteDialog(true)}
-            className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all border border-destructive/30 text-destructive">
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            className="w-full mt-3 py-2.5 rounded-[10px] text-xs font-bold flex items-center justify-center gap-2 transition-all border border-destructive/30 text-destructive hover:bg-destructive/10"
+          >
             <Trash2 size={12} /> {t("deleteAccount")}
           </button>
         )}
         {!canDelete && (isSchoolAdmin || isOwner) && (
-          <div className="w-full mt-3 py-2.5 px-3 rounded-xl text-[10px] text-center text-muted-foreground"
-            style={{ border: "1px solid hsl(var(--border))" }}>
+          <div className="w-full mt-3 py-2.5 px-3 rounded-[10px] text-[10px] text-center text-muted-foreground border border-border">
             {t("deleteAccountNotAvailable")}{" "}
-            <Link to="/account-deletion" className="font-bold text-primary underline">{t("legalDeletion")}</Link>
+            <Link to="/account-deletion" className="font-bold text-brand hover:underline">{t("legalDeletion")}</Link>
           </div>
         )}
 
         {/* روابط قانونية (مطلوبة للمتاجر) */}
         <div className="mt-4 flex items-center justify-center gap-x-4 gap-y-1 flex-wrap text-[11px] text-muted-foreground">
-          <Link to="/privacy" className="hover:text-primary hover:underline">{t("legalPrivacy")}</Link>
-          <Link to="/terms" className="hover:text-primary hover:underline">{t("legalTerms")}</Link>
-          <Link to="/account-deletion" className="hover:text-primary hover:underline">{t("legalDeletion")}</Link>
+          <Link to="/privacy" className="hover:text-brand hover:underline">{t("legalPrivacy")}</Link>
+          <Link to="/terms" className="hover:text-brand hover:underline">{t("legalTerms")}</Link>
+          <Link to="/account-deletion" className="hover:text-brand hover:underline">{t("legalDeletion")}</Link>
         </div>
 
         {/* تسجيل الخروج — لكل الأدوار */}
-        <button onClick={handleLogout}
-          className="w-full mt-4 py-3 rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all bg-destructive/10 border border-destructive/35 text-destructive">
+        <button
+          onClick={handleLogout}
+          className="w-full mt-4 py-3 rounded-[10px] text-sm font-black flex items-center justify-center gap-2 transition-all bg-destructive/10 border border-destructive/35 text-destructive hover:bg-destructive/20"
+        >
           <LogOut size={14} /> {t("logout")}
         </button>
 
@@ -398,35 +411,37 @@ export default function Settings() {
         <AnimatePresence>
           {showDeleteDialog && (
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-              style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-terminal/70"
               onClick={() => !deleting && setShowDeleteDialog(false)}
             >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md rounded-2xl p-6 bg-white"
-                style={{ border: "1px solid #E2E8F0", boxShadow: "0 20px 60px rgba(23,63,95,0.2)" }}
+                className="w-full max-w-md rounded-[16px] p-6 bg-card text-card-foreground border border-border shadow-card"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(201,76,76,0.1)" }}>
-                      <AlertTriangle size={18} style={{ color: "#C94C4C" }} />
+                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-destructive/10 text-destructive">
+                      <AlertTriangle size={18} />
                     </div>
-                    <h3 className="font-black text-base" style={{ color: "#C94C4C" }}>{t("deleteAccountConfirmTitle")}</h3>
+                    <h3 className="font-black text-base text-destructive">{t("deleteAccountConfirmTitle")}</h3>
                   </div>
                   {!deleting && (
-                    <button onClick={() => setShowDeleteDialog(false)} className="p-1 rounded-lg" style={{ color: "hsl(var(--muted-foreground))" }}>
+                    <button onClick={() => setShowDeleteDialog(false)} className="p-1 rounded-[6px] text-muted-foreground hover:text-foreground">
                       <X size={16} />
                     </button>
                   )}
                 </div>
 
                 {/* Warning */}
-                <p className="text-xs font-bold mb-2" style={{ color: "#1F2937" }}>{t("deleteAccountDesc")}</p>
-                <p className="text-[11px] mb-4 leading-relaxed" style={{ color: "#C94C4C" }}>{t("deleteAccountWarning")}</p>
+                <p className="text-xs font-bold mb-2 text-foreground">{t("deleteAccountDesc")}</p>
+                <p className="text-[11px] mb-4 leading-relaxed text-destructive">{t("deleteAccountWarning")}</p>
 
                 {/* Confirmation input */}
                 <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("deleteAccountTypeConfirm")}</label>
@@ -436,18 +451,14 @@ export default function Settings() {
                   disabled={deleting}
                   placeholder={confirmWord}
                   dir="ltr"
-                  className="w-full px-4 py-2.5 rounded-xl text-sm font-mono focus:outline-none mb-3"
-                  style={{ border: `1px solid ${deleteConfirmText.trim() === confirmWord ? "#C94C4C" : "#E2E8F0"}`, background: "#F7F9FC" }}
+                  className="w-full px-4 py-2.5 rounded-[10px] text-sm font-mono focus:outline-none mb-3 bg-background border border-input"
                 />
 
                 {/* Error/Success message */}
                 {deleteMsg && (
-                  <div className="mb-3 px-3 py-2 rounded-xl text-xs font-bold"
-                    style={{
-                      background: deleteMsg.ok ? "rgba(46,125,91,0.08)" : "rgba(201,76,76,0.08)",
-                      border: `1px solid ${deleteMsg.ok ? "rgba(46,125,91,0.35)" : "rgba(201,76,76,0.35)"}`,
-                      color: deleteMsg.ok ? "#2E7D5B" : "#C94C4C",
-                    }}>
+                  <div className={`mb-3 px-3 py-2 rounded-[10px] text-xs font-bold border ${
+                    deleteMsg.ok ? "bg-success/10 border-success/35 text-success" : "bg-destructive/10 border-destructive/35 text-destructive"
+                  }`}>
                     {deleteMsg.text}
                   </div>
                 )}
@@ -457,16 +468,14 @@ export default function Settings() {
                   <button
                     onClick={() => setShowDeleteDialog(false)}
                     disabled={deleting}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
-                    style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}
+                    className="flex-1 py-2.5 rounded-[10px] text-xs font-bold transition-all border border-border text-muted-foreground hover:text-foreground disabled:opacity-50"
                   >
                     {t("cancelBtn")}
                   </button>
                   <button
                     onClick={handleDeleteAccount}
                     disabled={deleting || deleteConfirmText.trim() !== confirmWord}
-                    className="flex-1 py-2.5 rounded-xl text-xs font-black text-white transition-all disabled:opacity-40 flex items-center justify-center gap-1.5"
-                    style={{ background: "#C94C4C" }}
+                    className="flex-1 py-2.5 rounded-[10px] text-xs font-black bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all disabled:opacity-40 flex items-center justify-center gap-1.5"
                   >
                     {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                     {t("deleteAccountBtn")}

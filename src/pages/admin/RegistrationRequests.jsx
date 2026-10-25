@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  ClipboardList, Loader2, RefreshCw, Mail, Phone, User, School as SchoolIcon,
-  Check, X, AlertCircle, CheckCircle2, XCircle,
+  ClipboardList, Loader2, RefreshCw, Mail, Phone, School as SchoolIcon,
+  AlertCircle, CheckCircle2, XCircle,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -12,14 +12,12 @@ import { randomCode } from "@/lib/plans";
 import { escapeHtml } from "@/lib/escapeHtml";
 
 const STATUS_UI = {
-  new: { label: "reqStatusNew", color: "#2F6690", bg: "rgba(47,102,144,0.1)", border: "rgba(47,102,144,0.35)" },
-  contacted: { label: "reqStatusContacted", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
-  in_progress: { label: "reqStatusInProgress", color: "#D69E2E", bg: "rgba(214,158,46,0.1)", border: "rgba(214,158,46,0.35)" },
-  accepted: { label: "reqStatusAccepted", color: "#2E7D5B", bg: "rgba(46,125,91,0.1)", border: "rgba(46,125,91,0.35)" },
-  rejected: { label: "reqStatusRejected", color: "#C94C4C", bg: "rgba(201,76,76,0.1)", border: "rgba(201,76,76,0.35)" },
+  new: { label: "reqStatusNew", cls: "bg-accent border-border text-brand" },
+  contacted: { label: "reqStatusContacted", cls: "bg-warning/10 border-warning/35 text-warning" },
+  in_progress: { label: "reqStatusInProgress", cls: "bg-warning/10 border-warning/35 text-warning" },
+  accepted: { label: "reqStatusAccepted", cls: "bg-success/10 border-success/35 text-success" },
+  rejected: { label: "reqStatusRejected", cls: "bg-destructive/10 border-destructive/35 text-destructive" },
 };
-
-const STATUSES = ["new", "contacted", "in_progress", "accepted", "rejected"];
 
 /**
  * طلبات التسجيل — Owner (admin) فقط
@@ -65,68 +63,27 @@ export default function RegistrationRequests() {
       codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailSchoolCodeLabel", lang)}: <b dir="ltr">${escapeHtml(schoolCode)}</b></p>`
         + (req.admin_name ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminNameLabel", lang)}: <b>${escapeHtml(req.admin_name)}</b></p>` : "")
         + (adminCode ? `<p style="margin:0 0 8px;font-size:14px;">${t("mailAdminCodeLabel", lang)}: <b dir="ltr">${escapeHtml(adminCode)}</b></p>` : "")
-        + (adminCode ? `<p style="margin:0 0 12px;font-size:13px;color:#2F6690;">${t("mailAdminAssignedNote", lang)}</p>` : "");
+        + (adminCode ? `<p style="margin:0 0 12px;font-size:13px;color:#ffb805;">${t("mailAdminAssignedNote", lang)}</p>` : "");
     } else if (accepted && !isSchool && individualCode) {
       codeLines = `<p style="margin:0 0 8px;font-size:14px;">${t("mailIndividualCodeLabel", lang)}: <b dir="ltr">${escapeHtml(individualCode)}</b></p>`
         + `<p style="margin:0 0 12px;font-size:13px;color:#2E7D5B;">${t("mailIndividualLoginNote", lang)}</p>`;
     }
-    const html = `<div dir="${dirAttr}" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #F7F9FC; border-radius: 16px;">
+    const html = `<div dir="${dirAttr}" style="font-family: Tajawal, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #17191c; border-radius: 16px; color: #f4eee2;">
         <div style="background: ${headerColor}; color: #fff; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
           <h2 style="margin: 0; font-size: 18px;">${title}</h2>
         </div>
-        <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #E2E8F0;">
+        <div style="background: #1c2024; padding: 20px; border-radius: 12px; border: 1px solid #2b3137;">
           <p style="margin: 0 0 12px; font-size: 14px;">${greeting} ${escapeHtml(req.full_name)}،</p>
           <p style="margin: 0 0 12px; font-size: 14px;">${bodyLine}</p>
           ${codeLines}
-          <p style="margin: 0; font-size: 12px; color: #64748B;">${footer}</p>
+          <p style="margin: 0; font-size: 12px; color: #a2a8b0;">${footer}</p>
         </div>
       </div>`;
     try {
       await base44.integrations.Core.SendEmail({ to: req.email, subject, html });
       return true;
     } catch (e) {
-        /* فشل إرسال البريد لا يوقف التفعيل */
       return false;
-    }
-  };
-
-  const changeStatus = async (req, status) => {
-    await base44.entities.RegistrationRequest.update(req.id, { status });
-    load();
-  };
-
-  const activateSchool = async (req) => {
-    setActivating(req.id);
-    setActivateMsg(null);
-    try {
-      // توليد رمز مدرسة فريد
-      const code = randomCode("SCH-", 6);
-      const dup = await base44.entities.School.filter({ code });
-      if (dup && dup.length > 0) throw new Error("Code collision");
-      const school = await base44.entities.School.create({
-        name: req.school_name,
-        code,
-        is_active: true,
-        created_by_id: user.id,
-        subscription_plan: "school_50",
-        student_limit: req.expected_students || 50,
-        teacher_limit: req.expected_teachers || 0,
-        current_student_count: 0,
-        subscription_status: "active",
-        admin_name: req.full_name,
-        admin_email: req.email,
-        contact_phone: req.phone,
-        country: req.country,
-        expected_students: req.expected_students,
-      });
-      await base44.entities.RegistrationRequest.update(req.id, { status: "accepted", notes: `School activated: ${school.code}` });
-      await notifyUser(req, true, school.code);
-      setActivateMsg({ id: req.id, ok: true, text: `${t("reqActivated")} (${school.code})` });
-      load();
-    } catch (err) {
-      setActivateMsg({ id: req.id, ok: false, text: err?.message || "Error" });
-    } finally {
-      setActivating(null);
     }
   };
 
@@ -135,7 +92,6 @@ export default function RegistrationRequests() {
     setActivateMsg(null);
     try {
       let schoolCode = null;
-      let schoolId = null;
       let adminCode = null;
       let individualCode = null;
       if (req.request_type === "school" && req.status !== "accepted") {
@@ -143,17 +99,14 @@ export default function RegistrationRequests() {
         const dup = await base44.entities.School.filter({ code: schoolCode });
         if (dup && dup.length > 0) throw new Error("Code collision");
         adminCode = generateAdminCode();
-        const school = await base44.entities.School.create({
+        await base44.entities.School.create({
           name: req.school_name, code: schoolCode, admin_code: adminCode, is_active: true, created_by_id: user.id,
           subscription_plan: "school_50", student_limit: req.expected_students || 50,
           teacher_limit: req.expected_teachers || 0, current_student_count: 0,
           subscription_status: "active", admin_name: req.admin_name || req.full_name, admin_email: req.email,
           contact_phone: req.phone, country: req.country, expected_students: req.expected_students,
         });
-        schoolId = school.id;
-        // المشرف يدخل برمز المدرسة ورمز المشرف — لا حاجة لإنشاء حساب Base44
       } else if (req.request_type === "individual" && req.status !== "accepted") {
-        // إنشاء مدرسة بخطة شخصية + ملف طالب برمز فريد — الطالب يدخل برمز واحد فقط
         schoolCode = randomCode("SCH-", 6);
         const dup = await base44.entities.School.filter({ code: schoolCode });
         if (dup && dup.length > 0) throw new Error("Code collision");
@@ -180,7 +133,6 @@ export default function RegistrationRequests() {
         notes: schoolCode ? `Activated: ${schoolCode}` : "Accepted",
       });
       const emailed = await notifyUser(req, true, schoolCode, adminCode, individualCode);
-      // حذف الطلب نهائياً بعد القبول — المدرسة أصبحت في صفحة المدارس
       await base44.entities.RegistrationRequest.delete(req.id);
       setActivateMsg({ id: req.id, ok: true, text: emailed ? t("reqAcceptedMsg") : t("reqNotifyErr") });
       load();
@@ -196,7 +148,6 @@ export default function RegistrationRequests() {
     setActivateMsg(null);
     try {
       const emailed = await notifyUser(req, false);
-      // حذف الطلب نهائياً بعد الرفض
       await base44.entities.RegistrationRequest.delete(req.id);
       setActivateMsg({ id: req.id, ok: emailed, text: emailed ? t("reqRejectedMsg") : t("reqNotifyErr") });
       load();
@@ -209,23 +160,23 @@ export default function RegistrationRequests() {
 
   if (isLoadingAuth) {
     return (
-      <div className="py-24 flex justify-center">
-        <Loader2 size={28} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
+      <div className="py-24 flex justify-center bg-background">
+        <Loader2 size={28} className="animate-spin text-brand" />
       </div>
     );
   }
 
   if (!isOwner) {
     return (
-      <div className="py-20 text-center">
-        <AlertCircle size={36} className="mx-auto mb-3" style={{ color: "#C94C4C" }} />
+      <div className="py-20 text-center font-main" dir={direction}>
+        <AlertCircle size={36} className="mx-auto mb-3 text-destructive" />
         <p className="text-xs text-muted-foreground">Owner only</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir={direction}>
+    <div className="min-h-screen bg-background text-foreground font-main" dir={direction}>
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Back */}
         <div className="mb-4">
@@ -235,15 +186,18 @@ export default function RegistrationRequests() {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: "#173F5F" }}>
-              <ClipboardList className="text-white" size={20} />
+            <div className="w-11 h-11 rounded-[10px] flex items-center justify-center bg-primary text-primary-foreground">
+              <ClipboardList size={20} />
             </div>
             <div>
-              <h1 className="font-black text-xl">{t("regRequestsTitle")}</h1>
+              <h1 className="font-black text-xl text-foreground">{t("regRequestsTitle")}</h1>
               <p className="text-xs text-muted-foreground">{t("regRequestsDesc")}</p>
             </div>
           </div>
-          <button onClick={load} className="p-2 rounded-xl" style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--primary))" }}>
+          <button
+            onClick={load}
+            className="p-2 rounded-[10px] border border-border text-brand hover:bg-accent"
+          >
             <RefreshCw size={14} />
           </button>
         </div>
@@ -251,12 +205,12 @@ export default function RegistrationRequests() {
         {/* List */}
         {requests === null ? (
           <div className="py-20 flex justify-center">
-            <Loader2 size={26} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
+            <Loader2 size={26} className="animate-spin text-brand" />
           </div>
         ) : requests.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-            <ClipboardList size={36} className="mx-auto mb-3 opacity-40" style={{ color: "hsl(var(--primary))" }} />
-            <p className="text-xs font-bold mb-1">{t("reqNoRequests")}</p>
+          <div className="rounded-[16px] p-10 text-center bg-card border border-border">
+            <ClipboardList size={36} className="mx-auto mb-3 opacity-40 text-brand" />
+            <p className="text-xs font-bold mb-1 text-foreground">{t("reqNoRequests")}</p>
             <p className="text-[11px] text-muted-foreground">{t("reqNoRequestsDesc")}</p>
           </div>
         ) : (
@@ -265,24 +219,30 @@ export default function RegistrationRequests() {
               const st = STATUS_UI[req.status] || STATUS_UI.new;
               const isSchool = req.request_type === "school";
               return (
-                <motion.div key={req.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                  className="rounded-2xl p-4 bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
+                <motion.div
+                  key={req.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="rounded-[16px] p-4 bg-card border border-border"
+                >
                   <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                     <div className="flex-1 min-w-0">
                       {/* Type + name */}
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                          style={{ background: isSchool ? "rgba(47,102,144,0.1)" : "rgba(46,125,91,0.1)", border: `1px solid ${isSchool ? "rgba(47,102,144,0.35)" : "rgba(46,125,91,0.35)"}`, color: isSchool ? "#2F6690" : "#2E7D5B" }}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                          isSchool ? "bg-accent border-border text-brand" : "bg-success/10 border-success/35 text-success"
+                        }`}>
                           {isSchool ? t("reqTypeSchool") : t("reqTypeIndividual")}
                         </span>
-                        <span className="font-black text-sm">{req.full_name}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
+                        <span className="font-black text-sm text-foreground">{req.full_name}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${st.cls}`}>
                           {t(st.label)}
                         </span>
                       </div>
                       {/* School name */}
                       {isSchool && req.school_name && (
-                        <div className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: "#2F6690" }}>
+                        <div className="flex items-center gap-1.5 text-[11px] mb-1 text-brand">
                           <SchoolIcon size={11} /> {req.school_name}
                         </div>
                       )}
@@ -297,19 +257,19 @@ export default function RegistrationRequests() {
                         {isSchool ? (
                           <>
                             {req.expected_students > 0 && (
-                              <span className="px-2 py-0.5 rounded-full font-bold" style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}>
+                              <span className="px-2 py-0.5 rounded-full font-bold bg-accent border border-border text-brand">
                                 {req.expected_students} {t("regExpectedStudents")}
                               </span>
                             )}
                             {req.expected_teachers > 0 && (
-                              <span className="px-2 py-0.5 rounded-full font-bold" style={{ background: "rgba(46,125,91,0.08)", border: "1px solid rgba(46,125,91,0.25)", color: "#2E7D5B" }}>
+                              <span className="px-2 py-0.5 rounded-full font-bold bg-success/10 border border-success/35 text-success">
                                 {req.expected_teachers} {t("regExpectedTeachers")}
                               </span>
                             )}
                           </>
                         ) : (
                           req.expected_users > 0 && (
-                            <span className="px-2 py-0.5 rounded-full font-bold" style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}>
+                            <span className="px-2 py-0.5 rounded-full font-bold bg-accent border border-border text-brand">
                               {req.expected_users} {t("regExpectedUsers")}
                             </span>
                           )
@@ -320,22 +280,26 @@ export default function RegistrationRequests() {
 
                     {/* Actions — قبول / رفض فقط */}
                     <div className="flex gap-1.5 flex-shrink-0">
-                      <button onClick={() => acceptRequest(req)} disabled={activating === req.id || req.status === "accepted"}
-                        className="flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white disabled:opacity-50"
-                        style={{ background: req.status === "accepted" ? "#2E7D5B" : "#173F5F" }}>
+                      <button
+                        onClick={() => acceptRequest(req)}
+                        disabled={activating === req.id || req.status === "accepted"}
+                        className="flex items-center justify-center gap-1 px-3 py-1.5 rounded-[10px] text-[10px] font-bold bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50"
+                      >
                         {activating === req.id ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle2 size={11} />}
                         {t("reqAccept")}
                       </button>
-                      <button onClick={() => rejectRequest(req)} disabled={activating === req.id || req.status === "rejected"}
-                        className="flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white disabled:opacity-50"
-                        style={{ background: req.status === "rejected" ? "#C94C4C" : "#C94C4C" }}>
+                      <button
+                        onClick={() => rejectRequest(req)}
+                        disabled={activating === req.id || req.status === "rejected"}
+                        className="flex items-center justify-center gap-1 px-3 py-1.5 rounded-[10px] text-[10px] font-bold bg-destructive/10 border border-destructive/35 text-destructive hover:bg-destructive/20 disabled:opacity-50"
+                      >
                         {activating === req.id ? <Loader2 size={10} className="animate-spin" /> : <XCircle size={11} />}
                         {t("reqReject")}
                       </button>
                     </div>
                   </div>
                   {activateMsg?.id === req.id && (
-                    <div className="mt-2 text-[10px] font-bold" style={{ color: activateMsg.ok ? "#2E7D5B" : "#C94C4C" }}>
+                    <div className={`mt-2 text-[10px] font-bold ${activateMsg.ok ? "text-success" : "text-destructive"}`}>
                       {activateMsg.text}
                     </div>
                   )}

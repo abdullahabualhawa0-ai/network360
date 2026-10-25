@@ -50,7 +50,7 @@ export default function ExamManager() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin" style={{ color: "#173F5F" }} />
+          <Loader2 size={32} className="animate-spin text-brand" />
           <span className="text-muted-foreground text-sm">{t("loading")}</span>
         </div>
       </div>
@@ -59,15 +59,14 @@ export default function ExamManager() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" dir={direction}>
+      <div className="min-h-screen flex items-center justify-center bg-background font-main" dir={direction}>
         <div className="text-center">
-          <div className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: "rgba(201,76,76,0.08)", border: "1px solid rgba(201,76,76,0.3)" }}>
-            <AlertCircle size={36} style={{ color: "#C94C4C" }} />
+          <div className="w-20 h-20 rounded-[16px] mx-auto mb-4 flex items-center justify-center bg-destructive/10 border border-destructive/30 text-destructive">
+            <AlertCircle size={36} />
           </div>
-          <h2 className="font-black text-lg mb-2">{t("examMgmtRestricted")}</h2>
+          <h2 className="font-black text-lg mb-2 text-foreground">{t("examMgmtRestricted")}</h2>
           <p className="text-muted-foreground text-sm mb-6">{t("examMgmtRestrictedDesc")}</p>
-          <Link to="/" className="px-4 py-2 rounded-xl text-sm font-bold text-white" style={{ background: "#173F5F" }}>
+          <Link to="/" className="px-4 py-2 rounded-[10px] text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90">
             {t("examMgmtBackHome")}
           </Link>
         </div>
@@ -118,27 +117,26 @@ export default function ExamManager() {
 
   // List view
   return (
-    <div className="min-h-screen bg-background text-foreground" dir={direction}>
+    <div className="min-h-screen bg-background text-foreground font-main" dir={direction}>
       {/* Header */}
-      <div className="bg-card" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+      <div className="bg-card border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-8">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-primary transition-colors">{t("navHome")}</Link>
+              <Link to="/" className="hover:text-brand transition-colors">{t("navHome")}</Link>
               <ChevronLeft size={13} />
-              <span style={{ color: "#173F5F" }}>{t("examMgmtBreadcrumb")}</span>
+              <span className="text-brand font-bold">{t("examMgmtBreadcrumb")}</span>
             </div>
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
-                <h1 className="font-black text-2xl mb-1" style={{ color: "#173F5F" }}>
+                <h1 className="font-black text-2xl mb-1 text-foreground">
                   {t("examMgmtTitle")}
                 </h1>
                 <p className="text-muted-foreground text-sm">{t("examMgmtDesc")}</p>
               </div>
               <button
                 onClick={() => setView("create")}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white transition-all hover:scale-105 text-sm"
-                style={{ background: "#173F5F" }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all text-sm"
               >
                 <Plus size={16} /> {t("examMgmtNew")}
               </button>
@@ -151,19 +149,18 @@ export default function ExamManager() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: t("examMgmtTotal"), value: exams.length, color: "#2F6690" },
-            { label: t("examMgmtPublished"), value: exams.filter(e => e.status === "published").length, color: "#2E7D5B" },
-            { label: t("examMgmtDrafts"), value: exams.filter(e => e.status === "draft").length, color: "#D69E2E" },
-            { label: t("examMgmtTotalQ"), value: exams.reduce((s, e) => s + (e.questions?.length || 0), 0), color: "#3A86A8" },
+            { label: t("examMgmtTotal"), value: exams.length, colorCls: "text-brand" },
+            { label: t("examMgmtPublished"), value: exams.filter(e => e.status === "published").length, colorCls: "text-success" },
+            { label: t("examMgmtDrafts"), value: exams.filter(e => e.status === "draft").length, colorCls: "text-warning" },
+            { label: t("examMgmtTotalQ"), value: exams.reduce((s, e) => s + (e.questions?.length || 0), 0), colorCls: "text-brand" },
           ].map((stat) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl p-4 bg-card"
-              style={{ border: "1px solid hsl(var(--border))" }}
+              className="rounded-[16px] p-4 bg-card border border-border"
             >
-              <div className="text-2xl font-black" style={{ color: stat.color }}>{stat.value}</div>
+              <div className={`text-2xl font-black ${stat.colorCls}`}>{stat.value}</div>
               <div className="text-xs text-muted-foreground mt-0.5">{stat.label}</div>
             </motion.div>
           ))}
@@ -171,17 +168,15 @@ export default function ExamManager() {
 
         {/* Exams list */}
         {exams.length === 0 ? (
-          <div className="text-center py-20 rounded-2xl bg-card" style={{ border: "1px solid hsl(var(--border))" }}>
-            <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.2)" }}>
-              <FileText size={28} style={{ color: "#2F6690" }} />
+          <div className="text-center py-20 rounded-[16px] bg-card border border-border">
+            <div className="w-16 h-16 rounded-[12px] mx-auto mb-4 flex items-center justify-center bg-accent text-brand">
+              <FileText size={28} />
             </div>
-            <h3 className="font-bold text-base mb-2">{t("examMgmtNoExams")}</h3>
+            <h3 className="font-bold text-base mb-2 text-foreground">{t("examMgmtNoExams")}</h3>
             <p className="text-muted-foreground text-sm mb-6">{t("examMgmtNoExamsDesc")}</p>
             <button
               onClick={() => setView("create")}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-              style={{ background: "#173F5F" }}
+              className="px-5 py-2.5 rounded-[10px] text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {t("examMgmtNew")}
             </button>
@@ -194,16 +189,14 @@ export default function ExamManager() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="rounded-2xl p-5 bg-card flex items-center justify-between gap-4 flex-wrap"
-                style={{ border: "1px solid hsl(var(--border))" }}
+                className="rounded-[16px] p-5 bg-card border border-border flex items-center justify-between gap-4 flex-wrap"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.2)" }}>
-                    <FileText size={20} style={{ color: "#2F6690" }} />
+                  <div className="w-12 h-12 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-accent text-brand">
+                    <FileText size={20} />
                   </div>
                   <div>
-                    <h3 className="font-black text-base" style={{ color: "#173F5F" }}>{exam.title}</h3>
+                    <h3 className="font-black text-base text-foreground">{exam.title}</h3>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
                       {exam.topic_id && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -221,10 +214,11 @@ export default function ExamManager() {
                           <Clock size={10} /> {exam.duration_minutes} {t("examMgmtMinutes")}
                         </span>
                       )}
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                        style={exam.status === "published"
-                          ? { background: "rgba(46,125,91,0.1)", border: "1px solid rgba(46,125,91,0.35)", color: "#2E7D5B" }
-                          : { background: "rgba(214,158,46,0.1)", border: "1px solid rgba(214,158,46,0.35)", color: "#D69E2E" }}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                        exam.status === "published"
+                          ? "bg-success/10 border-success/35 text-success"
+                          : "bg-warning/10 border-warning/35 text-warning"
+                      }`}>
                         {exam.status === "published" ? t("examMgmtPublishedBadge") : t("examMgmtDraftBadge")}
                       </span>
                     </div>
@@ -233,22 +227,19 @@ export default function ExamManager() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => { setSelectedExam(exam); setView("preview"); }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-105"
-                    style={{ background: "rgba(47,102,144,0.08)", border: "1px solid rgba(47,102,144,0.25)", color: "#2F6690" }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-bold transition-all bg-accent border border-border text-brand hover:bg-muted"
                   >
                     <Eye size={12} /> {t("examMgmtPreview")}
                   </button>
                   <button
                     onClick={() => { setSelectedExam(exam); setView("edit"); }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-105"
-                    style={{ background: "rgba(23,63,95,0.08)", border: "1px solid rgba(23,63,95,0.25)", color: "#173F5F" }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-bold transition-all bg-accent border border-border text-brand hover:bg-muted"
                   >
                     <Pencil size={12} /> {t("examMgmtEdit")}
                   </button>
                   <button
                     onClick={() => deleteExam(exam.id)}
-                    className="p-1.5 rounded-xl transition-all hover:scale-105"
-                    style={{ background: "rgba(201,76,76,0.06)", border: "1px solid rgba(201,76,76,0.2)", color: "#C94C4C" }}
+                    className="p-1.5 rounded-[10px] transition-all bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20"
                   >
                     <Trash2 size={12} />
                   </button>
