@@ -10,7 +10,6 @@ import BackButton from "@/components/BackButton";
 import PageLoader from "@/components/PageLoader";
 
 // الشاشات الفرعية (Nested) التي يظهر لها زر رجوع في هيدر الموبايل → وجهة الرجوع الاحتياطية.
-// تمنع "فخ" الـ WebView حيث لا يوجد زر رجوع للنظام.
 function getNestedFallback(pathname) {
   if (pathname.startsWith("/topic/")) return "/";
   if (/^\/exams\/[^/]+/.test(pathname)) return "/exams";
@@ -24,13 +23,13 @@ export default function Layout() {
   useLang();
 
   return (
-    <div className="min-h-screen bg-background font-main">
+    <div className="min-h-screen bg-background font-main text-foreground">
       {/* Mobile header — مع مساحات آمنة علوية */}
       <div className="md:hidden fixed top-0 right-0 left-0 z-50 flex items-center justify-between px-4 py-3 safe-area-top bg-card border-b border-border">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Menu"
-          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-all text-primary bg-secondary/[0.08] border border-secondary/25"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[10px] transition-all text-foreground bg-accent border border-border"
         >
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -39,7 +38,7 @@ export default function Layout() {
           <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-primary">
             <span className="text-primary-foreground text-xs font-black">ش</span>
           </div>
-          <span className="font-black text-sm text-primary flex-shrink-0">{t("appName")}</span>
+          <span className="font-black text-sm text-brand flex-shrink-0">{t("appName")}</span>
           <div className="hidden sm:block flex-1 min-w-0 max-w-[200px]">
             <SidebarUserBadge compact />
           </div>
@@ -50,8 +49,8 @@ export default function Layout() {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-        className="md:hidden fixed inset-0 z-40 bg-terminal/70"
-        onClick={() => setSidebarOpen(false)}
+          className="md:hidden fixed inset-0 z-40 bg-terminal/70"
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
@@ -62,14 +61,13 @@ export default function Layout() {
 
       {/* Main content — padding سفلي لشريط التنقل على الموبايل */}
       <div className="md:mr-80 pt-16 md:pt-0 pb-16 md:pb-0">
-        {/* Suspense هنا (وليس حول الـ Routes كلها) كي يبقى الهيدر والشريط السفلي ظاهرين أثناء تحميل الصفحة */}
         <Suspense fallback={<PageLoader />}>
           <Outlet />
         </Suspense>
       </div>
 
-      {/* حقوق النشر — السنة تتحدث تلقائياً */}
-      <footer className="md:mr-80 py-4 text-center text-[11px] bg-primary text-primary-foreground">
+      {/* حقوق النشر */}
+      <footer className="md:mr-80 py-4 text-center text-[11px] bg-muted text-muted-foreground border-t border-border">
         © {new Date().getFullYear()} {t("footerRights")}
       </footer>
 

@@ -5,7 +5,7 @@ module.exports = {
   theme: {
   extend: {
   	boxShadow: {
-  		card: '0 1px 2px rgba(43,42,31,0.08)',
+  		card: '0 1px 2px rgba(23,25,28,0.08)',
   		none: 'none',
   	},
       fontFamily: {
@@ -55,6 +55,7 @@ module.exports = {
   				DEFAULT: 'hsl(var(--warning))',
   				foreground: 'hsl(var(--warning-foreground))'
   			},
+  			brand: 'hsl(var(--brand))',
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
