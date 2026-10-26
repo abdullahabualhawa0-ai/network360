@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, MonitorPlay, BarChart2, Settings, School, GraduationCap } from "lucide-react";
+import { Home, MonitorPlay, BarChart2, Settings, School, GraduationCap, FileText, FileCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useStudentSession } from "@/lib/studentSession";
 import { useTeacherSession } from "@/lib/teacherSession";
@@ -57,7 +57,14 @@ export default function MobileTabBar() {
     : BarChart2;
 
   // also: مسارات فرعية إضافية تُحسب ضمن نفس التبويب (صفحات الدروس تتبع الرئيسية)
-  const tabs = [
+  // تبويبات الأستاذ تبقى داخل مساراته المحمية (مسارات الطالب تعيده لصفحة الدخول)
+  const tabs = isTeacher ? [
+    { to: "/teacher/dashboard", icon: BarChart2, label: t("tabDashboard") },
+    { to: "/teacher/exams", icon: FileText, label: t("teacherExams") },
+    { to: "/teacher/students", icon: GraduationCap, label: t("teacherStudents") },
+    { to: "/teacher/results", icon: FileCheck, label: t("teacherResults") },
+    { to: settingsPath, icon: Settings, label: t("tabSettings") },
+  ] : [
     { to: "/", icon: Home, label: t("tabHome"), also: ["/topic"] },
     { to: "/network-simulator", icon: MonitorPlay, label: t("tabSimulator") },
     { to: dashboardPath, icon: dashboardIcon, label: dashboardLabel },

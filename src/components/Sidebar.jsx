@@ -26,9 +26,12 @@ export default function Sidebar({ onClose }) {
   const isPersonalStudent = !!session?.is_personal;
   const showExams = session && !isPersonalStudent && !isAdmin;
   // مسار الإعدادات حسب الدور النشط
-  const settingsPath = teacherSession ? "/teacher/settings"
+  const isTeacher = !!teacherSession;
+  const settingsPath = isTeacher ? "/teacher/settings"
     : schoolAdminSession ? "/admin/settings"
     : "/settings";
+  // الوجهة الآمنة للشعار — لا تُحوّل الأستاذ إلى مسارات الطالب المحمية
+  const homePath = isTeacher ? "/teacher/dashboard" : "/";
 
   const navItem = (to, icon, label) => {
     const isActive = location.pathname === to;
@@ -54,7 +57,7 @@ export default function Sidebar({ onClose }) {
     <div className="w-80 h-full flex flex-col overflow-hidden bg-sidebar border-l border-sidebar-border">
       {/* Logo */}
       <div className="p-5 border-b border-sidebar-border">
-        <Link to="/" onClick={onClose} className="flex items-center gap-3 group">
+        <Link to={homePath} onClick={onClose} className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-[10px] flex items-center justify-center transition-transform group-hover:scale-105 bg-primary">
             <BookOpen className="text-primary-foreground" size={20} />
           </div>
@@ -68,12 +71,18 @@ export default function Sidebar({ onClose }) {
 
       {/* Nav links — الدروس متاحة من الصفحة الرئيسية فقط */}
       <div className="pt-2">
-        {navItem("/", <Home size={16} />, t("navHome"))}
-        {navItem("/network-simulator", <MonitorPlay size={16} />, t("navSimulator"))}
-        {navItem("/dashboard", <BarChart2 size={16} />, t("navDashboard"))}
-        {navItem("/scenario-lab", <FlaskConical size={16} />, t("navScenarioLab"))}
-        {navItem("/lab-history", <History size={16} />, t("navLabHistory"))}
-        {showExams && navItem("/exams", <ClipboardList size={16} />, t("navExams"))}
+        {/* روابط الأستاذ — تبقى داخل مساراته المحمية */}
+        {isTeacher && navItem("/teacher/dashboard", <BarChart2 size={16} />, t("teacherDashboardTitle"))}
+        {isTeacher && navItem("/teacher/exams", <FileText size={16} />, t("teacherExams"))}
+        {isTeacher && navItem("/teacher/students", <Users size={16} />, t("teacherStudents"))}
+        {isTeacher && navItem("/teacher/results", <FileCheck size={16} />, t("teacherResults"))}
+
+        {!isTeacher && navItem("/", <Home size={16} />, t("navHome"))}
+        {!isTeacher && navItem("/network-simulator", <MonitorPlay size={16} />, t("navSimulator"))}
+        {!isTeacher && navItem("/dashboard", <BarChart2 size={16} />, t("navDashboard"))}
+        {!isTeacher && navItem("/scenario-lab", <FlaskConical size={16} />, t("navScenarioLab"))}
+        {!isTeacher && navItem("/lab-history", <History size={16} />, t("navLabHistory"))}
+        {!isTeacher && showExams && navItem("/exams", <ClipboardList size={16} />, t("navExams"))}
         {navItem(settingsPath, <Settings size={16} />, t("navSettings"))}
         {isSuperAdmin && navItem("/admin/schools", <School size={16} />, t("navSchools"))}
         {isSuperAdmin && navItem("/admin/registration-requests", <ClipboardList size={16} />, t("navRegRequests"))}
