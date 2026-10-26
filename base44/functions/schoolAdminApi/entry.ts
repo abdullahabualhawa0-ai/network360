@@ -22,7 +22,7 @@ const ENTITY_CONFIG: Record<string, any> = {
   ExamAccessRequest: { schoolField: "school_id", readOnly: true, updatable: true, fields: ["status", "reviewed_by", "reviewed_at"] },
   StudentProfile: {
     schoolField: "school_id", writable: true,
-    fields: ["full_name", "student_code", "email", "status", "approved_by", "approved_at", "preferred_language", "phone", "country", "user_id"],
+    fields: ["full_name", "student_code", "email", "class_name", "status", "approved_by", "approved_at", "preferred_language", "phone", "country", "user_id"],
   },
   Teacher: {
     schoolField: "school_id", writable: true,

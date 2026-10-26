@@ -53,7 +53,7 @@ const ENTITY_CONFIG: Record<string, any> = {
     noCreate: true,
     updatableFields: ["preferred_language"],
     // الطالب يرى ملفه فقط (بدون user_id وبيانات داخلية)
-    readFields: ["id", "student_code", "full_name", "email", "school_id", "status", "preferred_language", "phone", "country", "created_date"],
+    readFields: ["id", "student_code", "full_name", "email", "class_name", "school_id", "status", "preferred_language", "phone", "country", "created_date"],
   },
   School: { ownerField: null, schoolField: "id", readOnly: true, readFields: ["id", "name", "code"] },
   SystemSetting: { ownerField: null, schoolField: null, readOnly: true, readFields: ["key", "value"], publicKeys: PUBLIC_SETTING_KEYS },

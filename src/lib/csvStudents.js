@@ -41,7 +41,8 @@ export function parseCsv(text) {
 
 const NAME_HDR = ["full_name", "fullname", "name", "student_name", "الاسم", "اسم الطالب", "اسم", "שם", "שם מלא"];
 const CODE_HDR = ["student_code", "code", "studentcode", "id", "الرمز", "رمز الطالب", "رمز", "קוד", "קוד תלמיד"];
-const MAIL_HDR = ["email", "e-mail", "mail", "البريد", "البريد الإلكتروني", "דוא\"ל", "אימייל"];
+const MAIL_HDR = ["email", "e-mail", "mail", "البريد", "البريد الإلكتروني", "דוא\"ل", "אימייל"];
+const CLASS_HDR = ["class_name", "class", "grade", "section", "classroom", "الصف", "صف", "الشعبة", "شعبة", "كلاس", "כיתה"];
 
 /** يعيد [{ full_name, student_code, email }] */
 export function studentsFromCsv(text) {
@@ -50,12 +51,13 @@ export function studentsFromCsv(text) {
   const norm = (s) => String(s || "").trim().toLowerCase();
   const head = rows[0].map(norm);
   const find = (list) => head.findIndex((h) => list.includes(h));
-  let iName = find(NAME_HDR), iCode = find(CODE_HDR), iMail = find(MAIL_HDR);
+  let iName = find(NAME_HDR), iCode = find(CODE_HDR), iMail = find(MAIL_HDR), iClass = find(CLASS_HDR);
   let start = 1;
-  if (iName < 0 || iCode < 0) { iName = 0; iCode = 1; iMail = 2; start = 0; } // بلا عناوين
+  if (iName < 0 || iCode < 0) { iName = 0; iCode = 1; iMail = 2; iClass = 3; start = 0; } // بلا عناوين
   return rows.slice(start).map((r) => ({
     full_name: String(r[iName] ?? "").trim(),
     student_code: String(r[iCode] ?? "").trim(),
     email: iMail >= 0 ? String(r[iMail] ?? "").trim() : "",
+    class_name: iClass >= 0 ? String(r[iClass] ?? "").trim() : "",
   })).filter((s) => s.full_name && s.student_code);
 }

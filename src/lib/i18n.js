@@ -983,6 +983,16 @@ const T = {
   smStatusApproved: { ar: "فعّال ✓", en: "Active ✓", he: "פעיל ✓" },
   smStatusRejected: { ar: "مرفوض", en: "Rejected", he: "נדחה" },
   smStatusDisabled: { ar: "معطّل", en: "Disabled", he: "מושבת" },
+  smStudentClass: { ar: "الصف / الشعبة", en: "Class / Grade", he: "כיתה / שכבה" },
+  smStudentClassPh: { ar: "مثال: العاشر أ، الحادي عشر، 10A...", en: "e.g. 10th Grade, Class A...", he: "לדוגמה: י'1, יא'2..." },
+  smAllClasses: { ar: "جميع الصفوف", en: "All Classes", he: "כל הכיתות" },
+  smFilterByClass: { ar: "تصفية حسب الصف", en: "Filter by Class", he: "סינון לפי כיתה" },
+  smClassLabel: { ar: "الصف", en: "Class", he: "כיתה" },
+  smNoClass: { ar: "بدون صف", en: "No class assigned", he: "ללא כיתה" },
+  smAddNewClass: { ar: "+ صف جديد...", en: "+ New Class...", he: "+ כיתה חדשה..." },
+  smClassesCount: { ar: "صفوف", en: "classes", he: "כיתות" },
+  smStudentLimitPlan: { ar: "حد الخطة", en: "Plan Limit", he: "מגבלת תוכנית" },
+  smLimitReachedWarning: { ar: "تم الوصول إلى الحد الأقصى لعدد الطلاب المسموح به في خطة مدرستك ({limit} طالب). لا يمكن إضافة طلاب جدد.", en: "Maximum student limit for your plan reached ({limit} students). Cannot add new students.", he: "הגעת למגבלת התלמידים המרבית בתוכנית שלך ({limit} תלמידים). לא ניתן להוסיף תלמידים נוספים." },
 
   /* ─── تقارير الطلاب (AdminStudentsReport) ─── */
   srBreadcrumb: { ar: "تقارير الطلاب", en: "Student Reports", he: "דוחות תלמידים" },

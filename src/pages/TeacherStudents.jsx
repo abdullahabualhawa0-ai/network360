@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Loader2, Inbox } from "lucide-react";
+import { Users, Loader2, Inbox, GraduationCap } from "lucide-react";
 import { useTeacherSession, teacherApi } from "@/lib/teacherSession";
 import { t, useLang, useDir } from "@/lib/i18n";
 import BackButton from "@/components/BackButton";
@@ -17,14 +17,19 @@ export default function TeacherStudents() {
   useLang();
   const direction = useDir();
   const [students, setStudents] = useState([]);
+  const [selectedClass, setSelectedClass] = useState("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    teacherApi("filter", "StudentProfile", { sort: "-created_date", limit: 200 })
+    teacherApi("filter", "StudentProfile", { sort: "-created_date", limit: 500 })
       .then((rows) => setStudents(rows || []))
       .catch(() => setStudents([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const availableClasses = Array.from(
+    new Set((students || []).map((s) => s.class_name?.trim()).filter(Boolean))
+  ).sort();
 
   if (loading) {
     return (
@@ -52,6 +57,53 @@ export default function TeacherStudents() {
           </div>
         </div>
 
+        {/* Class Filter Tabs */}
+        {availableClasses.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 text-xs">
+            <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1 flex-shrink-0">
+              <GraduationCap size={13} /> {t("smFilterByClass")}:
+            </span>
+            <button
+              onClick={() => setSelectedClass("all")}
+              className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
+                selectedClass === "all"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t("smAllClasses")} ({(students || []).length})
+            </button>
+            {availableClasses.map((cls) => {
+              const count = (students || []).filter((s) => s.class_name?.trim() === cls).length;
+              return (
+                <button
+                  key={cls}
+                  onClick={() => setSelectedClass(cls)}
+                  className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
+                    selectedClass === cls
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {cls} ({count})
+                </button>
+              );
+            })}
+            {(students || []).some((s) => !s.class_name?.trim()) && (
+              <button
+                onClick={() => setSelectedClass("__none__")}
+                className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
+                  selectedClass === "__none__"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t("smNoClass")} ({(students || []).filter((s) => !s.class_name?.trim()).length})
+              </button>
+            )}
+          </div>
+        )}
+
         {/* List */}
         {students.length === 0 ? (
           <div className="rounded-[16px] p-10 text-center bg-card border border-border">
@@ -61,31 +113,45 @@ export default function TeacherStudents() {
           </div>
         ) : (
           <div className="grid gap-3">
-            {students.map((s, i) => {
-              const st = STATUS_STYLE[s.status] || STATUS_STYLE.pending;
-              return (
-                <motion.div
-                  key={s.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="rounded-[16px] p-4 bg-card border border-border flex items-center justify-between gap-3 flex-wrap"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-accent text-brand">
-                      <Users size={16} />
+            {students
+              .filter((s) => {
+                if (selectedClass === "all") return true;
+                if (selectedClass === "__none__") return !s.class_name?.trim();
+                return s.class_name?.trim() === selectedClass;
+              })
+              .map((s, i) => {
+                const st = STATUS_STYLE[s.status] || STATUS_STYLE.pending;
+                return (
+                  <motion.div
+                    key={s.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="rounded-[16px] p-4 bg-card border border-border flex items-center justify-between gap-3 flex-wrap"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-accent text-brand">
+                        <Users size={16} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm truncate text-foreground">{s.full_name || s.student_code}</span>
+                          {s.class_name && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-[6px] bg-secondary/15 text-secondary border border-secondary/30 flex items-center gap-1">
+                              <GraduationCap size={10} />
+                              {s.class_name}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground truncate" dir="ltr">{s.student_code}</div>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-sm truncate text-foreground">{s.full_name || s.student_code}</div>
-                      <div className="text-[10px] text-muted-foreground truncate" dir="ltr">{s.student_code}</div>
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1.5 rounded-[10px] text-[10px] font-bold border ${st.cls}`}>
-                    {t(st.key)}
-                  </span>
-                </motion.div>
-              );
-            })}
+                    <span className={`px-3 py-1.5 rounded-[10px] text-[10px] font-bold border ${st.cls}`}>
+                      {t(st.key)}
+                    </span>
+                  </motion.div>
+                );
+              })}
           </div>
         )}
       </div>
