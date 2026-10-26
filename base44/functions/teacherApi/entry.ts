@@ -10,10 +10,11 @@ import { loadSession, schoolUsable, deleteSessions, pick } from "../../shared/se
  */
 
 const EXAM_FIELDS = ["title", "topic_id", "topic_title", "section_title", "questions", "duration_minutes", "status"];
+const EXAM_RESULT_FIELDS = ["allow_retake", "retake_allowed_at", "retake_allowed_by"];
 
 const ENTITY_CONFIG: Record<string, any> = {
   Exam: { schoolField: "school_id", writable: true, fields: EXAM_FIELDS },
-  ExamResult: { schoolField: "school_id", readOnly: true },
+  ExamResult: { schoolField: "school_id", updatable: true, fields: EXAM_RESULT_FIELDS },
   StudentProfile: { schoolField: "school_id", readOnly: true },
   // الأستاذ يقرأ سجله ويستطيع حذف نفسه فقط (حذف الحساب)
   Teacher: { ownerField: "id", schoolField: "school_id", readOnly: true, selfDeletable: true },
@@ -74,12 +75,30 @@ export default async function(req) {
       }
 
       case "update": {
-        if (!config.writable) return Response.json({ error: "Read-only entity" }, { status: 403 });
+        if (!config.writable && !config.updatable) return Response.json({ error: "Read-only entity" }, { status: 403 });
         const existing = await svc.entities[entity].get(id).catch(() => null);
         if (!existing || existing[config.schoolField] !== schoolId) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
         const row = await svc.entities[entity].update(id, pick(data, config.fields));
+        return Response.json(row);
+      }
+
+      case "toggleRetake": {
+        if (entity !== "ExamResult") return Response.json({ error: "Only ExamResult supports toggleRetake" }, { status: 400 });
+        const resultId = id || data?.result_id;
+        if (!resultId) return Response.json({ error: "result_id required" }, { status: 400 });
+        const existing = await svc.entities.ExamResult.get(resultId).catch(() => null);
+        if (!existing || existing[config.schoolField] !== schoolId) {
+          return Response.json({ error: "Forbidden" }, { status: 403 });
+        }
+        const nextVal = !existing.allow_retake;
+        const teacherName = ident.teacher.full_name || ident.teacher.teacher_code || "Teacher";
+        const row = await svc.entities.ExamResult.update(resultId, {
+          allow_retake: nextVal,
+          retake_allowed_at: nextVal ? new Date().toISOString() : null,
+          retake_allowed_by: nextVal ? teacherName : null,
+        });
         return Response.json(row);
       }
 

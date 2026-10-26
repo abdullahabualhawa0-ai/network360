@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FileCheck, Loader2, AlertCircle, CheckCircle2, XCircle,
-  Trophy, Users, Percent, Inbox, RefreshCw,
+  Trophy, Users, Percent, Inbox, RefreshCw, RotateCcw,
 } from "lucide-react";
 import moment from "moment";
 import { useAdminAuth } from "@/lib/useAdminAuth";
@@ -50,6 +50,23 @@ export default function ExamResults() {
     const reqs = await adminFilter("ExamAccessRequest", { school_id: schoolId, status: "pending" }, "-created_date", 100);
     setPending(reqs || []);
     setProcessing(null);
+  };
+
+  const handleToggleRetake = async (r) => {
+    if (processing === r.id) return;
+    setProcessing(r.id);
+    try {
+      const nextVal = !r.allow_retake;
+      await adminUpdate("ExamResult", r.id, {
+        allow_retake: nextVal,
+        retake_allowed_at: nextVal ? new Date().toISOString() : null,
+        retake_allowed_by: role === "school_admin" ? "School Admin" : "Owner",
+      });
+      setResults((prev) => prev.map((item) => (item.id === r.id ? { ...item, allow_retake: nextVal } : item)));
+    } catch {}
+    finally {
+      setProcessing(null);
+    }
   };
 
   if (isLoading || loading) {
@@ -164,12 +181,36 @@ export default function ExamResults() {
                     <div className="text-[10px] text-muted-foreground flex-shrink-0">
                       {r.correct_answers}/{r.total_questions} {t("examResultsCorrectShort")}
                     </div>
-                    <div className={`px-3 py-1.5 rounded-[10px] text-sm font-black flex-shrink-0 border ${
-                      passed
-                        ? "bg-success/10 border-success/35 text-success"
-                        : "bg-destructive/10 border-destructive/35 text-destructive"
-                    }`}>
-                      {r.percentage}%
+                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                      <div className={`px-3 py-1.5 rounded-[10px] text-sm font-black border ${
+                        passed
+                          ? "bg-success/10 border-success/35 text-success"
+                          : "bg-destructive/10 border-destructive/35 text-destructive"
+                      }`}>
+                        {r.percentage}%
+                      </div>
+                      {/* زر السماح بإعادة الامتحان بجانب علامة الطالب */}
+                      <button
+                        onClick={() => handleToggleRetake(r)}
+                        disabled={processing === r.id}
+                        className={`px-3 py-1.5 rounded-[10px] text-xs font-bold flex items-center gap-1.5 transition-all border ${
+                          r.allow_retake
+                            ? "bg-success/15 border-success/40 text-success hover:bg-success/25"
+                            : "bg-secondary/10 border-secondary/30 text-secondary dark:text-primary hover:bg-secondary/20"
+                        }`}
+                        title={r.allow_retake ? t("retakeAllowedTooltip") : t("allowRetakeTooltip")}
+                      >
+                        {processing === r.id ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : r.allow_retake ? (
+                          <CheckCircle2 size={13} />
+                        ) : (
+                          <RotateCcw size={13} />
+                        )}
+                        <span>
+                          {r.allow_retake ? t("retakeAllowed") : t("allowRetake")}
+                        </span>
+                      </button>
                     </div>
                   </motion.div>
                 );

@@ -251,6 +251,19 @@ async function startExam(svc: any, ctx: any) {
   const { exam, error } = await loadExamForStudent(svc, examId, schoolId);
   if (error) return error;
 
+  // فحص هل سلّم الطالب هذا الامتحان سابقاً وهل سَمح الأستاذ بإعادته:
+  const pastResults = await svc.entities.ExamResult.filter({ student_id: sid, exam_id: examId }, "-submission_time", 100);
+  const latestResult = (pastResults || []).sort(
+    (a: any, b: any) => new Date(b.submission_time).getTime() - new Date(a.submission_time).getTime()
+  )[0];
+
+  if (latestResult && !latestResult.allow_retake) {
+    return Response.json({
+      error: "RETAKE_NOT_ALLOWED",
+      message: "لا يمكنك إعادة الامتحان إلا بموافقة الأستاذ وتفعيل زر الإعادة",
+    }, { status: 403 });
+  }
+
   // المحاولة تُنشأ تلقائياً عند أول دخول، ومحاولة جديدة بعد كل تسليم (بدون طلب إذن)
   let current = await currentAttempt(svc, sid, examId);
   if (!current.attempt || current.consumed) {
@@ -350,6 +363,12 @@ async function submitExam(svc: any, ctx: any) {
   const pct = total ? Math.round((correct / total) * 100) : 0;
   const now = new Date().toISOString();
 
+  // استهلاك أي إذن إعادة سابق لضمان قفل الامتحان بعد التسليم
+  const pastAllowed = await svc.entities.ExamResult.filter({ student_id: sid, exam_id: exam.id, allow_retake: true }, "-submission_time", 20);
+  for (const prev of (pastAllowed || [])) {
+    await svc.entities.ExamResult.update(prev.id, { allow_retake: false }).catch(() => {});
+  }
+
   const row = await svc.entities.ExamResult.create({
     student_id: sid,
     school_id: schoolId,
@@ -367,6 +386,7 @@ async function submitExam(svc: any, ctx: any) {
     end_time: now,
     submission_time: now,
     status: "submitted",
+    allow_retake: false,
   });
 
   return Response.json({ result: { pct, correct, total, review, late }, record: row });

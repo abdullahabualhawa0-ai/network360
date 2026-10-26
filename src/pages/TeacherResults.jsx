@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FileCheck, Loader2, Inbox, Trophy, Users, Percent } from "lucide-react";
+import { FileCheck, Loader2, Inbox, Trophy, Users, Percent, RotateCcw, CheckCircle2 } from "lucide-react";
 import moment from "moment";
 import { useTeacherSession, teacherApi } from "@/lib/teacherSession";
 import { t, useLang, useDir } from "@/lib/i18n";
@@ -12,6 +12,22 @@ export default function TeacherResults() {
   const direction = useDir();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState(null);
+
+  const handleToggleRetake = async (r) => {
+    if (updatingId) return;
+    setUpdatingId(r.id);
+    try {
+      const updated = await teacherApi("toggleRetake", "ExamResult", { id: r.id, data: { result_id: r.id } });
+      if (updated && updated.id) {
+        setResults((prev) => prev.map((item) => (item.id === r.id ? { ...item, ...updated } : item)));
+      }
+    } catch {
+      // تجاهل الخطأ المؤقت مع استمرار الواجهة
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   useEffect(() => {
     teacherApi("filter", "ExamResult", { sort: "-submission_time", limit: 200 })
@@ -93,12 +109,36 @@ export default function TeacherResults() {
                   <div className="text-[10px] text-muted-foreground flex-shrink-0">
                     {r.correct_answers}/{r.total_questions} {t("examResultsCorrectShort")}
                   </div>
-                  <div className={`px-3 py-1.5 rounded-[10px] text-sm font-black flex-shrink-0 border ${
-                    passed
-                      ? "bg-success/10 border-success/35 text-success"
-                      : "bg-destructive/10 border-destructive/35 text-destructive"
-                  }`}>
-                    {r.percentage}%
+                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                    <div className={`px-3 py-1.5 rounded-[10px] text-sm font-black border ${
+                      passed
+                        ? "bg-success/10 border-success/35 text-success"
+                        : "bg-destructive/10 border-destructive/35 text-destructive"
+                    }`}>
+                      {r.percentage}%
+                    </div>
+                    {/* زر السماح بإعادة الامتحان بجانب علامة الطالب */}
+                    <button
+                      onClick={() => handleToggleRetake(r)}
+                      disabled={updatingId === r.id}
+                      className={`px-3 py-1.5 rounded-[10px] text-xs font-bold flex items-center gap-1.5 transition-all border ${
+                        r.allow_retake
+                          ? "bg-success/15 border-success/40 text-success hover:bg-success/25"
+                          : "bg-secondary/10 border-secondary/30 text-secondary dark:text-primary hover:bg-secondary/20"
+                      }`}
+                      title={r.allow_retake ? t("retakeAllowedTooltip") : t("allowRetakeTooltip")}
+                    >
+                      {updatingId === r.id ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : r.allow_retake ? (
+                        <CheckCircle2 size={13} />
+                      ) : (
+                        <RotateCcw size={13} />
+                      )}
+                      <span>
+                        {r.allow_retake ? t("retakeAllowed") : t("allowRetake")}
+                      </span>
+                    </button>
                   </div>
                 </motion.div>
               );

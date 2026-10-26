@@ -18,7 +18,7 @@ const ENTITY_CONFIG: Record<string, any> = {
     schoolField: "school_id", writable: true, includeGeneral: true,
     fields: ["title", "topic_id", "topic_title", "section_title", "questions", "duration_minutes", "status"],
   },
-  ExamResult: { schoolField: "school_id", readOnly: true },
+  ExamResult: { schoolField: "school_id", updatable: true, fields: ["allow_retake", "retake_allowed_at", "retake_allowed_by"] },
   ExamAccessRequest: { schoolField: "school_id", readOnly: true, updatable: true, fields: ["status", "reviewed_by", "reviewed_at"] },
   StudentProfile: {
     schoolField: "school_id", writable: true,
@@ -133,6 +133,23 @@ export default async function(req) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
         const row = await svc.entities[entity].update(id, pick(data, config.fields));
+        return Response.json(row);
+      }
+
+      case "toggleRetake": {
+        if (entity !== "ExamResult") return Response.json({ error: "Only ExamResult supports toggleRetake" }, { status: 400 });
+        const resultId = id || data?.result_id;
+        if (!resultId) return Response.json({ error: "result_id required" }, { status: 400 });
+        const existing = await svc.entities.ExamResult.get(resultId).catch(() => null);
+        if (!existing || existing.school_id !== schoolId) {
+          return Response.json({ error: "Forbidden" }, { status: 403 });
+        }
+        const nextVal = !existing.allow_retake;
+        const row = await svc.entities.ExamResult.update(resultId, {
+          allow_retake: nextVal,
+          retake_allowed_at: nextVal ? new Date().toISOString() : null,
+          retake_allowed_by: nextVal ? (school.name || "School Admin") : null,
+        });
         return Response.json(row);
       }
 
