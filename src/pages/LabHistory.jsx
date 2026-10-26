@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { History, Trophy, Zap, FlaskConical, RefreshCw, CheckCircle2, Loader2 } from "lucide-react";
 import moment from "moment";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
-import { SCENARIOS, getLessonInfo } from "@/lib/scenarios";
+import { SCENARIOS, getLessonInfo, DIFF_LABEL_KEYS } from "@/lib/scenarios";
 import { t, useLang } from "@/lib/i18n";
 import { topicTitleById } from "@/lib/courseI18n";
 import { scenarioTitle } from "@/lib/scenarioI18n";
@@ -22,7 +22,10 @@ function formatDate(d) {
   return moment(d).format("YYYY/MM/DD — HH:mm");
 }
 
-const DIFF_KEYS = { beginner: "diffBeginner", easy: "diffEasy", medium: "diffMedium", hard: "diffHard", advanced: "diffAdvanced" };
+const DIFF_KEYS = {
+  ...DIFF_LABEL_KEYS,
+  beginner: "diffBeginner", easy: "diffEasy", medium: "diffMedium", hard: "diffHard", advanced: "diffAdvanced",
+};
 function diffLabel(d) {
   return t(DIFF_KEYS[d] || "diffMedium");
 }

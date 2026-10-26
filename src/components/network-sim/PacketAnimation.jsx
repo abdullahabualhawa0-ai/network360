@@ -1,4 +1,5 @@
-// Enhanced packet animation — shows hop-by-hop movement with Arabic status labels
+// Enhanced packet animation — shows hop-by-hop movement with localized status labels
+import { t } from "@/lib/i18n";
 
 const PROTOCOL_COLORS = {
   ICMP: "#F59E0B",
@@ -12,10 +13,10 @@ const PROTOCOL_COLORS = {
 
 // Status label shown near the packet
 function getStatusLabel(packet) {
-  if (packet.progress < 0.15) return "جاري الإرسال...";
-  if (packet.progress < 0.5)  return "في الطريق";
-  if (packet.progress < 0.85) return "إعادة توجيه";
-  return "جاري الاستلام";
+  if (packet.progress < 0.15) return t("simPacketSending");
+  if (packet.progress < 0.5)  return t("simPacketInTransit");
+  if (packet.progress < 0.85) return t("simPacketForwarding");
+  return t("simPacketReceiving");
 }
 
 export default function PacketAnimation({ packets, nodes }) {

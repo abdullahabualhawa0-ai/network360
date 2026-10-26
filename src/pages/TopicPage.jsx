@@ -16,7 +16,7 @@ import {
   Network, Globe, Shield, Server, Radio, Cpu, Route, Tag, FlaskConical, Zap, Clock
 } from "lucide-react";
 import { SCENARIOS, DIFF_LABEL_KEYS } from "../lib/scenarios";
-import { scenarioTitle } from "@/lib/scenarioI18n";
+import { scenarioTitle, scenarioTime } from "@/lib/scenarioI18n";
 import { t, useLang } from "@/lib/i18n";
 import { sectionTitle, topicTitle } from "@/lib/courseI18n";
 import useAiTranslation from "@/lib/useAiTranslation";
@@ -220,7 +220,7 @@ export default function TopicPage() {
                     </div>
                     <div className="text-sm font-bold mb-1.5">{scenarioTitle(sc)}</div>
                     <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                      <span className="flex items-center gap-1"><Clock size={11} /> {sc.time}</span>
+                      <span className="flex items-center gap-1"><Clock size={11} /> {scenarioTime(sc)}</span>
                       <span className="flex items-center gap-1"><Zap size={11} className="text-warning" /> {sc.xp} XP</span>
                     </div>
                   </Link>

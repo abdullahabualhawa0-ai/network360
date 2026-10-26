@@ -214,6 +214,13 @@ export function scenarioDesc(scenario) {
   return I18N[scenario?.id]?.[lang]?.desc || scenario?.desc || "";
 }
 
+/** يُرجع الوقت المتوقع للسيناريو باللغة الحالية */
+export function scenarioTime(scenario) {
+  const lang = getLang();
+  if (lang === "ar" || !scenario) return scenario?.time || "";
+  return I18N[scenario?.id]?.[lang]?.time || scenario?.time || "";
+}
+
 /** يُرجع نص رسالة النجاح/الفشل باللغة الحالية */
 export function scenarioFeedback(passed) {
   const lang = getLang();
