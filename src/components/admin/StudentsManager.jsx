@@ -4,6 +4,7 @@ import {
   Plus, Trash2, Check, X, Loader2, RefreshCw, UserPlus, KeyRound, Ban,
   FileSpreadsheet, AlertCircle, GraduationCap, Edit2,
 } from "lucide-react";
+import CreateClassModal from "./CreateClassModal";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { UNCLAIMED } from "@/lib/registrationUtils";
@@ -40,7 +41,10 @@ export default function StudentsManager({ school, onBack }) {
   useLang();
   const direction = useDir();
   const [students, setStudents] = useState(null);
+  const [schoolClasses, setSchoolClasses] = useState(school?.classes || []);
   const [showForm, setShowForm] = useState(false);
+  const [showCreateClassModal, setShowCreateClassModal] = useState(false);
+  const [classNotice, setClassNotice] = useState(null);
   const [form, setForm] = useState({ name: "", code: "", email: "", class_name: "" });
   const [formError, setFormError] = useState(null);
   const [selectedClass, setSelectedClass] = useState("all");
@@ -51,20 +55,80 @@ export default function StudentsManager({ school, onBack }) {
   const [importMsg, setImportMsg] = useState(null);
   const fileRef = useRef(null);
 
-  const load = () =>
+  const load = () => {
     adminFilter("StudentProfile", { school_id: school.id }, "-created_date", 500)
       .then((rows) => setStudents(rows || []))
       .catch(() => setStudents([]));
+    if (school?.id) {
+      adminFilter("School", { id: school.id }, "-created_date", 1)
+        .then((rows) => {
+          if (rows?.[0]?.classes && Array.isArray(rows[0].classes)) {
+            setSchoolClasses(rows[0].classes);
+          }
+        })
+        .catch(() => {});
+    }
+  };
 
-  useEffect(() => { if (school?.id) load(); }, [school?.id]);
+  useEffect(() => {
+    if (school?.id) load();
+    if (school?.classes && Array.isArray(school.classes)) {
+      setSchoolClasses(school.classes);
+    }
+  }, [school?.id, school?.classes]);
 
   const limit = Number(school.student_limit) || 0;
   const currentCount = (students || []).length;
   const isLimitReached = limit > 0 && currentCount >= limit;
 
   const availableClasses = Array.from(
-    new Set((students || []).map((s) => s.class_name?.trim()).filter(Boolean))
+    new Set([
+      ...(schoolClasses || []),
+      ...(students || []).map((s) => s.class_name?.trim()).filter(Boolean),
+    ])
   ).sort();
+
+  const handleCreateClass = async (newClassName, andAddStudent = false) => {
+    const trimmed = String(newClassName || "").trim();
+    if (!trimmed) return;
+    const updated = Array.from(new Set([...(schoolClasses || []), trimmed])).sort();
+    setSchoolClasses(updated);
+    try {
+      await adminUpdate("School", school.id, { classes: updated });
+    } catch {}
+    setSelectedClass(trimmed);
+    if (andAddStudent) {
+      setFormError(null);
+      setClassNotice(t("smClassCreatedBanner").replace("{class}", trimmed));
+      setForm({ name: "", code: "", email: "", class_name: trimmed });
+      setShowForm(true);
+    }
+  };
+
+  const handleDeleteClass = async (clsToDelete) => {
+    const countInClass = (students || []).filter((s) => s.class_name?.trim() === clsToDelete).length;
+    const msg = `${t("smDeleteClassConfirm")} (${clsToDelete})` + (countInClass > 0 ? `\n• يحتوي على ${countInClass} طالب` : "");
+    if (!(await confirmDialog(msg))) return;
+    const updated = (schoolClasses || []).filter((c) => c !== clsToDelete);
+    setSchoolClasses(updated);
+    try {
+      await adminUpdate("School", school.id, { classes: updated });
+    } catch {}
+    if (selectedClass === clsToDelete) {
+      setSelectedClass("all");
+    }
+  };
+
+  const openAddStudentForClass = (clsName) => {
+    if (isLimitReached) {
+      setFormError(t("smLimitReachedWarning").replace("{limit}", limit));
+    } else {
+      setFormError(null);
+    }
+    setClassNotice(null);
+    setForm({ name: "", code: "", email: "", class_name: clsName || "" });
+    setShowForm(true);
+  };
 
   const addStudent = async (e) => {
     e.preventDefault();
@@ -95,6 +159,7 @@ export default function StudentsManager({ school, onBack }) {
         base44.entities.School.update(school.id, { current_student_count: (students || []).length + 1 }).catch(() => {});
       }
       setForm({ name: "", code: "", email: "", class_name: "" });
+      setClassNotice(null);
       setShowForm(false);
     } catch (err) {
       const errCode = err?.data?.error || err?.response?.data?.error;
@@ -264,15 +329,23 @@ export default function StudentsManager({ school, onBack }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={load}
             className="p-2 rounded-[10px] border border-border text-brand hover:bg-accent"
+            title={t("refresh")}
           >
             <RefreshCw size={13} />
           </button>
           <button
+            onClick={() => setShowCreateClassModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-xs font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-all shadow-sm"
+          >
+            <GraduationCap size={14} /> {t("smCreateClass")}
+          </button>
+          <button
             onClick={() => {
+              setClassNotice(null);
               if (isLimitReached) {
                 setFormError(t("smLimitReachedWarning").replace("{limit}", limit));
                 setShowForm(true);
@@ -280,7 +353,7 @@ export default function StudentsManager({ school, onBack }) {
                 setShowForm(!showForm);
               }
             }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-xs font-bold ${
               isLimitReached
                 ? "bg-muted text-muted-foreground border border-border hover:bg-accent"
                 : "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -291,7 +364,7 @@ export default function StudentsManager({ school, onBack }) {
           <button
             onClick={() => fileRef.current?.click()}
             disabled={importing || isLimitReached}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold border border-secondary text-secondary hover:bg-secondary/10 disabled:opacity-60"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-xs font-bold border border-secondary text-secondary hover:bg-secondary/10 disabled:opacity-60"
           >
             {importing ? <Loader2 size={13} className="animate-spin" /> : <FileSpreadsheet size={13} />}
             {importing ? t("smImporting") : t("smImportExcel")}
@@ -326,6 +399,22 @@ export default function StudentsManager({ school, onBack }) {
           onSubmit={addStudent}
           className="rounded-[16px] p-4 mb-4 grid sm:grid-cols-5 gap-3 items-end bg-card border border-border"
         >
+          {classNotice && (
+            <div className="sm:col-span-5 flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-[10px] bg-secondary/15 border border-secondary/35 text-secondary text-xs font-bold">
+              <div className="flex items-center gap-2 min-w-0">
+                <GraduationCap size={16} className="flex-shrink-0" />
+                <span className="truncate">{classNotice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setClassNotice(null)}
+                className="p-1 text-muted-foreground hover:text-foreground flex-shrink-0"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          )}
+
           <div>
             <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentName")} *</label>
             <input
@@ -346,7 +435,16 @@ export default function StudentsManager({ school, onBack }) {
             />
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentClass")}</label>
+            <div className="flex items-center justify-between gap-1 mb-1">
+              <label className="block text-[10px] font-bold text-muted-foreground">{t("smStudentClass")}</label>
+              <button
+                type="button"
+                onClick={() => setShowCreateClassModal(true)}
+                className="text-[10px] text-brand hover:underline font-bold flex items-center gap-0.5"
+              >
+                <Plus size={10} /> {t("smCreateClass")}
+              </button>
+            </div>
             <div className="relative">
               <input
                 list="form-classes-list"
@@ -364,12 +462,16 @@ export default function StudentsManager({ school, onBack }) {
             </div>
             {availableClasses.length > 0 && (
               <div className="flex items-center gap-1 mt-1 overflow-x-auto">
-                {availableClasses.slice(0, 3).map((cls) => (
+                {availableClasses.slice(0, 4).map((cls) => (
                   <button
                     key={cls}
                     type="button"
                     onClick={() => setForm({ ...form, class_name: cls })}
-                    className="text-[9px] px-1.5 py-0.5 rounded-[4px] bg-accent text-brand hover:bg-accent/80 flex-shrink-0"
+                    className={`text-[9px] px-1.5 py-0.5 rounded-[4px] border flex-shrink-0 transition-colors ${
+                      form.class_name === cls
+                        ? "bg-secondary text-secondary-foreground border-secondary font-bold"
+                        : "bg-accent text-brand border-border hover:bg-accent/80"
+                    }`}
                   >
                     {cls}
                   </button>
@@ -396,7 +498,10 @@ export default function StudentsManager({ school, onBack }) {
             </button>
             <button
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                setClassNotice(null);
+              }}
               className="px-3 py-2 rounded-[10px] text-xs border border-border text-muted-foreground hover:text-foreground"
             >
               <X size={12} />
@@ -411,55 +516,113 @@ export default function StudentsManager({ school, onBack }) {
       )}
 
       {/* Class filter tabs */}
-      {availableClasses.length > 0 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 text-xs">
-          <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1 flex-shrink-0">
-            <GraduationCap size={13} /> {t("smFilterByClass")}:
-          </span>
-          <button
-            onClick={() => setSelectedClass("all")}
-            className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
-              selectedClass === "all"
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("smAllClasses")} ({(students || []).length})
-          </button>
-          {availableClasses.map((cls) => {
-            const count = (students || []).filter((s) => s.class_name?.trim() === cls).length;
-            return (
-              <button
-                key={cls}
-                onClick={() => setSelectedClass(cls)}
-                className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
-                  selectedClass === cls
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card border-border text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {cls} ({count})
-              </button>
-            );
-          })}
-          {(students || []).some((s) => !s.class_name?.trim()) && (
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 text-xs">
+        <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1 flex-shrink-0">
+          <GraduationCap size={13} /> {t("smFilterByClass")}:
+        </span>
+        <button
+          onClick={() => setSelectedClass("all")}
+          className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
+            selectedClass === "all"
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {t("smAllClasses")} ({(students || []).length})
+        </button>
+        {availableClasses.map((cls) => {
+          const count = (students || []).filter((s) => s.class_name?.trim() === cls).length;
+          return (
             <button
-              onClick={() => setSelectedClass("__none__")}
+              key={cls}
+              onClick={() => setSelectedClass(cls)}
               className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
-                selectedClass === "__none__"
+                selectedClass === cls
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-card border-border text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t("smNoClass")} ({(students || []).filter((s) => !s.class_name?.trim()).length})
+              {cls} ({count})
             </button>
-          )}
+          );
+        })}
+        {(students || []).some((s) => !s.class_name?.trim()) && (
+          <button
+            onClick={() => setSelectedClass("__none__")}
+            className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
+              selectedClass === "__none__"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t("smNoClass")} ({(students || []).filter((s) => !s.class_name?.trim()).length})
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => setShowCreateClassModal(true)}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-bold border border-dashed border-secondary/60 text-secondary hover:bg-secondary/10 flex-shrink-0 transition-colors"
+        >
+          <Plus size={11} /> {t("smCreateClass")}
+        </button>
+      </div>
+
+      {/* Selected Class Action Banner */}
+      {selectedClass !== "all" && selectedClass !== "__none__" && (
+        <div className="mb-3.5 p-3 rounded-[12px] bg-secondary/10 border border-secondary/25 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-[8px] flex items-center justify-center bg-secondary/20 text-secondary flex-shrink-0">
+              <GraduationCap size={16} />
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-xs text-foreground flex items-center gap-2 flex-wrap">
+                <span className="truncate">{selectedClass}</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/20 text-secondary">
+                  {(students || []).filter((s) => s.class_name?.trim() === selectedClass).length} {t("smStudentWord")}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground truncate">
+                {t("smSelectedClassBanner").replace("{class}", selectedClass)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => openAddStudentForClass(selectedClass)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <UserPlus size={12} /> {t("smAddStudentToThisClass")}
+            </button>
+            <button
+              onClick={() => handleDeleteClass(selectedClass)}
+              className="p-1.5 rounded-[8px] border border-border text-muted-foreground hover:text-destructive hover:border-destructive/35 hover:bg-destructive/10 transition-colors"
+              title={t("smDeleteClass")}
+            >
+              <Trash2 size={12} />
+            </button>
+          </div>
         </div>
       )}
 
       {/* List */}
       {students === null ? (
         <FullSpinnerLocal />
+      ) : selectedClass !== "all" && selectedClass !== "__none__" && (students || []).filter((s) => s.class_name?.trim() === selectedClass).length === 0 ? (
+        <div className="rounded-[16px] p-8 text-center bg-card border border-border">
+          <GraduationCap size={36} className="mx-auto mb-2 opacity-40 text-secondary" />
+          <h3 className="text-sm font-bold text-foreground mb-1">
+            {t("smEmptyClassPrompt").replace("{class}", selectedClass)}
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4 max-w-sm mx-auto">
+            {t("smCreateClassDesc")}
+          </p>
+          <button
+            onClick={() => openAddStudentForClass(selectedClass)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
+          >
+            <UserPlus size={13} /> {t("smAddFirstStudent")}
+          </button>
+        </div>
       ) : students.length === 0 ? (
         <div className="rounded-[16px] p-10 text-center bg-card border border-border">
           <KeyRound size={36} className="mx-auto mb-3 opacity-40 text-brand" />
@@ -598,6 +761,14 @@ export default function StudentsManager({ school, onBack }) {
             })}
         </div>
       )}
+
+      {/* Create Class Modal */}
+      <CreateClassModal
+        isOpen={showCreateClassModal}
+        onClose={() => setShowCreateClassModal(false)}
+        existingClasses={availableClasses}
+        onSubmit={handleCreateClass}
+      />
     </div>
   );
 }

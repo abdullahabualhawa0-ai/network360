@@ -13,7 +13,7 @@ import { loadSession, schoolUsable, pick } from "../../shared/session.ts";
  */
 
 const ENTITY_CONFIG: Record<string, any> = {
-  School: { mode: "own_school_only" },
+  School: { mode: "own_school_only", updatable: true, fields: ["classes"] },
   Exam: {
     schoolField: "school_id", writable: true, includeGeneral: true,
     fields: ["title", "topic_id", "topic_title", "section_title", "questions", "duration_minutes", "status"],
@@ -184,6 +184,14 @@ export default async function(req) {
 
       case "update": {
         if (!config.writable && !config.updatable) return Response.json({ error: "Read-only entity" }, { status: 403 });
+        if (entity === "School") {
+          if (id !== schoolId) return Response.json({ error: "Forbidden" }, { status: 403 });
+          const nextClasses = Array.isArray(data?.classes)
+            ? data.classes.map((c: any) => String(c).trim()).filter(Boolean)
+            : [];
+          const row = await svc.entities.School.update(schoolId, { classes: nextClasses });
+          return Response.json(row);
+        }
         const existing = await svc.entities[entity].get(id).catch(() => null);
         if (!existing || (config.schoolField && existing[config.schoolField] !== schoolId)) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
