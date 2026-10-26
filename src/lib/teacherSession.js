@@ -13,12 +13,21 @@ const SESSION_EVENT = "teacher-session-change";
 
 export function getTeacherSession() {
   try {
-    const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    let raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        sessionStorage.setItem(SESSION_KEY, raw);
+        try { localStorage.removeItem(SESSION_KEY); } catch {}
+      }
+    }
+    const s = JSON.parse(raw || "null");
     if (!s) return null;
     // تُرفض الجلسات المحلية القديمة التي لم تصدر عن الخادم.
     const expiresAt = Date.parse(s.expires_at);
     if (typeof s.token !== "string" || !s.token || !s.teacher_id || !s.school_id || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
-      localStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
+      try { localStorage.removeItem(SESSION_KEY); } catch {}
       return null;
     }
     return s;
@@ -28,12 +37,14 @@ export function getTeacherSession() {
 }
 
 export function setTeacherSession(session) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  try { localStorage.removeItem(SESSION_KEY); } catch {}
   window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
 export function clearTeacherSession() {
-  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
+  try { localStorage.removeItem(SESSION_KEY); } catch {}
   window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
@@ -43,10 +54,8 @@ export function useTeacherSession() {
   useEffect(() => {
     const handler = () => setSession(getTeacherSession());
     window.addEventListener(SESSION_EVENT, handler);
-    window.addEventListener("storage", handler);
     return () => {
       window.removeEventListener(SESSION_EVENT, handler);
-      window.removeEventListener("storage", handler);
     };
   }, []);
   return session;

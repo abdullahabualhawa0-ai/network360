@@ -20,17 +20,21 @@ function withoutSecret(session) {
 
 export function getSchoolAdminSession() {
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    let raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        sessionStorage.setItem(SESSION_KEY, raw);
+        try { localStorage.removeItem(SESSION_KEY); } catch {}
+      }
+    }
     const s = withoutSecret(JSON.parse(raw || "null"));
     if (!s) return null;
-    // ترقية الجلسات القديمة: إعادة الحفظ بدون رمز المشرف
-    if (raw && raw.includes("admin_code")) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
-    }
     // تُرفض الجلسات المحلية القديمة التي لم تصدر عن الخادم.
     const expiresAt = Date.parse(s.expires_at);
     if (typeof s.token !== "string" || !s.token || !s.school_id || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
-      localStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
+      try { localStorage.removeItem(SESSION_KEY); } catch {}
       return null;
     }
     return s;
@@ -40,12 +44,14 @@ export function getSchoolAdminSession() {
 }
 
 export function setSchoolAdminSession(session) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(withoutSecret(session)));
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(withoutSecret(session)));
+  try { localStorage.removeItem(SESSION_KEY); } catch {}
   window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
 export function clearSchoolAdminSession() {
-  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
+  try { localStorage.removeItem(SESSION_KEY); } catch {}
   window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
@@ -55,10 +61,8 @@ export function useSchoolAdminSession() {
   useEffect(() => {
     const handler = () => setSession(getSchoolAdminSession());
     window.addEventListener(SESSION_EVENT, handler);
-    window.addEventListener("storage", handler);
     return () => {
       window.removeEventListener(SESSION_EVENT, handler);
-      window.removeEventListener("storage", handler);
     };
   }, []);
   return session;
