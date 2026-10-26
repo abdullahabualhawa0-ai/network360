@@ -6,7 +6,8 @@ import { createSession } from "../../shared/session.ts";
  * schoolAdminLogin — التحقق من رمز المشرف (admin_code) دون Base44 Authentication
  * يعيد جلسة مشرف مدرسة (بيانات عرض + token + expires_at). مشرف المدرسة يدير بيانات مدرسته فقط.
  *
- * ملاحظة: الجلسة لم تعد تُستخدم فيها admin_code للتحقق؛ الرمز السري يبقى لحظة الدخول فقط.
+ * ملاحظة: لا يُعاد admin_code ضمن الجلسة — الجلسة تعتمد على token فقط،
+ * ويمكن عرض الرمز عند الحاجة عبر schoolAdminApi الموثّق بالجلسة.
  */
 const WINDOW = 15 * 60 * 1000;
 const MAX_FAIL_IP = 12;
@@ -53,7 +54,6 @@ export default async function(req) {
       school_code: school.code,
       school_name: school.name,
       admin_name: school.admin_name || school.name,
-      admin_code: school.admin_code,
       role: "school_admin",
       login_at: new Date().toISOString(),
       token,

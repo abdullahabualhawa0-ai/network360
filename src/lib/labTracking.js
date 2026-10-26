@@ -2,6 +2,8 @@
  * labTracking.js — تتبع تقدم الطالب في السيناريوهات
  * يستخدم نظام جلسة الطالب (studentApi) بدلاً من Base44 Authentication
  * LabHistory (محاولة واحدة لكل سيناريو) + ScenarioTaskStatus (سجل مستقل لكل مهمة)
+ *
+ * العدادات والدرجة والحالة وXP تُحسب على الخادم من سجلات المهام — لا تُرسل من المتصفح.
  */
 import { studentApi, getStudentSession } from "@/lib/studentSession";
 
@@ -13,36 +15,37 @@ export function getSchoolId() {
   return session?.school_id || GENERAL_SCHOOL;
 }
 
+/** يجلب أحدث نسخة من سجل المحاولة من الخادم */
+async function fetchLab(scenarioId) {
+  const rows = await studentApi("filter", "LabHistory", {
+    query: { scenario_id: scenarioId },
+  });
+  return (rows || [])[0] || null;
+}
+
 /** يجلب سجل المحاولة للسيناريو أو ينشئه عند أول استخدام */
 export async function ensureLabRecord(scenario, tasksTotal) {
-  const existing = await studentApi("filter", "LabHistory", {
-    query: { scenario_id: scenario.id },
-  });
-  if (existing && existing.length > 0) {
-    const lab = existing[0];
+  const total = Number(tasksTotal) || 0;
+  const existing = await fetchLab(scenario.id);
+  if (existing) {
     // حدّث العدد الكلي إن تغيّر تعريف السيناريو
-    if (tasksTotal && (lab.tasks_total || 0) !== tasksTotal) {
-      await studentApi("update", "LabHistory", {
-        id: lab.id,
-        data: { tasks_total: tasksTotal },
+    if (total && (existing.tasks_total || 0) !== total) {
+      const updated = await studentApi("update", "LabHistory", {
+        id: existing.id,
+        data: { tasks_total: total },
       });
-      lab.tasks_total = tasksTotal;
+      return updated || { ...existing, tasks_total: total };
     }
-    return lab;
+    return existing;
   }
-  const now = new Date().toISOString();
   return await studentApi("create", "LabHistory", {
     data: {
       scenario_id: scenario.id,
       scenario_title: scenario.title,
       scenario_difficulty: scenario.difficulty,
-      status: "in_progress",
-      tasks_total: tasksTotal || 0,
-      tasks_completed: 0,
-      score: 0,
-      xp_earned: 0,
-      started_at: now,
-      last_activity_at: now,
+      tasks_total: total,
+      scenario_xp: Number(scenario.xp) || 0,
+      started_at: new Date().toISOString(),
     },
   });
 }
@@ -55,21 +58,18 @@ export async function loadTaskStatuses(labId) {
   return rows || [];
 }
 
-/** يحدّث العدادات في سجل المحاولة لتطابق عدد المهام المنجزة فعلياً */
-export async function syncLabCounters(lab, completedCount) {
-  if ((lab.tasks_completed || 0) === completedCount) return;
-  await studentApi("update", "LabHistory", {
-    id: lab.id,
-    data: { tasks_completed: completedCount },
-  });
-  lab.tasks_completed = completedCount;
+/** يزامن كائن المحاولة المحلي مع العدادات المشتقة على الخادم */
+export async function syncLabCounters(lab) {
+  if (!lab?.scenario_id) return lab;
+  const fresh = await fetchLab(lab.scenario_id);
+  if (fresh) Object.assign(lab, fresh);
+  return lab;
 }
 
 /**
- * يحفظ إنجاز مهمة واحدة بشكل مستقل:
- * - يحدّث سجل المهمة (ScenarioTaskStatus) إلى completed
- * - يزيد عداد سجل المحاولة (LabHistory) ويحدّث حالتها ودرجتها
- * يعدّل كائن lab في مكانه ويعيده.
+ * يسجّل إنجاز مهمة واحدة:
+ * - ينشئ/يحدّث سجل المهمة (ScenarioTaskStatus) — الحالة يفرضها الخادم
+ * - الخادم يعيد حساب عدادات المحاولة ودرجتها وXP ويُزامنها هنا
  */
 export async function markTaskCompleted({ lab, scenario, taskIndex, taskLabel }) {
   const rows = await studentApi("filter", "ScenarioTaskStatus", {
@@ -79,52 +79,25 @@ export async function markTaskCompleted({ lab, scenario, taskIndex, taskLabel })
       task_index: taskIndex,
     },
   });
-  const now = new Date().toISOString();
 
   if (rows && rows.length > 0) {
-    if (rows[0].status === "completed") return lab;
-    await studentApi("update", "ScenarioTaskStatus", {
-      id: rows[0].id,
-      data: {
-        status: "completed",
-        task_label: taskLabel,
-        completed_at: now,
-      },
-    });
+    if (rows[0].status !== "completed") {
+      await studentApi("update", "ScenarioTaskStatus", {
+        id: rows[0].id,
+        data: { task_label: taskLabel },
+      });
+    }
   } else {
     await studentApi("create", "ScenarioTaskStatus", {
       data: {
         lab_history_id: lab.id,
-        scenario_id: scenario.id,
         task_index: taskIndex,
         task_label: taskLabel,
-        status: "completed",
-        completed_at: now,
       },
     });
   }
 
-  const completed = (lab.tasks_completed || 0) + 1;
-  const total = lab.tasks_total || 0;
-  const allDone = total > 0 && completed >= total;
-  const score = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  await studentApi("update", "LabHistory", {
-    id: lab.id,
-    data: {
-      tasks_completed: completed,
-      score,
-      status: allDone ? "completed" : "partially_completed",
-      xp_earned: allDone ? (scenario.xp || lab.xp_earned || 0) : (lab.xp_earned || 0),
-      completed_at: allDone ? now : (lab.completed_at || null),
-      last_activity_at: now,
-    },
-  });
-
-  lab.tasks_completed = completed;
-  lab.score = score;
-  lab.status = allDone ? "completed" : "partially_completed";
-  lab.xp_earned = allDone ? (scenario.xp || lab.xp_earned || 0) : (lab.xp_earned || 0);
-  if (allDone) lab.completed_at = now;
+  const fresh = await fetchLab(scenario.id);
+  if (fresh) Object.assign(lab, fresh);
   return lab;
 }

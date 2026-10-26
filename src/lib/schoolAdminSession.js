@@ -1,6 +1,6 @@
 /**
  * schoolAdminSession.js — إدارة جلسة مشرف المدرسة المستقلة عن Base44 Authentication
- * الجلسة تُحفظ في localStorage وتحتوي: school_id, school_code, school_name, admin_code, role
+ * الجلسة تُحفظ في localStorage وتحتوي بيانات العرض + token فقط (لا يُخزَّن رمز المشرف إطلاقاً).
  * لا تُنشأ الجلسة إلا بعد التحقق من الرمز في الخادم.
  */
 import { useState, useEffect } from "react";
@@ -11,10 +11,22 @@ import { invokeCodeLogin } from "@/lib/loginRetry";
 const SESSION_KEY = "school-admin-session";
 const SESSION_EVENT = "school-admin-session-change";
 
+/** يزيل رمز المشرف من أي نسخة محفوظة (ترقية للجلسات القديمة) */
+function withoutSecret(session) {
+  if (!session || typeof session !== "object") return session;
+  const { admin_code, ...rest } = session;
+  return rest;
+}
+
 export function getSchoolAdminSession() {
   try {
-    const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    const raw = localStorage.getItem(SESSION_KEY);
+    const s = withoutSecret(JSON.parse(raw || "null"));
     if (!s) return null;
+    // ترقية الجلسات القديمة: إعادة الحفظ بدون رمز المشرف
+    if (raw && raw.includes("admin_code")) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    }
     // تُرفض الجلسات المحلية القديمة التي لم تصدر عن الخادم.
     const expiresAt = Date.parse(s.expires_at);
     if (typeof s.token !== "string" || !s.token || !s.school_id || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
@@ -28,7 +40,7 @@ export function getSchoolAdminSession() {
 }
 
 export function setSchoolAdminSession(session) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(withoutSecret(session)));
   window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
@@ -80,4 +92,12 @@ export async function schoolAdminApi(action, entity, payload = {}) {
     }
     throw e;
   }
+}
+
+/**
+ * رمز المشرف للعرض فقط: يُجلب من الخادم بجلسة موثّقة عند الحاجة ولا يُحفظ في المتصفح.
+ */
+export async function fetchAdminCode() {
+  const school = await schoolAdminApi("list", "School");
+  return String(school?.admin_code || "");
 }

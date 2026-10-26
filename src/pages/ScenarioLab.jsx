@@ -109,19 +109,7 @@ export default function ScenarioLab() {
           });
         }
       }
-      if (res.passed) {
-        const now = new Date().toISOString();
-        await studentApi("update", "LabHistory", {
-          id: lab.id,
-          data: {
-            status: "completed",
-            score: typeof res.score === "number" ? res.score : lab.score,
-            xp_earned: scenario.xp || lab.xp_earned || 0,
-            completed_at: lab.completed_at || now,
-            last_activity_at: now,
-          },
-        });
-      }
+      // الحالة والدرجة وXP تُحسب في الخادم من المهام المسجّلة فعلياً
       // تحديث الخريطة المحلية — المكتمل يختفي من القائمة النشطة فوراً
       setDbMap((prev) => ({
         ...prev,

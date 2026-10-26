@@ -4,8 +4,6 @@
  * يستخدم نظام جلسة الطالب (studentApi) بدلاً من Base44 Authentication.
  */
 import { studentApi, getStudentSession } from "@/lib/studentSession";
-import courseData from "./courseData";
-import quizData from "./quizData";
 
 const PROGRESS_KEY = "topic-progress";
 const QUIZ_KEY = "quiz-results";
@@ -22,22 +20,10 @@ export async function syncProgressToServer() {
     const topicProgress = loadLocal(PROGRESS_KEY);
     const quizResults = loadLocal(QUIZ_KEY);
 
-    const totalTopics = courseData.reduce((s, sec) => s + sec.topics.length, 0);
-    const visitedTopics = Object.keys(topicProgress).filter(k => topicProgress[k]?.visited).length;
-    const completedQuizzes = Object.keys(quizResults).length;
-    const avgScore = completedQuizzes > 0
-      ? Math.round(Object.values(quizResults).reduce((s, r) => s + (r.score || 0), 0) / completedQuizzes)
-      : 0;
-
+    // المؤشرات المجمّعة (عدد المواضيع/الاختبارات ومتوسط الدرجات) تُحسب على الخادم من هذه الخرائط
     const payload = {
-      student_email: session.student_code, // معرّف بديل (الرمز فريد لكل طالب)
-      student_name: session.student_name || session.student_code,
       topic_progress: topicProgress,
       quiz_results: quizResults,
-      total_topics_visited: visitedTopics,
-      total_quizzes_completed: completedQuizzes,
-      avg_quiz_score: avgScore,
-      last_synced_at: new Date().toISOString(),
     };
 
     // البحث عن سجل موجود (studentApi يحقن student_id تلقائياً)
