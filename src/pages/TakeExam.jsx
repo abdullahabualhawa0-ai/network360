@@ -21,6 +21,7 @@ export default function TakeExam() {
   const [exam, setExam] = useState(null);
   const [allowed, setAllowed] = useState(false);
   const [retakeBlocked, setRetakeBlocked] = useState(false);
+  const [startError, setStartError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState({});
   const [secondsLeft, setSecondsLeft] = useState(null);
@@ -61,8 +62,10 @@ export default function TakeExam() {
         }
       } catch (err) {
         const errCode = err?.data?.error || err?.response?.data?.error;
-        if (errCode === "RETAKE_NOT_ALLOWED" || err?.status === 403 || err?.response?.status === 403) {
+        if (errCode === "RETAKE_NOT_ALLOWED") {
           setRetakeBlocked(true);
+        } else {
+          setStartError(err?.data?.message || errCode || err?.message || null);
         }
         setAllowed(false);
       } finally {
@@ -194,14 +197,22 @@ export default function TakeExam() {
 
   if (!allowed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" dir={direction}>
-        <div className="text-center max-w-sm">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8" dir={direction}>
+        <div className="text-center max-w-sm w-full mx-auto p-6 bg-card border border-border rounded-2xl">
           <AlertTriangle size={36} className="text-warning mx-auto mb-3" />
-          <h2 className="font-black text-lg mb-2">{t("takeExamNoAccess")}</h2>
-          <p className="text-xs text-muted-foreground mb-5">{t("takeExamNoAccessDesc")}</p>
-          <Link to="/exams" className="px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-primary-foreground inline-block">
-            {t("takeExamBackToExams")}
-          </Link>
+          <h2 className="font-black text-lg mb-2">{t("errUnexpected")}</h2>
+          <p className="text-xs text-muted-foreground mb-5 leading-relaxed">{startError || t("errServer")}</p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 rounded-xl text-xs font-bold border border-border hover:bg-accent transition-colors"
+            >
+              {t("takeExamRetry")}
+            </button>
+            <Link to="/exams" className="px-5 py-2.5 rounded-xl text-xs font-bold bg-primary text-primary-foreground inline-block">
+              {t("takeExamBackToExams")}
+            </Link>
+          </div>
         </div>
       </div>
     );

@@ -266,20 +266,21 @@ async function startExam(svc: any, ctx: any) {
 
   // المحاولة تُنشأ تلقائياً عند أول دخول، ومحاولة جديدة بعد كل تسليم (بدون طلب إذن)
   let current = await currentAttempt(svc, sid, examId);
-  if (!current.attempt || current.consumed) {
-    await svc.entities.ExamAccessRequest.create({
+  let attempt = current.attempt;
+  if (!attempt || current.consumed) {
+    const startedAt = new Date().toISOString();
+    attempt = await svc.entities.ExamAccessRequest.create({
       student_id: sid,
-      student_name: profile.full_name || profile.student_code,
-      student_email: profile.student_code,
+      student_name: profile?.full_name || profile?.student_code || "طالب",
+      student_email: profile?.student_code || sid,
       school_id: schoolId,
       exam_id: exam.id,
       exam_title: exam.title,
       status: "approved",
-      reviewed_at: new Date().toISOString(),
+      reviewed_at: startedAt,
+      started_at: startedAt,
     });
-    current = await currentAttempt(svc, sid, examId);
   }
-  let attempt = current.attempt;
   if (!attempt) return Response.json({ error: "Could not start exam" }, { status: 500 });
 
   if (!attempt.started_at) {
@@ -591,7 +592,7 @@ export default async function(req) {
       }
 
       case "startExam": {
-        return await startExam(svc, { sid, schoolId, data });
+        return await startExam(svc, { profile, sid, schoolId, data });
       }
 
       case "submitExam": {
