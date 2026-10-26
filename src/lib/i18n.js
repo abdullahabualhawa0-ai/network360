@@ -650,7 +650,7 @@ const T = {
 
   /* ─── نتائج الامتحانات (Admin) ─── */
   examResultsTitle: { ar: "نتائج الامتحانات", en: "Exam Results", he: "תוצאות בחינות" },
-  examResultsDesc: { ar: "نتائج وطلبات دخول طلاب مدرستك فقط", en: "Results and access requests for your school students only", he: "תוצאות ובקשות גישה של תלמידי בית-הספר בלבד" },
+  examResultsDesc: { ar: "نتائج امتحانات طلاب مدرستك فقط", en: "Exam results for your school students only", he: "תוצאות בחינות של תלמידי בית-הספר בלבד" },
   examResultsTotalAttempts: { ar: "إجمالي المحاولات", en: "Total Attempts", he: "סך ניסיונות" },
   examResultsParticipants: { ar: "عدد المشاركين", en: "Participants", he: "משתתפים" },
   examResultsAvgScore: { ar: "متوسط النتائج", en: "Average Score", he: "ציון ממוצע" },

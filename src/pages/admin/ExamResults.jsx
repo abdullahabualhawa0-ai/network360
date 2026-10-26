@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  FileCheck, Loader2, AlertCircle, CheckCircle2, XCircle,
+  FileCheck, Loader2, AlertCircle, CheckCircle2,
   Trophy, Users, Percent, Inbox, RefreshCw, RotateCcw,
 } from "lucide-react";
 import moment from "moment";
@@ -15,9 +15,7 @@ export default function ExamResults() {
   useLang();
   const direction = useDir();
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("results");
   const [results, setResults] = useState([]);
-  const [pending, setPending] = useState([]);
   const [schoolId, setSchoolId] = useState("general");
   const [processing, setProcessing] = useState(null);
 
@@ -27,12 +25,8 @@ export default function ExamResults() {
     if (!isAdmin) { setLoading(false); return; }
     const sid = school_id || "general";
     setSchoolId(sid);
-    const [rs, reqs] = await Promise.all([
-      adminFilter("ExamResult", { school_id: sid }, "-submission_time", 200),
-      adminFilter("ExamAccessRequest", { school_id: sid, status: "pending" }, "-created_date", 100),
-    ]);
+    const rs = await adminFilter("ExamResult", { school_id: sid }, "-submission_time", 200);
     setResults(rs || []);
-    setPending(reqs || []);
     setLoading(false);
   };
 
@@ -40,17 +34,6 @@ export default function ExamResults() {
     if (isLoading) return;
     load();
   }, [isLoading, isAdmin]);
-
-  const reviewRequest = async (req, status) => {
-    setProcessing(req.id);
-    await adminUpdate("ExamAccessRequest", req.id, {
-      status,
-      reviewed_at: new Date().toISOString(),
-    });
-    const reqs = await adminFilter("ExamAccessRequest", { school_id: schoolId, status: "pending" }, "-created_date", 100);
-    setPending(reqs || []);
-    setProcessing(null);
-  };
 
   const handleToggleRetake = async (r) => {
     if (processing === r.id) return;
@@ -133,130 +116,68 @@ export default function ExamResults() {
           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-4">
-          {[
-            { id: "results", label: `${t("examResultsTabResults")} (${results.length})` },
-            { id: "requests", label: `${t("examResultsTabRequests")} (${pending.length})`, dot: pending.length > 0 },
-          ].map((tb) => (
-            <button
-              key={tb.id}
-              onClick={() => setTab(tb.id)}
-              className={`px-4 py-2 rounded-[10px] text-xs font-bold transition-all border ${
-                tab === tb.id
-                  ? "bg-accent border-primary text-brand"
-                  : "bg-muted border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tb.label} {tb.dot && <span className="inline-block w-1.5 h-1.5 rounded-full ms-1 bg-warning" />}
-            </button>
-          ))}
-        </div>
-
-        {/* Results tab */}
-        {tab === "results" && (
-          results.length === 0 ? (
-            <div className="rounded-[16px] p-10 text-center bg-card border border-border">
-              <Inbox size={40} className="mx-auto mb-3 opacity-40 text-brand" />
-              <p className="text-xs text-muted-foreground">{t("examResultsNoResults")}</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {results.map((r, i) => {
-                const passed = (r.percentage || 0) >= 60;
-                return (
-                  <motion.div
-                    key={r.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.02 }}
-                    className="rounded-[12px] p-3.5 bg-card border border-border flex flex-col sm:flex-row sm:items-center gap-3"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold truncate text-foreground">{r.student_name || r.student_email}</div>
-                      <div className="text-[10px] text-muted-foreground truncate">
-                        {r.exam_title} • {moment(r.submission_time).format("YYYY/MM/DD HH:mm")}
-                      </div>
-                    </div>
-                    <div className="text-[10px] text-muted-foreground flex-shrink-0">
-                      {r.correct_answers}/{r.total_questions} {t("examResultsCorrectShort")}
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-                      <div className={`px-3 py-1.5 rounded-[10px] text-sm font-black border ${
-                        passed
-                          ? "bg-success/10 border-success/35 text-success"
-                          : "bg-destructive/10 border-destructive/35 text-destructive"
-                      }`}>
-                        {r.percentage}%
-                      </div>
-                      {/* زر السماح بإعادة الامتحان بجانب علامة الطالب */}
-                      <button
-                        onClick={() => handleToggleRetake(r)}
-                        disabled={processing === r.id}
-                        className={`px-3 py-1.5 rounded-[10px] text-xs font-bold flex items-center gap-1.5 transition-all border ${
-                          r.allow_retake
-                            ? "bg-success/15 border-success/40 text-success hover:bg-success/25"
-                            : "bg-secondary/10 border-secondary/30 text-secondary dark:text-primary hover:bg-secondary/20"
-                        }`}
-                        title={r.allow_retake ? t("retakeAllowedTooltip") : t("allowRetakeTooltip")}
-                      >
-                        {processing === r.id ? (
-                          <Loader2 size={13} className="animate-spin" />
-                        ) : r.allow_retake ? (
-                          <CheckCircle2 size={13} />
-                        ) : (
-                          <RotateCcw size={13} />
-                        )}
-                        <span>
-                          {r.allow_retake ? t("retakeAllowed") : t("allowRetake")}
-                        </span>
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )
-        )}
-
-        {/* Requests tab */}
-        {tab === "requests" && (
-          pending.length === 0 ? (
-            <div className="rounded-[16px] p-10 text-center bg-card border border-border">
-              <CheckCircle2 size={40} className="mx-auto mb-3 opacity-40 text-success" />
-              <p className="text-xs text-muted-foreground">{t("examResultsNoRequests")}</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {pending.map((req) => (
-                <div
-                  key={req.id}
-                  className="rounded-[12px] p-3.5 bg-card border border-warning/35 flex flex-col sm:flex-row sm:items-center gap-3"
+        {/* Results List */}
+        {results.length === 0 ? (
+          <div className="rounded-[16px] p-10 text-center bg-card border border-border">
+            <Inbox size={40} className="mx-auto mb-3 opacity-40 text-brand" />
+            <p className="text-xs text-muted-foreground">{t("examResultsNoResults")}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {results.map((r, i) => {
+              const passed = (r.percentage || 0) >= 60;
+              return (
+                <motion.div
+                  key={r.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                  className="rounded-[12px] p-3.5 bg-card border border-border flex flex-col sm:flex-row sm:items-center gap-3"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold truncate text-foreground">{req.student_name || req.student_email}</div>
-                    <div className="text-[10px] text-muted-foreground truncate">{t("examResultsWantsAccess")}: {req.exam_title}</div>
+                    <div className="text-sm font-bold truncate text-foreground">{r.student_name || r.student_email}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">
+                      {r.exam_title} • {moment(r.submission_time).format("YYYY/MM/DD HH:mm")}
+                    </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="text-[10px] text-muted-foreground flex-shrink-0">
+                    {r.correct_answers}/{r.total_questions} {t("examResultsCorrectShort")}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                    <div className={`px-3 py-1.5 rounded-[10px] text-sm font-black border ${
+                      passed
+                        ? "bg-success/10 border-success/35 text-success"
+                        : "bg-destructive/10 border-destructive/35 text-destructive"
+                    }`}>
+                      {r.percentage}%
+                    </div>
+                    {/* زر السماح بإعادة الامتحان بجانب علامة الطالب */}
                     <button
-                      onClick={() => reviewRequest(req, "approved")}
-                      disabled={processing === req.id}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-bold bg-success text-success-foreground hover:bg-success/90 disabled:opacity-60"
+                      onClick={() => handleToggleRetake(r)}
+                      disabled={processing === r.id}
+                      className={`px-3 py-1.5 rounded-[10px] text-xs font-bold flex items-center gap-1.5 transition-all border ${
+                        r.allow_retake
+                          ? "bg-success/15 border-success/40 text-success hover:bg-success/25"
+                          : "bg-secondary/10 border-secondary/30 text-secondary dark:text-primary hover:bg-secondary/20"
+                      }`}
+                      title={r.allow_retake ? t("retakeAllowedTooltip") : t("allowRetakeTooltip")}
                     >
-                      <CheckCircle2 size={12} /> {t("examResultsApprove")}
-                    </button>
-                    <button
-                      onClick={() => reviewRequest(req, "rejected")}
-                      disabled={processing === req.id}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive hover:bg-destructive/20 disabled:opacity-60"
-                    >
-                      <XCircle size={12} /> {t("examResultsReject")}
+                      {processing === r.id ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : r.allow_retake ? (
+                        <CheckCircle2 size={13} />
+                      ) : (
+                        <RotateCcw size={13} />
+                      )}
+                      <span>
+                        {r.allow_retake ? t("retakeAllowed") : t("allowRetake")}
+                      </span>
                     </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          )
+                </motion.div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
