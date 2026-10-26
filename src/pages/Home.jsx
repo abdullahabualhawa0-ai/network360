@@ -38,7 +38,7 @@ export default function Home() {
               {t("homeHeroDesc")}
             </p>
             <p className="text-xs mb-10 text-muted-foreground text-center" dir="rtl">
-              عمل الطلاب: عبد الله أبو الهوى ، امير دراويش
+            
             </p>
                <p className="mb-10 text-xl text-muted-foreground" dir="rtl">
               EDUPRO+
