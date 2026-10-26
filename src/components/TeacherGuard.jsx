@@ -3,13 +3,14 @@ import { useTeacherSession } from "@/lib/teacherSession";
 
 /**
  * TeacherGuard — يحمي مسارات الأستاذ (يُستخدم كـ layout route).
- * يسمح بالدخول فقط لجلسة أستاذ صالحة، وإلا يُعيد التوجيه إلى /student-login.
+ * يسمح بالدخول لجلسة أستاذ صالحة، وإلا يُعيد التوجيه إلى الصفحة الرئيسية
+ * (لا إلى صفحة الدخول، حتى لا يُطرد مستخدم مسجّل أثناء التنقل).
  */
 export default function TeacherGuard() {
   const session = useTeacherSession();
 
   if (!session) {
-    return <Navigate to="/student-login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

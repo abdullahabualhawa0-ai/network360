@@ -44,32 +44,11 @@ export default function TakeExam() {
       const ex = await studentApi("get", "Exam", { id: examId }).catch(() => null);
       setSchoolId(session?.school_id || "general");
       if (!ex || ex.status !== "published") { setLoading(false); return; }
-      const reqs = await studentApi("filter", "ExamAccessRequest", {
-        query: { exam_id: examId },
-      }).catch(() => []);
-      const existingResults = await studentApi("filter", "ExamResult", {
-        query: { exam_id: examId },
-      }).catch(() => []);
-      // إذن نشط = أحدث موافقة لم تُستهلك بتأدية أحدث منها
-      const approvedReqs = (reqs || [])
-        .filter((r) => r.status === "approved")
-        .sort((a, b) => new Date(b.reviewed_at || b.created_date) - new Date(a.reviewed_at || a.created_date));
-      const lastApproved = approvedReqs[0];
-      const latestResult = (existingResults || [])
-        .sort((a, b) => new Date(b.submission_time) - new Date(a.submission_time))[0];
-      const ok =
-        lastApproved &&
-        (!latestResult ||
-          new Date(lastApproved.reviewed_at || lastApproved.created_date) >
-            new Date(latestResult.submission_time));
-      let started = null;
-      if (ok) {
-        // بدء الامتحان على الخادم: يسجّل وقت البدء مرة واحدة ويعيد الزمن المتبقي الحقيقي
-        started = await studentApi("startExam", "Exam", { data: { exam_id: examId } }).catch(() => null);
-      }
+      // بدء الامتحان مباشرة (بدون طلب إذن): يسجّل وقت البدء على الخادم ويعيد الزمن المتبقي
+      const started = await studentApi("startExam", "Exam", { data: { exam_id: examId } }).catch(() => null);
       setExam(ex);
-      setAllowed(!!(ok && started));
-      if (ok && started) {
+      setAllowed(!!started);
+      if (started) {
         deadlineRef.current = Date.now() + (started.remaining_seconds || 0) * 1000;
         setSecondsLeft(started.remaining_seconds || 0);
       }
@@ -181,7 +160,7 @@ export default function TakeExam() {
           <h2 className="font-black text-lg mb-2">{t("takeExamNoAccess")}</h2>
           <p className="text-xs text-muted-foreground mb-5">{t("takeExamNoAccessDesc")}</p>
           <Link to="/exams" className="px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-primary-foreground inline-block">
-            {t("takeExamRequestAccess")}
+            {t("takeExamBackToExams")}
           </Link>
         </div>
       </div>

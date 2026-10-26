@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ClipboardList, Clock, Loader2, Send, CheckCircle2, Trophy, Ban, FileQuestion } from "lucide-react";
+import { ClipboardList, Clock, Loader2, CheckCircle2, Trophy, FileQuestion } from "lucide-react";
 import moment from "moment";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { GENERAL_SCHOOL } from "@/lib/schoolUtils";
@@ -9,35 +9,25 @@ import { t, useLang, useDir } from "@/lib/i18n";
 import { useExamsListTranslation } from "@/lib/useExamTranslation";
 import PullToRefresh from "@/components/PullToRefresh";
 
-const REQ_STATUS = {
-  pending: "bg-warning/10 border border-warning/35 text-warning",
-  approved: "bg-success/10 border border-success/35 text-success",
-  rejected: "bg-destructive/10 border border-destructive/35 text-destructive",
-};
-
 export default function Exams() {
   const session = useStudentSession();
   useLang();
   const direction = useDir();
   const [loading, setLoading] = useState(true);
   const [exams, setExams] = useState([]);
-  const [requests, setRequests] = useState([]);
   const [results, setResults] = useState([]);
   const [schoolId, setSchoolId] = useState(GENERAL_SCHOOL);
-  const [requesting, setRequesting] = useState(null);
 
   const loadData = useCallback(async () => {
     if (session?.is_personal) return; // الطالب الفردي لا يحتاج لتحميل الامتحانات
     try {
       const sid = session?.school_id || GENERAL_SCHOOL;
       setSchoolId(sid);
-      const [ex, rq, rs] = await Promise.all([
+      const [ex, rs] = await Promise.all([
         studentApi("filter", "Exam", { query: {}, sort: "-created_date", limit: 100 }),
-        studentApi("filter", "ExamAccessRequest", { query: {} }),
         studentApi("filter", "ExamResult", { query: {}, sort: "-submission_time", limit: 100 }),
       ]);
       setExams(ex || []);
-      setRequests(rq || []);
       setResults(rs || []);
     } catch {
       setExams([]);
@@ -59,22 +49,6 @@ export default function Exams() {
 
   // الطالب الفردي (خطة شخصية) لا يصل للامتحانات — إعادة توجيه للرئيسية
   if (session?.is_personal) return <Navigate to="/" replace />;
-
-  const requestAccess = async (exam) => {
-    setRequesting(exam.id);
-    await studentApi("create", "ExamAccessRequest", {
-      data: {
-        student_name: session?.student_name || session?.student_code,
-        student_email: session?.student_code,
-        exam_id: exam.id,
-        exam_title: exam.title,
-        status: "pending",
-      },
-    });
-    const rq = await studentApi("filter", "ExamAccessRequest", { query: {} });
-    setRequests(rq || []);
-    setRequesting(null);
-  };
 
   if (loading) {
     return (
@@ -111,25 +85,12 @@ export default function Exams() {
 
         <div className="grid gap-3">
           {visibleExams.map((exam, i) => {
-            const myRequests = requests
-              .filter((r) => r.exam_id === exam.id)
-              .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-            const lastRequest = myRequests[0];
-            const lastApproved = myRequests.find((r) => r.status === "approved");
             const myResults = results
               .filter((r) => r.exam_id === exam.id)
               .sort((a, b) => new Date(b.submission_time) - new Date(a.submission_time));
-            const latestResult = myResults[0];
             const bestResult = myResults.length
               ? myResults.reduce((a, b) => ((a.percentage || 0) >= (b.percentage || 0) ? a : b))
               : null;
-
-            // إذن نشط لم يُستهلك بعد: أحدث موافقة بعد أحدث نتيجة
-            const canTakeNow =
-              lastApproved &&
-              (!latestResult ||
-                new Date(lastApproved.reviewed_at || lastApproved.created_date) >
-                  new Date(latestResult.submission_time));
 
             return (
               <motion.div key={exam.id}
@@ -158,52 +119,21 @@ export default function Exams() {
                   </div>
                 </div>
 
-                {/* Actions */}
+                {/* Actions — يدخل الطالب الامتحان مباشرة بدون طلب إذن */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {bestResult && (
                     <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 bg-success/10 border border-success/30 text-success">
                       <CheckCircle2 size={11} /> {t("performedLabel")}
                     </span>
                   )}
-
-                  {/* لا يوجد طلب بعد — طلب دخول أولي */}
-                  {!lastRequest && (
-                    <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground whitespace-nowrap disabled:opacity-60">
-                      {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestAccess")}</span>}
-                    </button>
-                  )}
-
-                  {/* الطلب الحالي معلّق — بانتظار الموافقة */}
-                  {lastRequest?.status === "pending" && (
-                    <span className={`px-3 py-2 rounded-xl text-[10px] font-bold ${REQ_STATUS.pending}`}>
-                      {t("accessPending")}
-                    </span>
-                  )}
-
-                  {/* آخر طلب مرفوض — يمكن إرسال طلب جديد */}
-                  {lastRequest?.status === "rejected" && (
-                    <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
-                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap disabled:opacity-60 bg-destructive/10 border border-destructive/35 text-destructive">
-                      {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestAccess")}</span>}
-                    </button>
-                  )}
-
-                  {/* إذن نشط لم يُستهلك — ابدأ التأدية */}
-                  {canTakeNow && (
-                    <Link to={`/exams/${exam.id}`}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-success text-success-foreground whitespace-nowrap">
-                      {bestResult ? t("retakeLabel") : t("startExam")}
-                    </Link>
-                  )}
-
-                  {/* تأدى الامتحان ولا يوجد إذن جديد — يجب طلب إذن لإعادة التأدية */}
-                  {bestResult && !canTakeNow && lastRequest?.status !== "pending" && (
-                    <button onClick={() => requestAccess(exam)} disabled={requesting === exam.id}
-                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap disabled:opacity-60 bg-secondary/10 border border-secondary/30 text-secondary dark:text-primary">
-                      {requesting === exam.id ? t("sendingLabel") : <span className="flex items-center gap-1.5"><Send size={12} /> {t("requestRetake")}</span>}
-                    </button>
-                  )}
+                  <Link to={`/exams/${exam.id}`}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap ${
+                      bestResult
+                        ? "bg-secondary/10 border border-secondary/30 text-secondary dark:text-primary"
+                        : "bg-success text-success-foreground"
+                    }`}>
+                    {bestResult ? t("retakeLabel") : t("startExam")}
+                  </Link>
                 </div>
               </motion.div>
             );

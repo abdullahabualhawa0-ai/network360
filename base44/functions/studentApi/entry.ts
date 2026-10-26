@@ -225,46 +225,59 @@ async function loadExamForStudent(svc: any, examId: string, schoolId: string) {
   return { exam };
 }
 
-/** إذن الدخول الفعّال: أحدث موافقة، وهل استُهلكت بتسليم أحدث منها؟ */
-async function findActiveAccess(svc: any, sid: string, examId: string) {
-  const reqs = await svc.entities.ExamAccessRequest.filter({ student_id: sid, exam_id: examId });
-  const approved = (reqs || [])
-    .filter((r: any) => r.status === "approved")
-    .sort((a: any, b: any) =>
-      new Date(b.reviewed_at || b.created_date).getTime() - new Date(a.reviewed_at || a.created_date).getTime()
-    )[0];
-  if (!approved) return { approved: null, consumed: false };
+/**
+ * محاولة الامتحان الحالية — سجل داخلي يُنشأ تلقائياً عند البدء (لا يوجد طلب إذن من الطالب).
+ * consumed = تم تسليم هذه المحاولة سابقاً.
+ */
+async function currentAttempt(svc: any, sid: string, examId: string) {
+  const rows = await svc.entities.ExamAccessRequest.filter({ student_id: sid, exam_id: examId }, "-created_date", 50);
+  const attempt = (rows || [])[0] || null;
+  if (!attempt) return { attempt: null, consumed: false };
   const results = await svc.entities.ExamResult.filter({ student_id: sid, exam_id: examId }, "-submission_time", 100);
   const latest = (results || [])
     .sort((a: any, b: any) => new Date(b.submission_time).getTime() - new Date(a.submission_time).getTime())[0];
   const consumed = !!latest &&
-    new Date(approved.reviewed_at || approved.created_date).getTime() <= new Date(latest.submission_time).getTime();
-  return { approved, consumed };
+    new Date(attempt.reviewed_at || attempt.created_date).getTime() <= new Date(latest.submission_time).getTime();
+  return { attempt, consumed };
 }
 
 const examDurationSeconds = (exam: any) => (Number(exam?.duration_minutes) > 0 ? Number(exam.duration_minutes) : 30) * 60;
 
 /** يسجّل وقت بدء الامتحان على الخادم (مرة واحدة لكل إذن) ويعيد الزمن المتبقي */
 async function startExam(svc: any, ctx: any) {
-  const { sid, schoolId, data } = ctx;
+  const { profile, sid, schoolId, data } = ctx;
   const examId = data?.exam_id;
   if (!examId) return Response.json({ error: "exam_id required" }, { status: 400 });
   const { exam, error } = await loadExamForStudent(svc, examId, schoolId);
   if (error) return error;
 
-  let { approved, consumed } = await findActiveAccess(svc, sid, examId);
-  if (!approved) return Response.json({ error: "No approved access" }, { status: 403 });
-  if (consumed) return Response.json({ error: "Access already used" }, { status: 403 });
+  // المحاولة تُنشأ تلقائياً عند أول دخول، ومحاولة جديدة بعد كل تسليم (بدون طلب إذن)
+  let current = await currentAttempt(svc, sid, examId);
+  if (!current.attempt || current.consumed) {
+    await svc.entities.ExamAccessRequest.create({
+      student_id: sid,
+      student_name: profile.full_name || profile.student_code,
+      student_email: profile.student_code,
+      school_id: schoolId,
+      exam_id: exam.id,
+      exam_title: exam.title,
+      status: "approved",
+      reviewed_at: new Date().toISOString(),
+    });
+    current = await currentAttempt(svc, sid, examId);
+  }
+  let attempt = current.attempt;
+  if (!attempt) return Response.json({ error: "Could not start exam" }, { status: 500 });
 
-  if (!approved.started_at) {
+  if (!attempt.started_at) {
     const startedAt = new Date().toISOString();
-    await svc.entities.ExamAccessRequest.update(approved.id, { started_at: startedAt });
-    approved = { ...approved, started_at: startedAt };
+    await svc.entities.ExamAccessRequest.update(attempt.id, { started_at: startedAt });
+    attempt = { ...attempt, started_at: startedAt };
   }
   const total = examDurationSeconds(exam);
-  const elapsed = (Date.now() - new Date(approved.started_at).getTime()) / 1000;
+  const elapsed = (Date.now() - new Date(attempt.started_at).getTime()) / 1000;
   return Response.json({
-    started_at: approved.started_at,
+    started_at: attempt.started_at,
     duration_seconds: total,
     remaining_seconds: Math.max(0, Math.floor(total - elapsed)),
   });
@@ -279,12 +292,12 @@ async function submitExam(svc: any, ctx: any) {
   const { exam, error } = await loadExamForStudent(svc, examId, schoolId);
   if (error) return error;
 
-  const { approved, consumed } = await findActiveAccess(svc, sid, examId);
-  if (!approved) return Response.json({ error: "No approved access" }, { status: 403 });
-  if (consumed) return Response.json({ error: "Access already used" }, { status: 403 });
+  const { attempt, consumed } = await currentAttempt(svc, sid, examId);
+  if (!attempt || !attempt.started_at) return Response.json({ error: "Exam not started" }, { status: 403 });
+  if (consumed) return Response.json({ error: "Exam already submitted" }, { status: 409 });
 
   // يجب أن يكون الامتحان قد بدأ عبر startExam (يفرض المدة من الخادم)
-  const startedMs = approved.started_at ? new Date(approved.started_at).getTime() : NaN;
+  const startedMs = new Date(attempt.started_at).getTime();
   if (!Number.isFinite(startedMs)) return Response.json({ error: "Exam not started" }, { status: 403 });
 
   const elapsedSec = (Date.now() - startedMs) / 1000;
@@ -350,7 +363,7 @@ async function submitExam(svc: any, ctx: any) {
     correct_answers: correct,
     wrong_answers: total - correct,
     answers: review,
-    start_time: approved.started_at,
+    start_time: attempt.started_at,
     end_time: now,
     submission_time: now,
     status: "submitted",
