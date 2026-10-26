@@ -694,9 +694,18 @@ const T = {
   quizAnswered: { ar: "تم الإجابة عليها", en: "answered", he: "נענו" },
   quizTranslating: { ar: "جارٍ ترجمة الاختبار آلياً...", en: "Translating quiz automatically...", he: "מתרגם את הבחינה אוטומטית..." },
 
-  /* ─── صفحة نتائج الأستاذ ─── */
+  /* ─── صفحة نتائج الأستاذ وإعادة الامتحان ─── */
   teacherResultsTitle: { ar: "نتائج الطلاب", en: "Student Results", he: "תוצאות תלמידים" },
   teacherResultsPageDesc: { ar: "نتائج امتحانات طلاب مدرستك", en: "Exam results for your school's students", he: "תוצאות בחינות של תלמידי בית-הספר" },
+  allowRetake: { ar: "السماح بالإعادة", en: "Allow Retake", he: "אפשר בחינה חוזרת" },
+  retakeAllowed: { ar: "مسموح بالإعادة ✓", en: "Retake Allowed ✓", he: "בחינה חוזרת מותרת ✓" },
+  revokeRetake: { ar: "إلغاء إذن الإعادة", en: "Revoke Retake", he: "בטל אישור בחינה חוזרת" },
+  allowRetakeTooltip: { ar: "اضغط للسماح للطالب بإعادة تقديم هذا الامتحان", en: "Click to allow the student to retake this exam", he: "לחץ כדי לאפשר לתלמיד לחזור על הבחינה" },
+  retakeAllowedTooltip: { ar: "الطالب يملك إذناً حالياً بإعادة الامتحان (اضغط للإلغاء)", en: "Student currently has permission to retake (click to revoke)", he: "לתלמיד יש אישור לחזור על הבחינה (לחץ לביטול)" },
+  retakeNeedsTeacherPermission: { ar: "بانتظار إذن الأستاذ للإعادة", en: "Awaiting teacher permission to retake", he: "ממתין לאישור המורה לבחינה חוזרת" },
+  retakeGrantedByTeacher: { ar: "سَمح الأستاذ بالإعادة ✓", en: "Teacher allowed retake ✓", he: "המורה אישר בחינה חוזרת ✓" },
+  examAlreadySubmittedTitle: { ar: "تم تسليم الامتحان سابقاً", en: "Exam already submitted", he: "הבחינה כבר הוגשה" },
+  examAlreadySubmittedNoRetake: { ar: "لقد أتممت هذا الامتحان مسبقاً، ولا يمكن إعادته إلا بعد أن يضغط أستاذ المادة على زر السماح بالإعادة بجانب علامتك.", en: "You have already completed this exam. It cannot be retaken unless the teacher clicks the button to allow a retake beside your grade.", he: "השלמת בחינה זו בעבר. לא ניתן לחזור עליה אלא לאחר שהמורה ילחץ על כפתור אישור הבחינה החוזרת לצד הציון שלך." },
 
   /* ─── حذف الحساب ─── */
   deleteAccount: { ar: "حذف الحساب", en: "Delete Account", he: "מחיקת חשבון" },
