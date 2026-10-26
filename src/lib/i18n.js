@@ -706,6 +706,8 @@ const T = {
   retakeGrantedByTeacher: { ar: "سَمح الأستاذ بالإعادة ✓", en: "Teacher allowed retake ✓", he: "המורה אישר בחינה חוזרת ✓" },
   examAlreadySubmittedTitle: { ar: "تم تسليم الامتحان سابقاً", en: "Exam already submitted", he: "הבחינה כבר הוגשה" },
   examAlreadySubmittedNoRetake: { ar: "لقد أتممت هذا الامتحان مسبقاً، ولا يمكن إعادته إلا بعد أن يضغط أستاذ المادة على زر السماح بالإعادة بجانب علامتك.", en: "You have already completed this exam. It cannot be retaken unless the teacher clicks the button to allow a retake beside your grade.", he: "השלמת בחינה זו בעבר. לא ניתן לחזור עליה אלא לאחר שהמורה ילחץ על כפתור אישור הבחינה החוזרת לצד הציון שלך." },
+  examLockedBadge: { ar: "مُقفل بعد التسليم", en: "Locked after submission", he: "נעול לאחר הגשה" },
+  retakeAllowedBadge: { ar: "مُتاح للإعادة الآن", en: "Available for retake", he: "זמין לבחינה חוזרת" },
 
   /* ─── حذف الحساب ─── */
   deleteAccount: { ar: "حذف الحساب", en: "Delete Account", he: "מחיקת חשבון" },

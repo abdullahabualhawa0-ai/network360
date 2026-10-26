@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ClipboardList, Clock, Loader2, CheckCircle2, Trophy, FileQuestion } from "lucide-react";
+import { ClipboardList, Clock, Loader2, CheckCircle2, Trophy, FileQuestion, Lock, RotateCcw, AlertCircle } from "lucide-react";
 import moment from "moment";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { GENERAL_SCHOOL } from "@/lib/schoolUtils";
@@ -88,16 +88,31 @@ export default function Exams() {
             const myResults = results
               .filter((r) => r.exam_id === exam.id)
               .sort((a, b) => new Date(b.submission_time) - new Date(a.submission_time));
+            const latestResult = myResults[0] || null;
             const bestResult = myResults.length
               ? myResults.reduce((a, b) => ((a.percentage || 0) >= (b.percentage || 0) ? a : b))
               : null;
+            const hasSubmitted = !!latestResult;
+            const canRetake = hasSubmitted && latestResult.allow_retake === true;
 
             return (
               <motion.div key={exam.id}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                className="rounded-2xl p-4 bg-card flex flex-col sm:flex-row sm:items-center gap-4 border border-border">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-secondary/10 border border-secondary/20 text-primary">
-                  <ClipboardList size={18} />
+                className={`rounded-2xl p-4 bg-card flex flex-col sm:flex-row sm:items-center gap-4 border transition-all ${
+                  hasSubmitted && !canRetake
+                    ? "border-border/70 opacity-95"
+                    : canRetake
+                    ? "border-primary/40 shadow-sm"
+                    : "border-border"
+                }`}>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  hasSubmitted && !canRetake
+                    ? "bg-muted text-muted-foreground border border-border"
+                    : canRetake
+                    ? "bg-primary/10 text-primary border border-primary/30"
+                    : "bg-secondary/10 border border-secondary/20 text-primary"
+                }`}>
+                  {hasSubmitted && !canRetake ? <Lock size={18} /> : <ClipboardList size={18} />}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -106,7 +121,18 @@ export default function Exams() {
                     {exam.section_title && (
                       <span className="text-[10px] text-muted-foreground">{exam.section_title} › {exam.topic_title}</span>
                     )}
+                    {hasSubmitted && !canRetake && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-muted text-muted-foreground border border-border flex items-center gap-1">
+                        <Lock size={10} /> {t("examLockedBadge")}
+                      </span>
+                    )}
+                    {canRetake && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-primary/15 text-primary border border-primary/30 flex items-center gap-1">
+                        <RotateCcw size={10} /> {t("retakeAllowedBadge")}
+                      </span>
+                    )}
                   </div>
+
                   <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
                     <span className="flex items-center gap-1"><FileQuestion size={10} /> {exam.questions?.length || 0} {t("questionsCount")}</span>
                     {exam.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {exam.duration_minutes} {t("minutesCount")}</span>}
@@ -117,23 +143,52 @@ export default function Exams() {
                       </span>
                     )}
                   </div>
+
+                  {/* تنبيه حالة الإعادة بانتظار الأستاذ أو عند منح الإذن */}
+                  {hasSubmitted && !canRetake && (
+                    <div className="mt-2 text-[11px] text-muted-foreground flex items-center gap-1.5 font-medium">
+                      <AlertCircle size={12} className="text-amber-500 flex-shrink-0" />
+                      <span>{t("retakeNeedsTeacherPermission")}</span>
+                    </div>
+                  )}
+                  {canRetake && (
+                    <div className="mt-2 text-[11px] text-primary flex items-center gap-1.5 font-bold">
+                      <CheckCircle2 size={12} className="flex-shrink-0" />
+                      <span>{t("retakeGrantedByTeacher")}</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Actions — يدخل الطالب الامتحان مباشرة بدون طلب إذن */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Actions — قفل عند التسليم، أو إعادة فور إذن الأستاذ، أو بدء أول مرة */}
+                <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:flex-nowrap">
                   {bestResult && (
                     <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 bg-success/10 border border-success/30 text-success">
                       <CheckCircle2 size={11} /> {t("performedLabel")}
                     </span>
                   )}
-                  <Link to={`/exams/${exam.id}`}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap ${
-                      bestResult
-                        ? "bg-secondary/10 border border-secondary/30 text-secondary dark:text-primary"
-                        : "bg-success text-success-foreground"
-                    }`}>
-                    {bestResult ? t("retakeLabel") : t("startExam")}
-                  </Link>
+                  {hasSubmitted ? (
+                    canRetake ? (
+                      <Link to={`/exams/${exam.id}`}
+                        className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-primary text-primary-foreground hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm">
+                        <RotateCcw size={12} />
+                        {t("retakeLabel")}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        title={t("examAlreadySubmittedNoRetake")}
+                        className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-muted/60 text-muted-foreground border border-border cursor-not-allowed opacity-80 select-none">
+                        <Lock size={12} />
+                        <span>{t("retakeNeedsTeacherPermission")}</span>
+                      </button>
+                    )
+                  ) : (
+                    <Link to={`/exams/${exam.id}`}
+                      className="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-success text-success-foreground hover:opacity-90 transition-all flex items-center gap-1.5">
+                      {t("startExam")}
+                    </Link>
+                  )}
                 </div>
               </motion.div>
             );

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, Loader2, AlertTriangle, Send, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { Clock, Loader2, AlertTriangle, Send, CheckCircle2, XCircle, ChevronRight, Lock } from "lucide-react";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { t, useLang, useDir, getLang, LANG_DIR } from "@/lib/i18n";
 import useExamTranslation from "@/lib/useExamTranslation";
@@ -20,6 +20,7 @@ export default function TakeExam() {
   const direction = useDir();
   const [exam, setExam] = useState(null);
   const [allowed, setAllowed] = useState(false);
+  const [retakeBlocked, setRetakeBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState({});
   const [secondsLeft, setSecondsLeft] = useState(null);
@@ -41,18 +42,32 @@ export default function TakeExam() {
   useEffect(() => {
     if (!examId) return;
     (async () => {
-      const ex = await studentApi("get", "Exam", { id: examId }).catch(() => null);
+      setLoading(true);
+      setRetakeBlocked(false);
       setSchoolId(session?.school_id || "general");
-      if (!ex || ex.status !== "published") { setLoading(false); return; }
-      // بدء الامتحان مباشرة (بدون طلب إذن): يسجّل وقت البدء على الخادم ويعيد الزمن المتبقي
-      const started = await studentApi("startExam", "Exam", { data: { exam_id: examId } }).catch(() => null);
-      setExam(ex);
-      setAllowed(!!started);
-      if (started) {
-        deadlineRef.current = Date.now() + (started.remaining_seconds || 0) * 1000;
-        setSecondsLeft(started.remaining_seconds || 0);
+      const ex = await studentApi("get", "Exam", { id: examId }).catch(() => null);
+      if (!ex || ex.status !== "published") {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+      setExam(ex);
+
+      try {
+        const started = await studentApi("startExam", "Exam", { data: { exam_id: examId } });
+        setAllowed(!!started);
+        if (started) {
+          deadlineRef.current = Date.now() + (started.remaining_seconds || 0) * 1000;
+          setSecondsLeft(started.remaining_seconds || 0);
+        }
+      } catch (err) {
+        const errCode = err?.data?.error || err?.response?.data?.error;
+        if (errCode === "RETAKE_NOT_ALLOWED" || err?.status === 403 || err?.response?.status === 403) {
+          setRetakeBlocked(true);
+        }
+        setAllowed(false);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [session?.student_id, examId]);
 
@@ -147,6 +162,31 @@ export default function TakeExam() {
           <AlertTriangle size={36} className="text-destructive mx-auto mb-3" />
           <h2 className="font-black text-lg mb-2">{t("takeExamNotFound")}</h2>
           <Link to="/exams" className="text-xs font-bold text-primary">{t("takeExamBackToExams")}</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (retakeBlocked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8" dir={direction}>
+        <div className="text-center max-w-md w-full mx-auto p-6 bg-card border border-border rounded-2xl shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mx-auto mb-4">
+            <Lock size={28} />
+          </div>
+          <h2 className="font-black text-lg mb-2">{t("examAlreadySubmittedTitle")}</h2>
+          <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+            {t("examAlreadySubmittedNoRetake")}
+          </p>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-muted text-muted-foreground border border-border mb-6">
+            <Clock size={12} />
+            <span>{t("retakeNeedsTeacherPermission")}</span>
+          </div>
+          <div>
+            <Link to="/exams" className="px-5 py-2.5 rounded-xl text-xs font-bold bg-primary text-primary-foreground inline-block">
+              {t("takeExamBackToExams")}
+            </Link>
+          </div>
         </div>
       </div>
     );
