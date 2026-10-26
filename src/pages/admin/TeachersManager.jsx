@@ -58,7 +58,7 @@ export default function TeachersManager() {
     for (let i = 0; i < 10; i++) {
       const c = randomCode("TCH-", 6);
       if (codeTaken(c)) continue;
-      const dup = await base44.entities.Teacher.filter({ school_id, teacher_code: c });
+      const dup = await adminFilter("Teacher", { school_id, teacher_code: c });
       if (!dup?.length) return c;
     }
     return `${randomCode("TCH-", 6)}${Date.now().toString(36).slice(-2).toUpperCase()}`;
@@ -78,7 +78,7 @@ export default function TeachersManager() {
         setEditId(null);
         setShowForm(false);
         try {
-          await base44.entities.Teacher.update(editId, updatedData);
+          await adminUpdate("Teacher", editId, updatedData);
         } catch (err) {
           setTeachers(prev);
           setFormError(t("errUnexpected"));
@@ -91,7 +91,7 @@ export default function TeachersManager() {
         }
         const code = form.teacher_code.trim() || (await uniqueTeacherCode());
         if (codeTaken(code)) { setFormError(t("teacherCodeTaken")); return; }
-        const created = await base44.entities.Teacher.create({
+        const created = await adminCreate("Teacher", {
           school_id,
           school_code: schoolCode,
           full_name: form.full_name.trim(),
