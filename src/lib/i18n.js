@@ -15,6 +15,7 @@ const T = {
   appName: { ar: "مبادئ الشبكات", en: "Networking Principles", he: "יסודות הרשתות" },
   appTagline: { ar: "منصة تعليمية تفاعلية", en: "Interactive learning platform", he: "פלטפורמת למידה אינטראקטיבית" },
   navHome: { ar: "الصفحة الرئيسية", en: "Home", he: "בית" },
+  navLessons: { ar: "الدروس", en: "Lessons", he: "שיעורים" },
   navSimulator: { ar: "محاكاة الشبكات", en: "Network Simulator", he: "סימולטור רשתות" },
   navDashboard: { ar: "لوحة التقدم", en: "Progress", he: "לוח התקדמות" },
   navScenarioLab: { ar: "مختبر السيناريوهات", en: "Scenario Lab", he: "מעבדת תרחישים" },

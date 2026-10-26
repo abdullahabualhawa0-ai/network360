@@ -71,16 +71,18 @@ export default function Sidebar({ onClose }) {
 
       {/* Nav links — الدروس متاحة من الصفحة الرئيسية فقط */}
       <div className="pt-2">
+        {/* الدروس والمحاكي ومختبر السيناريوهات — للطالب والأستاذ */}
+        {navItem("/", <Home size={16} />, isTeacher ? t("navLessons") : t("navHome"))}
+        {navItem("/network-simulator", <MonitorPlay size={16} />, t("navSimulator"))}
+        {navItem("/scenario-lab", <FlaskConical size={16} />, t("navScenarioLab"))}
+
         {/* روابط الأستاذ — تبقى داخل مساراته المحمية */}
         {isTeacher && navItem("/teacher/dashboard", <BarChart2 size={16} />, t("teacherDashboardTitle"))}
         {isTeacher && navItem("/teacher/exams", <FileText size={16} />, t("teacherExams"))}
         {isTeacher && navItem("/teacher/students", <Users size={16} />, t("teacherStudents"))}
         {isTeacher && navItem("/teacher/results", <FileCheck size={16} />, t("teacherResults"))}
 
-        {!isTeacher && navItem("/", <Home size={16} />, t("navHome"))}
-        {!isTeacher && navItem("/network-simulator", <MonitorPlay size={16} />, t("navSimulator"))}
         {!isTeacher && navItem("/dashboard", <BarChart2 size={16} />, t("navDashboard"))}
-        {!isTeacher && navItem("/scenario-lab", <FlaskConical size={16} />, t("navScenarioLab"))}
         {!isTeacher && navItem("/lab-history", <History size={16} />, t("navLabHistory"))}
         {!isTeacher && showExams && navItem("/exams", <ClipboardList size={16} />, t("navExams"))}
         {navItem(settingsPath, <Settings size={16} />, t("navSettings"))}

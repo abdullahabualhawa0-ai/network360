@@ -49,7 +49,7 @@ export default function ScenarioLab() {
 
   // مزامنة التقدم من قاعدة البيانات — سجل فردي لكل طالب (سجل واحد لكل سيناريو)
   useEffect(() => {
-    if (!session) return;
+    if (!session) { setDbReady(true); return; }
     (async () => {
       try {
         const rows = await studentApi("filter", "LabHistory", {

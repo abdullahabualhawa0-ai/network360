@@ -1,5 +1,6 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { useStudentSession } from "@/lib/studentSession";
+import { useTeacherSession } from "@/lib/teacherSession";
 import { useAuth } from "@/lib/AuthContext";
 import PageLoader from "@/components/PageLoader";
 
@@ -10,6 +11,7 @@ import PageLoader from "@/components/PageLoader";
  */
 export default function StudentGuard() {
   const session = useStudentSession();
+  const teacherSession = useTeacherSession();
   const { isAuthenticated, user, isLoadingAuth } = useAuth();
 
   if (isLoadingAuth) {
@@ -18,6 +20,9 @@ export default function StudentGuard() {
 
   // طالب بجلسة صالحة
   if (session) return <Outlet />;
+
+  // الأستاذ بجلسة صالحة — يطّلع على الدروس والمحاكي ومختبر السيناريوهات
+  if (teacherSession) return <Outlet />;
 
   // المالك (Owner) ومشرف المدرسة (school_admin) عبر Base44 — يُسمح لهم بمراجعة الدروس
   if (isAuthenticated && (user?.role === "admin" || user?.role === "school_admin")) {
