@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Plus, Trash2, Check, X, Loader2, RefreshCw, KeyRound, Ban, Pencil,
+  Plus, Trash2, Check, X, Loader2, RefreshCw, KeyRound, Ban, Pencil, GraduationCap,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { t, useLang, useDir } from "@/lib/i18n";
@@ -21,9 +21,10 @@ export default function TeachersList({ school, onBack }) {
   const [teacherLimit, setTeacherLimit] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ full_name: "", teacher_code: "" });
+  const [form, setForm] = useState({ full_name: "", teacher_code: "", assigned_classes: [] });
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const schoolClasses = Array.isArray(school?.classes) ? school.classes : [];
 
   const load = async () => {
     try {
@@ -59,11 +60,15 @@ export default function TeachersList({ school, onBack }) {
     setBusy(true);
     setFormError(null);
     try {
+      const assigned = Array.isArray(form.assigned_classes) ? form.assigned_classes : [];
       if (editId) {
-        const updatedData = { full_name: form.full_name.trim() };
+        const updatedData = {
+          full_name: form.full_name.trim(),
+          assigned_classes: assigned,
+        };
         const prev = teachers;
         setTeachers((prev) => (prev || []).map((tc) => (tc.id === editId ? { ...tc, ...updatedData } : tc)));
-        setForm({ full_name: "", teacher_code: "" });
+        setForm({ full_name: "", teacher_code: "", assigned_classes: [] });
         setEditId(null);
         setShowForm(false);
         try {
@@ -85,11 +90,12 @@ export default function TeachersList({ school, onBack }) {
           school_code: school.code,
           full_name: form.full_name.trim(),
           teacher_code: code,
+          assigned_classes: assigned,
           status: "active",
           preferred_language: "ar",
         });
         setTeachers((prev) => [...(prev || []), created]);
-        setForm({ full_name: "", teacher_code: "" });
+        setForm({ full_name: "", teacher_code: "", assigned_classes: [] });
         setShowForm(false);
       }
     } catch {
@@ -125,7 +131,11 @@ export default function TeachersList({ school, onBack }) {
 
   const startEdit = (tc) => {
     setEditId(tc.id);
-    setForm({ full_name: tc.full_name || "", teacher_code: tc.teacher_code || "" });
+    setForm({
+      full_name: tc.full_name || "",
+      teacher_code: tc.teacher_code || "",
+      assigned_classes: Array.isArray(tc.assigned_classes) ? tc.assigned_classes : [],
+    });
     setShowForm(true);
   };
 
@@ -182,48 +192,105 @@ export default function TeachersList({ school, onBack }) {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           onSubmit={submit}
-          className="rounded-[16px] p-4 mb-4 grid sm:grid-cols-3 gap-3 items-end bg-card border border-border"
+          className="rounded-[16px] p-4 mb-4 bg-card border border-border space-y-3"
         >
-          <div>
-            <label className={labelCls}>{t("teacherName")} *</label>
-            <input
-              value={form.full_name}
-              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              dir={direction}
-              className={inputCls}
-              required
-            />
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>{t("teacherName")} *</label>
+              <input
+                value={form.full_name}
+                onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                dir={direction}
+                className={inputCls}
+                required
+              />
+            </div>
+            <div>
+              <label className={labelCls}>{t("teacherCode")}</label>
+              <input
+                value={form.teacher_code}
+                onChange={(e) => setForm({ ...form, teacher_code: e.target.value })}
+                dir="ltr"
+                disabled={!!editId}
+                placeholder="TCH-00125"
+                className={`${inputCls} font-mono disabled:opacity-50`}
+              />
+              {!editId && <p className="text-[9px] text-muted-foreground mt-0.5">{t("teacherCodeAuto")}</p>}
+            </div>
           </div>
-          <div>
-            <label className={labelCls}>{t("teacherCode")}</label>
-            <input
-              value={form.teacher_code}
-              onChange={(e) => setForm({ ...form, teacher_code: e.target.value })}
-              dir="ltr"
-              disabled={!!editId}
-              placeholder="TCH-00125"
-              className={`${inputCls} font-mono disabled:opacity-50`}
-            />
-            {!editId && <p className="text-[9px] text-muted-foreground mt-0.5">{t("teacherCodeAuto")}</p>}
+
+          {/* صفوف الأستاذ المخصصة */}
+          <div className="p-3 rounded-[12px] bg-accent/40 border border-border">
+            <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+              <label className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
+                <GraduationCap size={14} className="text-secondary" />
+                {t("teacherAssignedClasses")}
+              </label>
+              <span className="text-[10px] text-muted-foreground">
+                {t("teacherAssignedClassesDesc")}
+              </span>
+            </div>
+
+            {schoolClasses.length === 0 ? (
+              <div className="text-[11px] text-muted-foreground py-1 italic">
+                لم يتم تعريف صفوف بعد في المدرسة.
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap pt-1">
+                {schoolClasses.map((cls) => {
+                  const isSelected = form.assigned_classes?.includes(cls);
+                  return (
+                    <button
+                      key={cls}
+                      type="button"
+                      onClick={() => {
+                        const cur = form.assigned_classes || [];
+                        const updated = isSelected ? cur.filter((c) => c !== cls) : [...cur, cls];
+                        setForm({ ...form, assigned_classes: updated });
+                      }}
+                      className={`text-xs px-2.5 py-1 rounded-[8px] border transition-colors flex items-center gap-1.5 font-bold ${
+                        isSelected
+                          ? "bg-secondary text-secondary-foreground border-secondary shadow-sm"
+                          : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      {isSelected ? <Check size={12} /> : null}
+                      <span>{cls}</span>
+                    </button>
+                  );
+                })}
+                {form.assigned_classes?.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, assigned_classes: [] })}
+                    className="text-[10px] text-muted-foreground hover:text-destructive underline px-1"
+                  >
+                    إلغاء التحديد (الكل)
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={busy}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-            >
-              {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} {t("teacherSave")}
-            </button>
+
+          <div className="flex items-center justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={() => { setShowForm(false); setEditId(null); }}
-              className="px-3 py-2 rounded-[10px] text-xs border border-border text-muted-foreground hover:text-foreground"
+              className="px-4 py-2 rounded-[10px] text-xs font-bold border border-border text-muted-foreground hover:text-foreground"
             >
-              <X size={12} />
+              {t("cancelBtn")}
+            </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            >
+              {busy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} {t("teacherSave")}
             </button>
           </div>
+
           {formError && (
-            <div className="sm:col-span-3 text-[11px] font-bold px-3 py-2 rounded-[10px] bg-destructive/10 border border-destructive/35 text-destructive">
+            <div className="text-[11px] font-bold px-3 py-2 rounded-[10px] bg-destructive/10 border border-destructive/35 text-destructive">
               {formError}
             </div>
           )}
@@ -264,6 +331,28 @@ export default function TeachersList({ school, onBack }) {
                   }`}>
                     {tc.status === "active" ? t("teacherActive") : t("teacherDisabled")}
                   </span>
+                </div>
+
+                {/* الصفوف المخصصة للأستاذ */}
+                <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                  <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1">
+                    <GraduationCap size={11} className="text-secondary" />
+                    {t("teacherAssignedBadge")}:
+                  </span>
+                  {Array.isArray(tc.assigned_classes) && tc.assigned_classes.length > 0 ? (
+                    tc.assigned_classes.map((cls) => (
+                      <span
+                        key={cls}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-[6px] bg-secondary/15 text-secondary border border-secondary/30"
+                      >
+                        {cls}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground/80 italic">
+                      {t("teacherNoAssignedClasses")}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">

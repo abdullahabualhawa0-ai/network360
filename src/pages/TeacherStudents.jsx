@@ -17,13 +17,19 @@ export default function TeacherStudents() {
   useLang();
   const direction = useDir();
   const [students, setStudents] = useState([]);
+  const [teacherProfile, setTeacherProfile] = useState(null);
   const [selectedClass, setSelectedClass] = useState("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    teacherApi("filter", "StudentProfile", { sort: "-created_date", limit: 500 })
-      .then((rows) => setStudents(rows || []))
-      .catch(() => setStudents([]))
+    Promise.all([
+      teacherApi("filter", "StudentProfile", { sort: "-created_date", limit: 500 }).catch(() => []),
+      teacherApi("filter", "Teacher", {}).catch(() => []),
+    ])
+      .then(([studentRows, teacherRows]) => {
+        setStudents(studentRows || []);
+        if (teacherRows?.[0]) setTeacherProfile(teacherRows[0]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -47,14 +53,23 @@ export default function TeacherStudents() {
         </div>
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-[10px] flex items-center justify-center bg-primary text-primary-foreground">
-            <Users size={20} />
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-[10px] flex items-center justify-center bg-primary text-primary-foreground">
+              <Users size={20} />
+            </div>
+            <div>
+              <h1 className="font-black text-xl text-foreground">{t("teacherStudentsTitle")}</h1>
+              <p className="text-xs text-muted-foreground">{t("teacherStudentsPageDesc")}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-black text-xl text-foreground">{t("teacherStudentsTitle")}</h1>
-            <p className="text-xs text-muted-foreground">{t("teacherStudentsPageDesc")}</p>
-          </div>
+          {teacherProfile?.assigned_classes && teacherProfile.assigned_classes.length > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-secondary/15 text-secondary border border-secondary/30 text-xs font-bold">
+              <GraduationCap size={14} />
+              <span>{t("teacherAssignedBadge")}:</span>
+              <span className="font-semibold text-foreground">{teacherProfile.assigned_classes.join("، ")}</span>
+            </div>
+          )}
         </div>
 
         {/* Class Filter Tabs */}

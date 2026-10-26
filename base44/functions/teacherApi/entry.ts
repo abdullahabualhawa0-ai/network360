@@ -55,6 +55,15 @@ export default async function(req) {
         const q = injectSchool(query);
         // الأستاذ يرى سجله فقط من كيان Teacher
         if (entity === "Teacher") q.id = teacherId;
+        // الأستاذ يرى طلاب الصفوف المخصصة له فقط إذا تم تحديد صفوف له
+        if (entity === "StudentProfile") {
+          const assigned = Array.isArray(ident.teacher?.assigned_classes)
+            ? ident.teacher.assigned_classes.filter(Boolean)
+            : [];
+          if (assigned.length > 0) {
+            q.class_name = { $in: assigned };
+          }
+        }
         const rows = await svc.entities[entity].filter(q, sort, limit);
         return Response.json(rows || []);
       }
@@ -63,6 +72,14 @@ export default async function(req) {
         const row = await svc.entities[entity].get(id).catch(() => null);
         if (!row || row[config.schoolField] !== schoolId || (entity === "Teacher" && row.id !== teacherId)) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
+        }
+        if (entity === "StudentProfile") {
+          const assigned = Array.isArray(ident.teacher?.assigned_classes)
+            ? ident.teacher.assigned_classes.filter(Boolean)
+            : [];
+          if (assigned.length > 0 && (!row.class_name || !assigned.includes(row.class_name))) {
+            return Response.json({ error: "Forbidden" }, { status: 403 });
+          }
         }
         return Response.json(row);
       }

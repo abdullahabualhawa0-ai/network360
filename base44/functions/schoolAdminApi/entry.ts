@@ -26,7 +26,7 @@ const ENTITY_CONFIG: Record<string, any> = {
   },
   Teacher: {
     schoolField: "school_id", writable: true,
-    fields: ["full_name", "teacher_code", "email", "phone", "subject", "school_id", "school_code", "status", "preferred_language"],
+    fields: ["full_name", "teacher_code", "email", "phone", "subject", "school_id", "school_code", "status", "preferred_language", "assigned_classes"],
   },
   LabHistory: { schoolField: "school_id", readOnly: true },
   ScenarioTaskStatus: { schoolField: "school_id", readOnly: true },

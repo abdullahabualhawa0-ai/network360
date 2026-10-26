@@ -584,7 +584,7 @@ export default function SchoolsManager() {
                         onClick={() => { setSelectedSchool(s); setView("students"); }}
                         className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-bold bg-accent border border-border text-brand hover:bg-muted"
                       >
-                        <GraduationCap size={13} /> {t("schoolsStudentsBtn")}
+                        <GraduationCap size={13} /> {t("schoolsClassesBtn")}
                       </button>
                       <button
                         onClick={() => { setSelectedSchool(s); setView("teachers"); }}
