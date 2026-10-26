@@ -7,6 +7,8 @@ import {
   syncLabCounters, markTaskCompleted,
 } from "@/lib/labTracking";
 import { t, useLang } from "@/lib/i18n";
+import { localizeScenario } from "@/lib/scenarioI18n";
+import { DIFF_LABEL_KEYS } from "@/lib/scenarios";
 
 const safe = (p) => p.catch((e) => console.warn("skip scenario save:", e?.message));
 
@@ -22,10 +24,17 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
   const [savedDone, setSavedDone] = useState(new Set());
   const [trackingReady, setTrackingReady] = useState(false);
 
-  // تقييم مباشر للبنية الحالية
-  const result = scenario?.eval ? scenario.eval(nodes, connections) : null;
-  const details = result?.details || [];
+  // نسخة مترجمة من السيناريو حسب اللغة المختارة (العنوان، التلميحات، المهام، الصعوبة)
+  const sc = localizeScenario(scenario);
+
+  // تقييم مباشر للبنية الحالية — تُترجم تسميات المهام وقت العرض
+  const result = sc?.eval ? sc.eval(nodes, connections) : null;
+  const details = (result?.details || []).map((d, i) => ({
+    ...d,
+    label: sc?.checks?.[i]?.label || d.label,
+  }));
   const totalCount = details.length;
+  const diffLabel = t(DIFF_LABEL_KEYS[sc?.difficulty] || "diffMedium");
 
   // تهيئة التتبع عند فتح السيناريو
   useEffect(() => {
@@ -101,9 +110,9 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
         <div className="flex items-center gap-2">
           <span className="text-lg">{scenario.icon}</span>
           <div>
-            <div className="text-xs font-black text-primary">{scenario.title}</div>
+            <div className="text-xs font-black text-primary">{sc.title}</div>
             <div className="text-[9px] text-secondary/70 dark:text-primary/70">
-              {scenario.difficulty} • {scenario.xp} XP
+              {diffLabel} • {scenario.xp} XP
             </div>
           </div>
         </div>
@@ -184,7 +193,7 @@ export default function ScenarioPanel({ scenario, nodes, connections, onClose, o
               className="overflow-hidden"
             >
               <div className="pt-2 space-y-1.5">
-                {scenario.hints.map((h, i) => (
+                {(sc?.hints || []).map((h, i) => (
                   <div key={i} className="flex items-start gap-1.5 text-[10px] text-foreground/70">
                     <span className="flex-shrink-0 mt-0.5">•</span>
                     <span>{h}</span>

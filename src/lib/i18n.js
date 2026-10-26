@@ -847,6 +847,10 @@ const T = {
   simScenarioSaved: { ar: "محفوظة — منجزة سابقاً", en: "Saved — completed earlier", he: "נשמר — הושלם קודם" },
   simScenarioSuccess: { ar: "🎉 أحسنت! أكملت السيناريو", en: "🎉 Well done! Scenario completed", he: "🎉 כל הכבוד! התרחיש הושלם" },
   simScenarioXpEarned: { ar: "XP مكتسبة — تم حفظ التقدم في سجلك", en: "XP earned — progress saved to your record", he: "XP הושגו — ההתקדמות נשמרה ברשומה" },
+  simPacketSending: { ar: "جاري الإرسال...", en: "Sending...", he: "שולח..." },
+  simPacketInTransit: { ar: "في الطريق", en: "In transit", he: "בדרך" },
+  simPacketForwarding: { ar: "إعادة توجيه", en: "Forwarding", he: "מעביר" },
+  simPacketReceiving: { ar: "جاري الاستلام", en: "Receiving", he: "מקבל" },
 
   /* ─── شريط التحفيز (GamificationBar) ─── */
   simLevelBeginner: { ar: "مبتدئ", en: "Beginner", he: "מתחיל" },
