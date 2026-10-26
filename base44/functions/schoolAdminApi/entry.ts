@@ -118,6 +118,31 @@ export default async function(req) {
         if (entity === "StudentProfile" && limitN > 0 && (await countStudents()) >= limitN) {
           return Response.json({ error: "STUDENT_LIMIT_REACHED" }, { status: 403 });
         }
+
+        // فحص تكرار رمز الطالب في المدرسة
+        if (entity === "StudentProfile" && data?.student_code) {
+          const sCode = String(data.student_code).trim().toLowerCase();
+          const allSchoolStudents = await svc.entities.StudentProfile.filter({ school_id: schoolId }, "-created_date", STUDENT_QUERY_LIMIT);
+          const isDup = (allSchoolStudents || []).some(
+            (s: any) => String(s.student_code || "").trim().toLowerCase() === sCode
+          );
+          if (isDup) {
+            return Response.json({ error: "DUPLICATE_CODE" }, { status: 400 });
+          }
+        }
+
+        // فحص تكرار رمز الأستاذ في المدرسة
+        if (entity === "Teacher" && data?.teacher_code) {
+          const tCode = String(data.teacher_code).trim().toLowerCase();
+          const allSchoolTeachers = await svc.entities.Teacher.filter({ school_id: schoolId }, "-created_date", 200);
+          const isDup = (allSchoolTeachers || []).some(
+            (t: any) => String(t.teacher_code || "").trim().toLowerCase() === tCode
+          );
+          if (isDup) {
+            return Response.json({ error: "DUPLICATE_CODE" }, { status: 400 });
+          }
+        }
+
         const d = { ...pick(data, config.fields), [config.schoolField]: schoolId };
         const row = await svc.entities[entity].create(d);
 
@@ -126,7 +151,35 @@ export default async function(req) {
           await svc.entities.StudentProfile.delete(row.id).catch(() => {});
           return Response.json({ error: "STUDENT_LIMIT_REACHED" }, { status: 403 });
         }
+        if (entity === "StudentProfile") {
+          const newCount = await countStudents();
+          await svc.entities.School.update(schoolId, { current_student_count: newCount }).catch(() => {});
+        }
         return Response.json(row);
+      }
+
+      case "bulkCreate": {
+        if (!config.writable) return Response.json({ error: "Read-only entity" }, { status: 403 });
+        const items = Array.isArray(data?.items) ? data.items : [];
+        if (items.length === 0) return Response.json([]);
+        const limitN = Number(school.student_limit) || 0;
+        const countStudents = async () =>
+          ((await svc.entities.StudentProfile.filter({ school_id: schoolId }, "-created_date", STUDENT_QUERY_LIMIT)) || []).length;
+
+        const currentCount = await countStudents();
+        if (entity === "StudentProfile" && limitN > 0 && currentCount + items.length > limitN) {
+          return Response.json({ error: "STUDENT_LIMIT_REACHED" }, { status: 403 });
+        }
+        const prepared = items.map((it: any) => ({
+          ...pick(it, config.fields),
+          [config.schoolField]: schoolId,
+        }));
+        const created = await svc.entities[entity].bulkCreate(prepared);
+        if (entity === "StudentProfile") {
+          const newCount = await countStudents();
+          await svc.entities.School.update(schoolId, { current_student_count: newCount }).catch(() => {});
+        }
+        return Response.json(created || []);
       }
 
       case "update": {
@@ -163,6 +216,12 @@ export default async function(req) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
         await svc.entities[entity].delete(id);
+        if (entity === "StudentProfile") {
+          const countStudents = async () =>
+            ((await svc.entities.StudentProfile.filter({ school_id: schoolId }, "-created_date", STUDENT_QUERY_LIMIT)) || []).length;
+          const newCount = await countStudents();
+          await svc.entities.School.update(schoolId, { current_student_count: newCount }).catch(() => {});
+        }
         return Response.json({ ok: true });
       }
 

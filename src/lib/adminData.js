@@ -7,7 +7,7 @@
 import { base44 } from "@/api/base44Client";
 import { getSchoolAdminSession, schoolAdminApi } from "./schoolAdminSession";
 
-function isSchoolAdminSession() {
+export function isSchoolAdminSession() {
   return !!getSchoolAdminSession();
 }
 
@@ -37,6 +37,13 @@ export async function adminCreate(entity, data) {
     return await schoolAdminApi("create", entity, { data });
   }
   return await base44.entities[entity].create(data);
+}
+
+export async function adminBulkCreate(entity, items) {
+  if (isSchoolAdminSession()) {
+    return await schoolAdminApi("bulkCreate", entity, { data: { items } });
+  }
+  return await base44.entities[entity].bulkCreate(items);
 }
 
 export async function adminUpdate(entity, id, data) {

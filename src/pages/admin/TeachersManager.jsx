@@ -6,6 +6,9 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAdminAuth } from "@/lib/useAdminAuth";
+import {
+  adminFilter, adminCreate, adminUpdate, adminDelete, adminGet,
+} from "@/lib/adminData";
 import { t, useLang, useDir } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
 import { randomCode } from "@/lib/plans";
@@ -33,9 +36,9 @@ export default function TeachersManager() {
   const load = async () => {
     if (!isSchoolAdmin || !school_id) return;
     try {
-      const rows = await base44.entities.Teacher.filter({ school_id }, "-created_date", 200);
+      const rows = await adminFilter("Teacher", { school_id }, "-created_date", 200);
       setTeachers(rows || []);
-      const sc = await base44.entities.School.get(school_id).catch(() => null);
+      const sc = await adminGet("School", school_id).catch(() => null);
       setTeacherLimit(sc?.teacher_limit || 0);
       setSchoolCode(sc?.code || "");
     } catch {

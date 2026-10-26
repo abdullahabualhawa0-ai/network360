@@ -11,6 +11,10 @@ import { STUDENT_LIMIT_MSG } from "@/lib/plans";
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
 import { studentsFromCsv } from "@/lib/csvStudents";
+import {
+  adminFilter, adminCreate, adminUpdate, adminDelete, adminBulkCreate,
+  isSchoolAdminSession,
+} from "@/lib/adminData";
 
 const STATUS_KEYS = {
   pending: "smStatusPending",
@@ -45,8 +49,9 @@ export default function StudentsManager({ school, onBack }) {
   const fileRef = useRef(null);
 
   const load = () =>
-    base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 200)
-      .then((rows) => setStudents(rows || []));
+    adminFilter("StudentProfile", { school_id: school.id }, "-created_date", 200)
+      .then((rows) => setStudents(rows || []))
+      .catch(() => setStudents([]));
 
   useEffect(() => { if (school?.id) load(); }, [school?.id]);
 
@@ -59,14 +64,14 @@ export default function StudentsManager({ school, onBack }) {
       setFormError(STUDENT_LIMIT_MSG);
       return;
     }
-    if ((students || []).some((s) => s.student_code === code)) {
+    if ((students || []).some((s) => String(s.student_code || "").trim().toLowerCase() === code.toLowerCase())) {
       setFormError(t("smErrDupCode"));
       return;
     }
     setBusy(true);
     setFormError(null);
     try {
-      const created = await base44.entities.StudentProfile.create({
+      const created = await adminCreate("StudentProfile", {
         school_id: school.id,
         student_code: code,
         full_name: form.name.trim(),
@@ -75,11 +80,20 @@ export default function StudentsManager({ school, onBack }) {
         user_id: UNCLAIMED,
       });
       setStudents(prev => [...(prev || []), created]);
-      base44.entities.School.update(school.id, { current_student_count: (students || []).length + 1 }).catch(() => {});
+      if (!isSchoolAdminSession()) {
+        base44.entities.School.update(school.id, { current_student_count: (students || []).length + 1 }).catch(() => {});
+      }
       setForm({ name: "", code: "", email: "" });
       setShowForm(false);
     } catch (err) {
-      setFormError(err?.message || t("smErrCreate"));
+      const errCode = err?.data?.error || err?.response?.data?.error;
+      if (errCode === "STUDENT_LIMIT_REACHED") {
+        setFormError(STUDENT_LIMIT_MSG);
+      } else if (errCode === "DUPLICATE_CODE") {
+        setFormError(t("smErrDupCode"));
+      } else {
+        setFormError(err?.message || errCode || t("smErrCreate"));
+      }
     } finally {
       setBusy(false);
     }
@@ -88,9 +102,10 @@ export default function StudentsManager({ school, onBack }) {
   const setStatus = async (s, status) => {
     const prev = students;
     const now = new Date().toISOString();
-    setStudents(prev => (prev || []).map(st => st.id === s.id ? { ...st, status, approved_by: user.email, approved_at: now } : st));
+    const approver = user?.email || school?.admin_name || school?.name || "School Admin";
+    setStudents(prev => (prev || []).map(st => st.id === s.id ? { ...st, status, approved_by: approver, approved_at: now } : st));
     try {
-      await base44.entities.StudentProfile.update(s.id, { status, approved_by: user.email, approved_at: now });
+      await adminUpdate("StudentProfile", s.id, { status, approved_by: approver, approved_at: now });
     } catch {
       setStudents(prev);
     }
@@ -138,17 +153,17 @@ export default function StudentsManager({ school, onBack }) {
         setImporting(false);
         return;
       }
-      const existing = await base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 10000);
-      const existingCodes = new Set((existing || []).map((s) => s.student_code));
+      const existing = await adminFilter("StudentProfile", { school_id: school.id }, "-created_date", 10000);
+      const existingCodes = new Set((existing || []).map((s) => String(s.student_code || "").trim().toLowerCase()));
       const limit = school.student_limit || 0;
       const toCreate = [];
       for (const s of imported) {
         const code = String(s.student_code || "").trim();
         const name = String(s.full_name || "").trim();
         if (!code || !name) continue;
-        if (existingCodes.has(code)) continue;
+        if (existingCodes.has(code.toLowerCase())) continue;
         if (limit > 0 && (existing || []).length + toCreate.length >= limit) break;
-        existingCodes.add(code);
+        existingCodes.add(code.toLowerCase());
         toCreate.push({
           school_id: school.id,
           student_code: code,
@@ -163,10 +178,12 @@ export default function StudentsManager({ school, onBack }) {
         setImporting(false);
         return;
       }
-      await base44.entities.StudentProfile.bulkCreate(toCreate);
-      base44.entities.School.update(school.id, {
-        current_student_count: (existing || []).length + toCreate.length,
-      }).catch(() => {});
+      await adminBulkCreate("StudentProfile", toCreate);
+      if (!isSchoolAdminSession()) {
+        base44.entities.School.update(school.id, {
+          current_student_count: (existing || []).length + toCreate.length,
+        }).catch(() => {});
+      }
       setImportMsg({ type: "success", text: t("smImportSuccess", getLang()).replace("{count}", toCreate.length) });
       load();
     } catch {
@@ -181,10 +198,12 @@ export default function StudentsManager({ school, onBack }) {
     const prev = students;
     setStudents(prev => (prev || []).filter(st => st.id !== s.id));
     try {
-      await base44.entities.StudentProfile.delete(s.id);
-      base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 500)
-        .then((rows) => base44.entities.School.update(school.id, { current_student_count: (rows || []).length }).catch(() => {}))
-        .catch(() => {});
+      await adminDelete("StudentProfile", s.id);
+      if (!isSchoolAdminSession()) {
+        adminFilter("StudentProfile", { school_id: school.id }, "-created_date", 500)
+          .then((rows) => base44.entities.School.update(school.id, { current_student_count: (rows || []).length }).catch(() => {}))
+          .catch(() => {});
+      }
     } catch {
       setStudents(prev);
     }
