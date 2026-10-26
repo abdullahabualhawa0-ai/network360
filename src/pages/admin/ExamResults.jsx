@@ -23,9 +23,9 @@ export default function ExamResults() {
 
   const load = async () => {
     if (!isAdmin) { setLoading(false); return; }
-    const sid = school_id || "general";
-    setSchoolId(sid);
-    const rs = await adminFilter("ExamResult", { school_id: sid }, "-submission_time", 200);
+    const query = school_id ? { school_id } : {};
+    setSchoolId(school_id || "");
+    const rs = await adminFilter("ExamResult", query, "-submission_time", 200);
     setResults(rs || []);
     setLoading(false);
   };
