@@ -58,6 +58,7 @@ const T = {
   /* ─── رسائل التحقق (تسجيل الدخول) ─── */
   errSchoolCode: { ar: "رمز المدرسة غير صحيح.", en: "Invalid school code.", he: "קוד בית הספר שגוי." },
   errStudentCode: { ar: "رمز الطالب غير صحيح.", en: "Invalid student code.", he: "קוד התלמיד שגוי." },
+  errCodeOrInactive: { ar: "رمز الطالب غير صحيح أو الحساب غير مفعّل. تواصل مع إدارة المدرسة.", en: "Invalid student code or inactive account. Please contact the school administration.", he: "קוד התלמיד שגוי או שהחשבון אינו פעיל. פנו להנהלת בית הספר." },
   errMismatch: { ar: "بيانات تسجيل الدخول غير متطابقة.", en: "Login details do not match.", he: "פרטי ההתחברות אינם תואמים." },
   errDisabled: { ar: "هذا الحساب معطل. يرجى التواصل مع إدارة المدرسة.", en: "This account is disabled. Please contact the school administration.", he: "החשבון מושבת. פנו להנהלת בית הספר." },
   errNotApproved: { ar: "الحساب غير معتمد. يرجى التواصل مع إدارة المدرسة.", en: "Account not approved. Please contact the school administration.", he: "החשבון לא מאושר. פנו להנהלת בית הספר." },

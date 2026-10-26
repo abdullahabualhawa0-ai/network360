@@ -19,6 +19,8 @@ export function friendlyError(err) {
     if (["ar", "en", "he"].some((lang) => t(key, lang) === message)) return t(key);
   }
   const loginMessages = {
+    "رمز الطالب غير صحيح أو الحساب غير مفعّل. تواصل مع إدارة المدرسة.": "errCodeOrInactive",
+    "رمز الطالب غير صحيح.": "errStudentCode",
     "رمز المدرسة أو رمز الطالب غير صحيح.": "errMismatch",
     "رمز المدرسة أو رمز الأستاذ غير صحيح.": "errTeacherCode",
     "رمز المشرف غير صحيح.": "errAdminCode",

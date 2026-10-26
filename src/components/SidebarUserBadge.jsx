@@ -1,8 +1,9 @@
+import { useEffect, useState } from "react";
 import { GraduationCap, UserCog, ShieldCheck, User } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { useStudentSession } from "@/lib/studentSession";
 import { useTeacherSession } from "@/lib/teacherSession";
-import { useSchoolAdminSession } from "@/lib/schoolAdminSession";
+import { useSchoolAdminSession, fetchAdminCode } from "@/lib/schoolAdminSession";
 import { t } from "@/lib/i18n";
 
 /**
@@ -15,6 +16,17 @@ export default function SidebarUserBadge({ compact = false }) {
   const teacherSession = useTeacherSession();
   const schoolAdminSession = useSchoolAdminSession();
 
+  // رمز المشرف للعرض فقط — يُجلب من الخادم بجلسة موثّقة ولا يُحفظ في المتصفح
+  const [adminCode, setAdminCode] = useState("");
+  useEffect(() => {
+    if (!schoolAdminSession) { setAdminCode(""); return; }
+    let active = true;
+    fetchAdminCode()
+      .then((code) => { if (active) setAdminCode(code); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [schoolAdminSession?.school_id, schoolAdminSession?.token]);
+
   // تحديد الدور النشط حسب الأولوية
   let info = null;
 
@@ -23,7 +35,7 @@ export default function SidebarUserBadge({ compact = false }) {
       icon: <ShieldCheck size={13} />,
       roleLabel: t("roleSchoolAdmin"),
       name: schoolAdminSession.admin_name || schoolAdminSession.school_name || "",
-      code: schoolAdminSession.admin_code || "",
+      code: adminCode,
       codeLabel: t("adminCode"),
     };
   } else if (teacherSession) {

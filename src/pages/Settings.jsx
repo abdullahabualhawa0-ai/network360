@@ -7,7 +7,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { studentApi, useStudentSession, clearStudentSession } from "@/lib/studentSession";
 import { useTeacherSession, clearTeacherSession, teacherApi } from "@/lib/teacherSession";
-import { useSchoolAdminSession, clearSchoolAdminSession } from "@/lib/schoolAdminSession";
+import { useSchoolAdminSession, clearSchoolAdminSession, fetchAdminCode } from "@/lib/schoolAdminSession";
 import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang, useDir, getLang } from "@/lib/i18n";
 import { friendlyError } from "@/lib/errorMessage";
 
@@ -41,7 +41,7 @@ function useActiveRole() {
     return { role: "school_admin", code: null, name: user.full_name || user.email, email: user.email, schoolId: user.data?.school_id };
   }
   if (schoolAdminSession) {
-    return { role: "school_admin", code: schoolAdminSession.admin_code, name: schoolAdminSession.school_name, email: null, schoolId: schoolAdminSession.school_id, schoolName: schoolAdminSession.school_name, schoolCode: schoolAdminSession.school_code };
+    return { role: "school_admin", code: null, name: schoolAdminSession.school_name, email: null, schoolId: schoolAdminSession.school_id, schoolName: schoolAdminSession.school_name, schoolCode: schoolAdminSession.school_code };
   }
   if (teacherSession) {
     return { role: "teacher", code: teacherSession.teacher_code, name: teacherSession.teacher_name, email: null, schoolId: teacherSession.school_id, schoolCode: teacherSession.school_code, subject: teacherSession.subject };
@@ -58,6 +58,18 @@ export default function Settings() {
   const direction = useDir();
   const active = useActiveRole();
   const studentSession = useStudentSession();
+  const schoolAdminSession = useSchoolAdminSession();
+
+  // رمز المشرف للعرض فقط — يُجلب من الخادم بجلسة موثّقة ولا يُحفظ في المتصفح
+  const [adminCode, setAdminCode] = useState("");
+  useEffect(() => {
+    if (!schoolAdminSession?.token) { setAdminCode(""); return; }
+    let alive = true;
+    fetchAdminCode()
+      .then((code) => { if (alive) setAdminCode(code); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [schoolAdminSession?.school_id, schoolAdminSession?.token]);
   const teacherSession = useTeacherSession();
 
   const isStudent = active.role === "student";
@@ -216,7 +228,7 @@ export default function Settings() {
 
   const codeValue = isStudent ? (profile?.student_code || active.code)
     : isTeacher ? active.code
-    : isSchoolAdmin ? (active.code || "—")
+    : isSchoolAdmin ? (adminCode || "—")
     : isOwner ? (active.email || "—")
     : "—";
 
