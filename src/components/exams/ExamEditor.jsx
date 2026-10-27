@@ -266,6 +266,73 @@ ${t("aiGenPromptJsonFormat", lang)}
           </div>
         </motion.div>
 
+        {/* Target Classes Selection */}
+        {availableClasses && availableClasses.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[16px] p-5 sm:p-6 bg-card border border-border"
+          >
+            <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
+              <div className="flex items-center gap-2 text-secondary">
+                <GraduationCap size={16} />
+                <h2 className="text-sm font-black text-foreground">{t("examEditorTargetClasses")}</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={selectAllClasses}
+                  className="px-2.5 py-1 rounded-[6px] text-[10px] font-bold bg-secondary/15 text-secondary hover:bg-secondary/25 transition-colors"
+                >
+                  {t("examEditorAllAssignedClasses")}
+                </button>
+                <button
+                  type="button"
+                  onClick={clearAllClasses}
+                  className="px-2.5 py-1 rounded-[6px] text-[10px] font-bold border border-border text-muted-foreground hover:text-foreground"
+                >
+                  {t("cancelBtn")}
+                </button>
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground mb-4">
+              {t("examEditorTargetClassesDesc")}
+            </p>
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              {availableClasses.map((cls) => {
+                const selected = targetClasses.includes(cls);
+                return (
+                  <button
+                    type="button"
+                    key={cls}
+                    onClick={() => toggleClass(cls)}
+                    className={`px-3.5 py-2 rounded-[10px] text-xs font-bold transition-all flex items-center gap-2 border ${
+                      selected
+                        ? "bg-secondary text-secondary-foreground border-secondary shadow-sm"
+                        : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-secondary/40"
+                    }`}
+                  >
+                    <GraduationCap size={13} />
+                    <span>{cls}</span>
+                    {selected && <Check size={12} className="stroke-[3]" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {targetClasses.length === 0 ? (
+              <div className="text-[11px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/25 px-3 py-2 rounded-[8px]">
+                {t("examEditorNoClassSelectedWarning")}
+              </div>
+            ) : (
+              <div className="text-[11px] text-muted-foreground">
+                ✓ سيظهر الامتحان لطلاب: <strong className="text-foreground">{targetClasses.join("، ")}</strong> فقط.
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Lesson selection */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

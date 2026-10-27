@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ClipboardList, Clock, Loader2, CheckCircle2, Trophy, FileQuestion, Lock, RotateCcw, AlertCircle } from "lucide-react";
+import { ClipboardList, Clock, Loader2, CheckCircle2, Trophy, FileQuestion, Lock, RotateCcw, AlertCircle, GraduationCap } from "lucide-react";
 import moment from "moment";
 import { studentApi, useStudentSession } from "@/lib/studentSession";
 import { GENERAL_SCHOOL } from "@/lib/schoolUtils";
@@ -120,6 +120,12 @@ export default function Exams() {
                     <span className="font-bold text-sm">{trTitles[exam.id] || exam.title}</span>
                     {exam.section_title && (
                       <span className="text-[10px] text-muted-foreground">{exam.section_title} › {exam.topic_title}</span>
+                    )}
+                    {Array.isArray(exam.target_classes) && exam.target_classes.length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary/15 text-secondary border border-secondary/35 flex items-center gap-1">
+                        <GraduationCap size={10} />
+                        {exam.target_classes.join("، ")}
+                      </span>
                     )}
                     {hasSubmitted && !canRetake && (
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-muted text-muted-foreground border border-border flex items-center gap-1">

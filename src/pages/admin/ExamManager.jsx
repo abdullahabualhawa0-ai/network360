@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Plus, ChevronLeft, FileText, Eye, Trash2,
-  Pencil, AlertCircle, BookOpen, Clock, Loader2,
+  Pencil, AlertCircle, BookOpen, Clock, Loader2, GraduationCap,
 } from "lucide-react";
 import { useAdminAuth } from "@/lib/useAdminAuth";
 import { adminList, adminDelete, adminUpdate, adminCreate } from "@/lib/adminData";
@@ -20,6 +20,7 @@ export default function ExamManager() {
   useLang();
   const direction = useDir();
   const [exams, setExams] = useState([]);
+  const [schoolClasses, setSchoolClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [selectedExam, setSelectedExam] = useState(null);
@@ -31,9 +32,17 @@ export default function ExamManager() {
     if (isLoading) return;
     if (!isAdmin) { setLoading(false); return; }
     setAdminSchoolId(school_id || "general");
-    adminList("Exam", "-created_date", 100)
-      .then((rows) => setExams(rows || []))
-      .finally(() => setLoading(false));
+    Promise.all([
+      adminList("Exam", "-created_date", 100).catch(() => []),
+      adminList("StudentProfile", "-created_date", 500).catch(() => []),
+    ]).then(([examRows, studentRows]) => {
+      setExams(examRows || []);
+      const clsSet = new Set();
+      (studentRows || []).forEach((s) => {
+        if (s.class_name && s.class_name.trim()) clsSet.add(s.class_name.trim());
+      });
+      setSchoolClasses(Array.from(clsSet));
+    }).finally(() => setLoading(false));
   }, [isAdmin, isLoading, school_id]);
 
   const refreshExams = () =>
@@ -79,6 +88,7 @@ export default function ExamManager() {
     return (
       <ExamEditor
         exam={selectedExam}
+        availableClasses={schoolClasses}
         onSave={async (data) => {
           await adminUpdate("Exam", selectedExam.id, data);
           await refreshExams();
@@ -95,6 +105,7 @@ export default function ExamManager() {
     return (
       <ExamEditor
         exam={null}
+        availableClasses={schoolClasses}
         onSave={async (data) => {
           await adminCreate("Exam", { ...data, school_id: adminSchoolId });
           await refreshExams();
@@ -221,6 +232,16 @@ export default function ExamManager() {
                       }`}>
                         {exam.status === "published" ? t("examMgmtPublishedBadge") : t("examMgmtDraftBadge")}
                       </span>
+                      {Array.isArray(exam.target_classes) && exam.target_classes.length > 0 ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary/15 border border-secondary/35 text-secondary flex items-center gap-1">
+                          <GraduationCap size={10} />
+                          {exam.target_classes.length === 1 ? `${t("examTargetClassBadge")} ${exam.target_classes[0]}` : `${t("examTargetClassesBadge")}: ${exam.target_classes.join("، ")}`}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted border border-border text-muted-foreground">
+                          {t("examAllClassesBadge")}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

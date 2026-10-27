@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Plus, FileText, Eye, Trash2, Pencil, Clock, Loader2,
-  ClipboardList, ChevronRight, BookOpen, Sparkles,
+  ClipboardList, ChevronRight, BookOpen, Sparkles, GraduationCap,
 } from "lucide-react";
 import { useTeacherSession, teacherApi } from "@/lib/teacherSession";
 import { t, useLang, useDir } from "@/lib/i18n";
@@ -22,6 +22,7 @@ export default function TeacherExams() {
   const navigate = useNavigate();
 
   const [exams, setExams] = useState([]);
+  const [assignedClasses, setAssignedClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [selectedExam, setSelectedExam] = useState(null);
@@ -32,7 +33,27 @@ export default function TeacherExams() {
       .catch(() => setExams([]))
       .finally(() => setLoading(false));
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    teacherApi("filter", "StudentProfile", { limit: 500 })
+      .then((students) => {
+        const clsSet = new Set();
+        (students || []).forEach((s) => {
+          if (s.class_name && s.class_name.trim()) clsSet.add(s.class_name.trim());
+        });
+        if (Array.isArray(session?.teacher?.assigned_classes)) {
+          session.teacher.assigned_classes.forEach((c) => {
+            if (c && c.trim()) clsSet.add(c.trim());
+          });
+        }
+        setAssignedClasses(Array.from(clsSet));
+      })
+      .catch(() => {
+        if (Array.isArray(session?.teacher?.assigned_classes)) {
+          setAssignedClasses(session.teacher.assigned_classes.filter(Boolean));
+        }
+      });
+  }, []);
 
   const deleteExam = async (id) => {
     if (!(await confirmDialog(t("examConfirmDelete")))) return;
@@ -53,6 +74,7 @@ export default function TeacherExams() {
     return (
       <ExamEditor
         exam={selectedExam}
+        availableClasses={assignedClasses}
         onSave={async (data) => {
           await teacherApi("update", "Exam", { id: selectedExam.id, data });
           await load();
@@ -69,6 +91,7 @@ export default function TeacherExams() {
     return (
       <ExamEditor
         exam={null}
+        availableClasses={assignedClasses}
         onSave={async (data) => {
           await teacherApi("create", "Exam", { data });
           await load();
@@ -169,6 +192,16 @@ export default function TeacherExams() {
                       }`}>
                         {exam.status === "published" ? t("teacherPublishedBadge") : t("teacherDraftBadge")}
                       </span>
+                      {Array.isArray(exam.target_classes) && exam.target_classes.length > 0 ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary/15 border border-secondary/35 text-secondary flex items-center gap-1">
+                          <GraduationCap size={10} />
+                          {exam.target_classes.length === 1 ? `${t("examTargetClassBadge")} ${exam.target_classes[0]}` : `${t("examTargetClassesBadge")}: ${exam.target_classes.join("، ")}`}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted border border-border text-muted-foreground">
+                          {t("examAllClassesBadge")}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
