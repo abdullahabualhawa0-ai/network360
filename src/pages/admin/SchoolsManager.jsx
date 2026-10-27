@@ -582,7 +582,7 @@ export default function SchoolsManager() {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={() => { setSelectedSchool(s); setView("students"); }}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-bold bg-accent border border-border text-brand hover:bg-muted"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-xs font-bold bg-secondary/15 text-secondary border border-secondary/35 hover:bg-secondary/25 transition-colors"
                       >
                         <GraduationCap size={13} /> {t("schoolsClassesBtn")}
                       </button>

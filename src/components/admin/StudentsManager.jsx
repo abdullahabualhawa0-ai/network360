@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Plus, Trash2, Check, X, Loader2, RefreshCw, UserPlus, KeyRound, Ban,
-  FileSpreadsheet, AlertCircle, GraduationCap, Edit2,
+  FileSpreadsheet, AlertCircle, GraduationCap, Edit2, ArrowRight, ArrowLeft,
 } from "lucide-react";
 import CreateClassModal from "./CreateClassModal";
+import ClassesOverview from "./ClassesOverview";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { UNCLAIMED } from "@/lib/registrationUtils";
-import { STUDENT_LIMIT_MSG } from "@/lib/plans";
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
 import { studentsFromCsv } from "@/lib/csvStudents";
@@ -31,23 +31,21 @@ const STATUS_UI = {
   disabled: { cls: "bg-muted text-muted-foreground border-border" },
 };
 
-/**
- * إدارة طلاب مدرسة واحدة — إضافة طالب برمز، موافقة/رفض، تعطيل، حذف.
- * تُستخدم من قبل Super Admin (إدارة الطلاب داخل كل مدرسة) ومشرف المدرسة.
- */
 export default function StudentsManager({ school, onBack }) {
   const { confirmDialog } = useDialogs();
   const { user } = useAuth();
   useLang();
   const direction = useDir();
+  const BackArrow = direction === "rtl" ? ArrowRight : ArrowLeft;
+
   const [students, setStudents] = useState(null);
   const [schoolClasses, setSchoolClasses] = useState(school?.classes || []);
+  const [activeClass, setActiveClass] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
   const [classNotice, setClassNotice] = useState(null);
   const [form, setForm] = useState({ name: "", code: "", email: "", class_name: "" });
   const [formError, setFormError] = useState(null);
-  const [selectedClass, setSelectedClass] = useState("all");
   const [editingStudentId, setEditingStudentId] = useState(null);
   const [editingClassValue, setEditingClassValue] = useState("");
   const [busy, setBusy] = useState(false);
@@ -96,7 +94,7 @@ export default function StudentsManager({ school, onBack }) {
     try {
       await adminUpdate("School", school.id, { classes: updated });
     } catch {}
-    setSelectedClass(trimmed);
+    setActiveClass(trimmed);
     if (andAddStudent) {
       setFormError(null);
       setClassNotice(t("smClassCreatedBanner").replace("{class}", trimmed));
@@ -114,8 +112,8 @@ export default function StudentsManager({ school, onBack }) {
     try {
       await adminUpdate("School", school.id, { classes: updated });
     } catch {}
-    if (selectedClass === clsToDelete) {
-      setSelectedClass("all");
+    if (activeClass === clsToDelete) {
+      setActiveClass(null);
     }
   };
 
@@ -126,7 +124,7 @@ export default function StudentsManager({ school, onBack }) {
       setFormError(null);
     }
     setClassNotice(null);
-    setForm({ name: "", code: "", email: "", class_name: clsName || "" });
+    setForm({ name: "", code: "", email: "", class_name: clsName === "__none__" ? "" : (clsName || "") });
     setShowForm(true);
   };
 
@@ -145,11 +143,12 @@ export default function StudentsManager({ school, onBack }) {
     setBusy(true);
     setFormError(null);
     try {
+      const targetClass = form.class_name.trim() || (activeClass && activeClass !== "__none__" ? activeClass : null);
       const created = await adminCreate("StudentProfile", {
         school_id: school.id,
         student_code: code,
         full_name: form.name.trim(),
-        class_name: form.class_name.trim() || null,
+        class_name: targetClass,
         email: form.email.trim() || null,
         status: "approved",
         user_id: UNCLAIMED,
@@ -158,7 +157,7 @@ export default function StudentsManager({ school, onBack }) {
       if (!isSchoolAdminSession()) {
         base44.entities.School.update(school.id, { current_student_count: (students || []).length + 1 }).catch(() => {});
       }
-      setForm({ name: "", code: "", email: "", class_name: "" });
+      setForm({ name: "", code: "", email: "", class_name: activeClass && activeClass !== "__none__" ? activeClass : "" });
       setClassNotice(null);
       setShowForm(false);
     } catch (err) {
@@ -226,6 +225,7 @@ export default function StudentsManager({ school, onBack }) {
                     full_name: { type: "string" },
                     student_code: { type: "string" },
                     email: { type: "string" },
+                    class_name: { type: "string" },
                   },
                   required: ["full_name", "student_code"],
                 },
@@ -241,21 +241,40 @@ export default function StudentsManager({ school, onBack }) {
         setImporting(false);
         return;
       }
+
+      // إضافة أي صفوف جديدة موجودة في الملف لقائمة صفوف المدرسة تلقائياً
+      const newClassesFound = [];
+      for (const s of imported) {
+        const cName = String(s.class_name || "").trim();
+        if (cName && !schoolClasses.includes(cName) && !newClassesFound.includes(cName)) {
+          newClassesFound.push(cName);
+        }
+      }
+      if (newClassesFound.length > 0) {
+        const mergedClasses = Array.from(new Set([...(schoolClasses || []), ...newClassesFound])).sort();
+        setSchoolClasses(mergedClasses);
+        try {
+          await adminUpdate("School", school.id, { classes: mergedClasses });
+        } catch {}
+      }
+
       const existing = await adminFilter("StudentProfile", { school_id: school.id }, "-created_date", 10000);
       const existingCodes = new Set((existing || []).map((s) => String(s.student_code || "").trim().toLowerCase()));
-      const limit = school.student_limit || 0;
+      const limitN = school.student_limit || 0;
       const toCreate = [];
       for (const s of imported) {
         const code = String(s.student_code || "").trim();
         const name = String(s.full_name || "").trim();
         if (!code || !name) continue;
         if (existingCodes.has(code.toLowerCase())) continue;
-        if (limit > 0 && (existing || []).length + toCreate.length >= limit) break;
+        if (limitN > 0 && (existing || []).length + toCreate.length >= limitN) break;
         existingCodes.add(code.toLowerCase());
+        const rowClass = String(s.class_name || "").trim() || (activeClass && activeClass !== "__none__" ? activeClass : null);
         toCreate.push({
           school_id: school.id,
           student_code: code,
           full_name: name,
+          class_name: rowClass,
           email: String(s.email || "").trim() || null,
           status: "approved",
           user_id: UNCLAIMED,
@@ -272,7 +291,10 @@ export default function StudentsManager({ school, onBack }) {
           current_student_count: (existing || []).length + toCreate.length,
         }).catch(() => {});
       }
-      setImportMsg({ type: "success", text: t("smImportSuccess", getLang()).replace("{count}", toCreate.length) });
+      const successText = `${t("smImportSuccess", getLang()).replace("{count}", toCreate.length)}${
+        newClassesFound.length > 0 ? ` (تمت إضافة ${newClassesFound.length} صفوف جديدة تلقائياً)` : ""
+      }`;
+      setImportMsg({ type: "success", text: successText });
       load();
     } catch {
       setImportMsg({ type: "error", text: `${t("smImportError")} ${t("smImportTryCsv")}` });
@@ -302,33 +324,54 @@ export default function StudentsManager({ school, onBack }) {
   const claimed = (students || []).filter((s) => s.user_id && s.user_id !== UNCLAIMED);
   const pendingCount = claimed.filter((s) => s.status === "pending").length;
 
+  const classStudents = activeClass === null ? [] : (students || []).filter((s) => {
+    if (activeClass === "__none__") return !s.class_name?.trim();
+    return s.class_name?.trim() === activeClass;
+  });
+
   return (
     <div dir={direction} className="font-main text-foreground">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-5">
         <div className="flex items-center gap-3 min-w-0">
-          {onBack && (
+          {activeClass ? (
+            <button
+              onClick={() => {
+                setActiveClass(null);
+                setShowForm(false);
+                setClassNotice(null);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-bold bg-accent border border-border text-brand hover:bg-muted"
+            >
+              <BackArrow size={14} />
+              <span>{t("backToClasses")}</span>
+            </button>
+          ) : onBack ? (
             <button
               onClick={onBack}
               className="px-3 py-1.5 rounded-[10px] text-xs font-bold border border-border text-brand hover:bg-accent"
             >
               {t("smBack")}
             </button>
-          )}
+          ) : null}
+
           <div className="min-w-0">
-            <h2 className="font-black text-base truncate">{t("smStudentsOf")} {school.name}</h2>
+            <h2 className="font-black text-base truncate">
+              {activeClass
+                ? `${t("smClassLabel")}: ${activeClass === "__none__" ? t("smNoClass") : activeClass}`
+                : `${t("classesTitle")} — ${school.name}`}
+            </h2>
             <div className="flex items-center gap-2 flex-wrap text-[11px] text-muted-foreground mt-0.5">
               <span className={`px-2 py-0.5 rounded-[6px] font-bold border ${isLimitReached ? "bg-destructive/10 text-destructive border-destructive/35" : "bg-accent text-brand border-border"}`}>
                 {currentCount}{limit > 0 ? ` / ${limit}` : ""} {t("smStudentWord")}
               </span>
-              <span>• {pendingCount} {t("smPendingApproval")}</span>
+              <span>• {availableClasses.length} {t("smClassesCount")}</span>
               <span>• {t("smSchoolCodeLabel")}: <strong className="font-mono text-foreground">{school.code}</strong></span>
-              {availableClasses.length > 0 && (
-                <span>• {availableClasses.length} {t("smClassesCount")}</span>
-              )}
+              {pendingCount > 0 && <span>• {pendingCount} {t("smPendingApproval")}</span>}
             </div>
           </div>
         </div>
+
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={load}
@@ -343,24 +386,26 @@ export default function StudentsManager({ school, onBack }) {
           >
             <GraduationCap size={14} /> {t("smCreateClass")}
           </button>
-          <button
-            onClick={() => {
-              setClassNotice(null);
-              if (isLimitReached) {
-                setFormError(t("smLimitReachedWarning").replace("{limit}", limit));
-                setShowForm(true);
-              } else {
-                setShowForm(!showForm);
-              }
-            }}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-xs font-bold ${
-              isLimitReached
-                ? "bg-muted text-muted-foreground border border-border hover:bg-accent"
-                : "bg-primary text-primary-foreground hover:bg-primary/90"
-            }`}
-          >
-            <UserPlus size={13} /> {t("smAddStudent")}
-          </button>
+          {activeClass && (
+            <button
+              onClick={() => {
+                setClassNotice(null);
+                if (isLimitReached) {
+                  setFormError(t("smLimitReachedWarning").replace("{limit}", limit));
+                  setShowForm(true);
+                } else {
+                  openAddStudentForClass(activeClass);
+                }
+              }}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-xs font-bold ${
+                isLimitReached
+                  ? "bg-muted text-muted-foreground border border-border hover:bg-accent"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
+            >
+              <UserPlus size={13} /> {t("smAddStudent")}
+            </button>
+          )}
           <button
             onClick={() => fileRef.current?.click()}
             disabled={importing || isLimitReached}
@@ -373,7 +418,7 @@ export default function StudentsManager({ school, onBack }) {
         </div>
       </div>
 
-      {/* Plan limit warning banner */}
+      {/* تنبيه بلوغ حد الخطة */}
       {isLimitReached && (
         <div className="mb-4 flex items-center gap-2.5 px-4 py-3 rounded-[12px] text-xs font-bold bg-destructive/10 border border-destructive/35 text-destructive">
           <AlertCircle size={16} className="flex-shrink-0" />
@@ -391,374 +436,296 @@ export default function StudentsManager({ school, onBack }) {
         </div>
       )}
 
-      {/* Add form */}
-      {showForm && (
-        <motion.form
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          onSubmit={addStudent}
-          className="rounded-[16px] p-4 mb-4 grid sm:grid-cols-5 gap-3 items-end bg-card border border-border"
-        >
-          {classNotice && (
-            <div className="sm:col-span-5 flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-[10px] bg-secondary/15 border border-secondary/35 text-secondary text-xs font-bold">
-              <div className="flex items-center gap-2 min-w-0">
-                <GraduationCap size={16} className="flex-shrink-0" />
-                <span className="truncate">{classNotice}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setClassNotice(null)}
-                className="p-1 text-muted-foreground hover:text-foreground flex-shrink-0"
-              >
-                <X size={13} />
-              </button>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentName")} *</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              dir={direction}
-              className="w-full px-3 py-2 rounded-[10px] text-xs bg-background border border-input focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentCode")} *</label>
-            <input
-              value={form.code}
-              onChange={(e) => setForm({ ...form, code: e.target.value })}
-              placeholder="ST10025"
-              dir="ltr"
-              className="w-full px-3 py-2 rounded-[10px] text-xs font-mono bg-background border border-input focus:outline-none"
-            />
-          </div>
-          <div>
-            <div className="flex items-center justify-between gap-1 mb-1">
-              <label className="block text-[10px] font-bold text-muted-foreground">{t("smStudentClass")}</label>
-              <button
-                type="button"
-                onClick={() => setShowCreateClassModal(true)}
-                className="text-[10px] text-brand hover:underline font-bold flex items-center gap-0.5"
-              >
-                <Plus size={10} /> {t("smCreateClass")}
-              </button>
-            </div>
-            <div className="relative">
-              <input
-                list="form-classes-list"
-                value={form.class_name}
-                onChange={(e) => setForm({ ...form, class_name: e.target.value })}
-                placeholder={t("smStudentClassPh")}
-                dir={direction}
-                className="w-full px-3 py-2 rounded-[10px] text-xs bg-background border border-input focus:outline-none"
-              />
-              <datalist id="form-classes-list">
-                {availableClasses.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-            </div>
-            {availableClasses.length > 0 && (
-              <div className="flex items-center gap-1 mt-1 overflow-x-auto">
-                {availableClasses.slice(0, 4).map((cls) => (
-                  <button
-                    key={cls}
-                    type="button"
-                    onClick={() => setForm({ ...form, class_name: cls })}
-                    className={`text-[9px] px-1.5 py-0.5 rounded-[4px] border flex-shrink-0 transition-colors ${
-                      form.class_name === cls
-                        ? "bg-secondary text-secondary-foreground border-secondary font-bold"
-                        : "bg-accent text-brand border-border hover:bg-accent/80"
-                    }`}
-                  >
-                    {cls}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smEmailOptional")}</label>
-            <input
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              dir="ltr"
-              className="w-full px-3 py-2 rounded-[10px] text-xs bg-background border border-input focus:outline-none"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={busy || isLimitReached}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-            >
-              {busy ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} {t("smSave")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowForm(false);
-                setClassNotice(null);
-              }}
-              className="px-3 py-2 rounded-[10px] text-xs border border-border text-muted-foreground hover:text-foreground"
-            >
-              <X size={12} />
-            </button>
-          </div>
-          {formError && (
-            <div className="sm:col-span-5 text-[11px] font-bold px-3 py-2 rounded-[10px] bg-destructive/10 border border-destructive/30 text-destructive">
-              {formError}
-            </div>
-          )}
-        </motion.form>
-      )}
-
-      {/* Class filter tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 text-xs">
-        <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1 flex-shrink-0">
-          <GraduationCap size={13} /> {t("smFilterByClass")}:
-        </span>
-        <button
-          onClick={() => setSelectedClass("all")}
-          className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
-            selectedClass === "all"
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-card border-border text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {t("smAllClasses")} ({(students || []).length})
-        </button>
-        {availableClasses.map((cls) => {
-          const count = (students || []).filter((s) => s.class_name?.trim() === cls).length;
-          return (
-            <button
-              key={cls}
-              onClick={() => setSelectedClass(cls)}
-              className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
-                selectedClass === cls
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {cls} ({count})
-            </button>
-          );
-        })}
-        {(students || []).some((s) => !s.class_name?.trim()) && (
-          <button
-            onClick={() => setSelectedClass("__none__")}
-            className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold border transition-colors flex-shrink-0 ${
-              selectedClass === "__none__"
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("smNoClass")} ({(students || []).filter((s) => !s.class_name?.trim()).length})
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={() => setShowCreateClassModal(true)}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-bold border border-dashed border-secondary/60 text-secondary hover:bg-secondary/10 flex-shrink-0 transition-colors"
-        >
-          <Plus size={11} /> {t("smCreateClass")}
-        </button>
-      </div>
-
-      {/* Selected Class Action Banner */}
-      {selectedClass !== "all" && selectedClass !== "__none__" && (
-        <div className="mb-3.5 p-3 rounded-[12px] bg-secondary/10 border border-secondary/25 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-[8px] flex items-center justify-center bg-secondary/20 text-secondary flex-shrink-0">
-              <GraduationCap size={16} />
-            </div>
-            <div className="min-w-0">
-              <div className="font-bold text-xs text-foreground flex items-center gap-2 flex-wrap">
-                <span className="truncate">{selectedClass}</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/20 text-secondary">
-                  {(students || []).filter((s) => s.class_name?.trim() === selectedClass).length} {t("smStudentWord")}
-                </span>
-              </div>
-              <p className="text-[11px] text-muted-foreground truncate">
-                {t("smSelectedClassBanner").replace("{class}", selectedClass)}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => openAddStudentForClass(selectedClass)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              <UserPlus size={12} /> {t("smAddStudentToThisClass")}
-            </button>
-            <button
-              onClick={() => handleDeleteClass(selectedClass)}
-              className="p-1.5 rounded-[8px] border border-border text-muted-foreground hover:text-destructive hover:border-destructive/35 hover:bg-destructive/10 transition-colors"
-              title={t("smDeleteClass")}
-            >
-              <Trash2 size={12} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* List */}
+      {/* المشهد الأول: عرض الصفوف — الطلاب غير مرئيين إلا بعد النقر على صف */}
       {students === null ? (
         <FullSpinnerLocal />
-      ) : selectedClass !== "all" && selectedClass !== "__none__" && (students || []).filter((s) => s.class_name?.trim() === selectedClass).length === 0 ? (
-        <div className="rounded-[16px] p-8 text-center bg-card border border-border">
-          <GraduationCap size={36} className="mx-auto mb-2 opacity-40 text-secondary" />
-          <h3 className="text-sm font-bold text-foreground mb-1">
-            {t("smEmptyClassPrompt").replace("{class}", selectedClass)}
-          </h3>
-          <p className="text-xs text-muted-foreground mb-4 max-w-sm mx-auto">
-            {t("smCreateClassDesc")}
-          </p>
-          <button
-            onClick={() => openAddStudentForClass(selectedClass)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
-          >
-            <UserPlus size={13} /> {t("smAddFirstStudent")}
-          </button>
-        </div>
-      ) : students.length === 0 ? (
-        <div className="rounded-[16px] p-10 text-center bg-card border border-border">
-          <KeyRound size={36} className="mx-auto mb-3 opacity-40 text-brand" />
-          <p className="text-xs text-muted-foreground">{t("smEmpty")}</p>
-        </div>
+      ) : activeClass === null ? (
+        <ClassesOverview
+          schoolClasses={availableClasses}
+          students={students}
+          onSelectClass={(cls) => {
+            setActiveClass(cls);
+            setShowForm(false);
+          }}
+          onCreateClassClick={() => setShowCreateClassModal(true)}
+          onAddStudentToClass={(cls) => {
+            setActiveClass(cls);
+            openAddStudentForClass(cls);
+          }}
+          onDeleteClass={handleDeleteClass}
+        />
       ) : (
-        <div className="space-y-2">
-          {students
-            .filter((s) => {
-              if (selectedClass === "all") return true;
-              if (selectedClass === "__none__") return !s.class_name?.trim();
-              return s.class_name?.trim() === selectedClass;
-            })
-            .map((s, i) => {
-              const isClaimed = s.user_id && s.user_id !== UNCLAIMED;
-              const stKey = STATUS_KEYS[s.status] || "smStatusPending";
-              const st = STATUS_UI[s.status] || STATUS_UI.pending;
-              const isEditingThisClass = editingStudentId === s.id;
-
-              return (
-                <motion.div
-                  key={s.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.02 }}
-                  className="rounded-[12px] p-3.5 bg-card border border-border flex flex-col sm:flex-row sm:items-center gap-3"
+        /* المشهد الثاني: داخل الصف المحدد — هنا فقط يظهر الطلاب */
+        <div className="space-y-4">
+          <div className="p-3.5 rounded-[14px] bg-secondary/10 border border-secondary/25 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[10px] flex items-center justify-center bg-secondary/20 text-secondary flex-shrink-0">
+                <GraduationCap size={20} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-foreground">
+                    {activeClass === "__none__" ? t("smNoClass") : activeClass}
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/20 text-secondary">
+                    {classStudents.length} {t("smStudentWord")}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  قائمة الطلاب المسجلين في هذا الصف حصراً.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => openAddStudentForClass(activeClass)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <UserPlus size={12} /> {t("smAddStudentToThisClass")}
+              </button>
+              {activeClass !== "__none__" && (
+                <button
+                  onClick={() => handleDeleteClass(activeClass)}
+                  className="p-1.5 rounded-[8px] border border-border text-muted-foreground hover:text-destructive hover:border-destructive/35 hover:bg-destructive/10 transition-colors"
+                  title={t("smDeleteClass")}
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold truncate">{s.full_name || t("smNoName")}</span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-[6px] bg-accent border border-border text-brand">
-                        {s.student_code}
-                      </span>
+                  <Trash2 size={13} />
+                </button>
+              )}
+            </div>
+          </div>
 
-                      {/* Class Badge / Inline Edit */}
-                      {isEditingThisClass ? (
-                        <div className="inline-flex items-center gap-1">
-                          <input
-                            list="classes-datalist"
-                            value={editingClassValue}
-                            onChange={(e) => setEditingClassValue(e.target.value)}
-                            placeholder={t("smStudentClassPh")}
-                            className="px-2 py-0.5 rounded-[6px] text-xs bg-background border border-input focus:outline-none w-32"
-                            autoFocus
-                          />
-                          <button
-                            onClick={() => updateStudentClass(s.id, editingClassValue)}
-                            className="p-1 rounded-[5px] bg-success text-success-foreground hover:bg-success/90"
-                            title={t("save")}
-                          >
-                            <Check size={11} />
-                          </button>
-                          <button
-                            onClick={() => setEditingStudentId(null)}
-                            className="p-1 rounded-[5px] bg-muted text-muted-foreground hover:text-foreground"
-                            title={t("cancelBtn")}
-                          >
-                            <X size={11} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center gap-1">
-                          {s.class_name ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-[6px] bg-secondary/15 text-secondary border border-secondary/30 flex items-center gap-1">
-                              <GraduationCap size={11} />
-                              {s.class_name}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground/60 italic px-1.5 py-0.5">
-                              {t("smNoClass")}
-                            </span>
-                          )}
-                          <button
-                            onClick={() => {
-                              setEditingStudentId(s.id);
-                              setEditingClassValue(s.class_name || "");
-                            }}
-                            className="p-1 rounded-[5px] text-muted-foreground hover:text-brand hover:bg-accent transition-colors"
-                            title={t("smStudentClass")}
-                          >
-                            <Edit2 size={11} />
-                          </button>
-                        </div>
+          {/* نموذج إضافة طالب لهذا الصف */}
+          {showForm && (
+            <motion.form
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              onSubmit={addStudent}
+              className="rounded-[16px] p-4 grid sm:grid-cols-4 gap-3 items-end bg-card border border-border"
+            >
+              {classNotice && (
+                <div className="sm:col-span-4 flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-[10px] bg-secondary/15 border border-secondary/35 text-secondary text-xs font-bold">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <GraduationCap size={16} className="flex-shrink-0" />
+                    <span className="truncate">{classNotice}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setClassNotice(null)}
+                    className="p-1 text-muted-foreground hover:text-foreground flex-shrink-0"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentName")} *</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  dir={direction}
+                  className="w-full px-3 py-2 rounded-[10px] text-xs bg-background border border-input focus:outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentCode")} *</label>
+                <input
+                  value={form.code}
+                  onChange={(e) => setForm({ ...form, code: e.target.value })}
+                  placeholder="ST10025"
+                  dir="ltr"
+                  className="w-full px-3 py-2 rounded-[10px] text-xs font-mono bg-background border border-input focus:outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smEmailOptional")}</label>
+                <input
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  dir="ltr"
+                  className="w-full px-3 py-2 rounded-[10px] text-xs bg-background border border-input focus:outline-none"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={busy || isLimitReached}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+                >
+                  {busy ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} {t("smSave")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setClassNotice(null);
+                  }}
+                  className="px-3 py-2 rounded-[10px] text-xs border border-border text-muted-foreground hover:text-foreground"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+              {formError && (
+                <div className="sm:col-span-4 text-[11px] font-bold px-3 py-2 rounded-[10px] bg-destructive/10 border border-destructive/30 text-destructive">
+                  {formError}
+                </div>
+              )}
+            </motion.form>
+          )}
+
+          {/* قائمة طلاب هذا الصف فقط */}
+          {classStudents.length === 0 ? (
+            <div className="rounded-[16px] p-10 text-center bg-card border border-border">
+              <GraduationCap size={36} className="mx-auto mb-2 opacity-40 text-secondary" />
+              <h3 className="text-sm font-bold text-foreground mb-1">
+                {t("smEmptyClassPrompt").replace("{class}", activeClass === "__none__" ? t("smNoClass") : activeClass)}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4 max-w-sm mx-auto">
+                يمكنك إضافة الطلاب لهذا الصف مباشرة أو استيراد ملف Excel لتعبئة الصف تلقائياً.
+              </p>
+              <button
+                onClick={() => openAddStudentForClass(activeClass)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
+              >
+                <UserPlus size={13} /> {t("smAddFirstStudent")}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {classStudents.map((s, i) => {
+                const isClaimed = s.user_id && s.user_id !== UNCLAIMED;
+                const stKey = STATUS_KEYS[s.status] || "smStatusPending";
+                const st = STATUS_UI[s.status] || STATUS_UI.pending;
+                const isEditingThisClass = editingStudentId === s.id;
+
+                return (
+                  <motion.div
+                    key={s.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.02 }}
+                    className="rounded-[12px] p-3.5 bg-card border border-border flex flex-col sm:flex-row sm:items-center gap-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-bold truncate">{s.full_name || t("smNoName")}</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-[6px] bg-accent border border-border text-brand">
+                          {s.student_code}
+                        </span>
+
+                        {/* تعديل الصف للسطر */}
+                        {isEditingThisClass ? (
+                          <div className="inline-flex items-center gap-1">
+                            <input
+                              list="classes-datalist"
+                              value={editingClassValue}
+                              onChange={(e) => setEditingClassValue(e.target.value)}
+                              placeholder={t("smStudentClassPh")}
+                              className="px-2 py-0.5 rounded-[6px] text-xs bg-background border border-input focus:outline-none w-32"
+                              autoFocus
+                            />
+                            <datalist id="classes-datalist">
+                              {availableClasses.map((c) => (
+                                <option key={c} value={c} />
+                              ))}
+                            </datalist>
+                            <button
+                              onClick={() => updateStudentClass(s.id, editingClassValue)}
+                              className="p-1 rounded-[5px] bg-success text-success-foreground hover:bg-success/90"
+                              title={t("save")}
+                            >
+                              <Check size={11} />
+                            </button>
+                            <button
+                              onClick={() => setEditingStudentId(null)}
+                              className="p-1 rounded-[5px] bg-muted text-muted-foreground hover:text-foreground"
+                              title={t("cancelBtn")}
+                            >
+                              <X size={11} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1">
+                            {s.class_name ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-[6px] bg-secondary/15 text-secondary border border-secondary/30 flex items-center gap-1">
+                                <GraduationCap size={11} />
+                                {s.class_name}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground/60 italic px-1.5 py-0.5">
+                                {t("smNoClass")}
+                              </span>
+                            )}
+                            <button
+                              onClick={() => {
+                                setEditingStudentId(s.id);
+                                setEditingClassValue(s.class_name || "");
+                              }}
+                              className="p-1 rounded-[5px] text-muted-foreground hover:text-brand hover:bg-accent transition-colors"
+                              title={t("smStudentClass")}
+                            >
+                              <Edit2 size={11} />
+                            </button>
+                          </div>
+                        )}
+
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${st.cls}`}>
+                          {s.status === "approved" ? t("smStatusApproved") : isClaimed ? t(stKey) : t("smCodeNotActivated")}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                        {s.email || t("smNoEmail")} {isClaimed ? `• ${t("smAccountLinked")}` : `• ${t("smAwaitingActivation")}`}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {isClaimed && s.status === "pending" && (
+                        <button
+                          onClick={() => setStatus(s, "approved")}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[11px] font-bold bg-success text-success-foreground"
+                        >
+                          <Check size={11} /> {t("smApprove")}
+                        </button>
                       )}
-
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${st.cls}`}>
-                        {s.status === "approved" ? t("smStatusApproved") : isClaimed ? t(stKey) : t("smCodeNotActivated")}
-                      </span>
+                      {isClaimed && s.status === "approved" && (
+                        <button
+                          onClick={() => setStatus(s, "disabled")}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[11px] font-bold border border-border text-muted-foreground hover:text-foreground"
+                        >
+                          <Ban size={11} /> {t("smDisable")}
+                        </button>
+                      )}
+                      {isClaimed && (s.status === "rejected" || s.status === "disabled") && (
+                        <button
+                          onClick={() => setStatus(s, "approved")}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[11px] font-bold border border-success/35 text-success hover:bg-success/10"
+                        >
+                          <Check size={11} /> {t("smReactivate")}
+                        </button>
+                      )}
+                      {isClaimed && s.status === "pending" && (
+                        <button
+                          onClick={() => setStatus(s, "rejected")}
+                          className="px-3 py-1.5 rounded-[8px] text-[11px] font-bold bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20"
+                        >
+                          {t("smReject")}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteStudent(s)}
+                        className="p-1.5 rounded-[8px] bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20"
+                      >
+                        <Trash2 size={11} />
+                      </button>
                     </div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                      {s.email || t("smNoEmail")} {isClaimed ? `• ${t("smAccountLinked")}` : `• ${t("smAwaitingActivation")}`}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {isClaimed && s.status === "pending" && (
-                      <button
-                        onClick={() => setStatus(s, "approved")}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[11px] font-bold bg-success text-success-foreground"
-                      >
-                        <Check size={11} /> {t("smApprove")}
-                      </button>
-                    )}
-                    {isClaimed && s.status === "approved" && (
-                      <button
-                        onClick={() => setStatus(s, "disabled")}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[11px] font-bold border border-border text-muted-foreground hover:text-foreground"
-                      >
-                        <Ban size={11} /> {t("smDisable")}
-                      </button>
-                    )}
-                    {isClaimed && (s.status === "rejected" || s.status === "disabled") && (
-                      <button
-                        onClick={() => setStatus(s, "approved")}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[11px] font-bold border border-success/35 text-success hover:bg-success/10"
-                      >
-                        <Check size={11} /> {t("smReactivate")}
-                      </button>
-                    )}
-                    {isClaimed && s.status === "pending" && (
-                      <button
-                        onClick={() => setStatus(s, "rejected")}
-                        className="px-3 py-1.5 rounded-[8px] text-[11px] font-bold bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20"
-                      >
-                        {t("smReject")}
-                      </button>
-                    )}
-                    <button
-                      onClick={() => deleteStudent(s)}
-                      className="p-1.5 rounded-[8px] bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20"
-                    >
-                      <Trash2 size={11} />
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
