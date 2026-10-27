@@ -174,6 +174,10 @@ ${t("aiGenPromptJsonFormat", lang)}
   const handleSave = async (newStatus = status) => {
     if (!title.trim()) { await alertDialog(t("examEditorErrTitle")); return; }
     if (questions.length === 0) { await alertDialog(t("examEditorErrQuestions")); return; }
+    if (Array.isArray(availableClasses) && availableClasses.length > 0 && targetClasses.length === 0) {
+      await alertDialog("يرجى اختيار الصف أو الصفوف المستهدفة بالامتحان لضمان عدم ظهوره لصفوف أخرى.");
+      return;
+    }
     setSaving(true);
     try {
       await onSave({

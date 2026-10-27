@@ -216,16 +216,30 @@ async function deleteStudentAccount(svc: any, sid: string) {
   await deleteSessions(svc, sid);
 }
 
-/** الامتحان المنشور المتاح لهذا الطالب (مدرسته أو عام) مع مطابقة الصف */
+/** الامتحان المنشور المتاح لهذا الطالب (مدرسته أو عام) مع مطابقة الصف الصارمة */
 async function loadExamForStudent(svc: any, examId: string, schoolId: string, studentClass?: string) {
   const exam = await svc.entities.Exam.get(examId).catch(() => null);
   if (!exam || exam.status !== "published") return { error: Response.json({ error: "Exam not available" }, { status: 404 }) };
-  const scoped = !exam.school_id || exam.school_id === "general" || exam.school_id === schoolId;
-  if (!scoped) return { error: Response.json({ error: "Forbidden" }, { status: 403 }) };
 
-  const targets = Array.isArray(exam.target_classes)
+  // عزل المدرسة:
+  const isGeneralPlatform = exam.school_id === "general" && !exam.teacher_id;
+  const isMySchool = exam.school_id === schoolId;
+  if (!isGeneralPlatform && !isMySchool) {
+    return { error: Response.json({ error: "Forbidden - Exam not for your school" }, { status: 403 }) };
+  }
+
+  // عزل الصف:
+  let targets = Array.isArray(exam.target_classes)
     ? exam.target_classes.map((c: any) => String(c).trim()).filter(Boolean)
     : [];
+
+  if (targets.length === 0 && exam.teacher_id) {
+    const teacher = await svc.entities.Teacher.get(exam.teacher_id).catch(() => null);
+    if (teacher && Array.isArray(teacher.assigned_classes) && teacher.assigned_classes.length > 0) {
+      targets = teacher.assigned_classes.map((c: any) => String(c).trim()).filter(Boolean);
+    }
+  }
+
   if (targets.length > 0) {
     const sClass = (studentClass || "").trim();
     if (!sClass || !targets.includes(sClass)) {
@@ -470,19 +484,39 @@ export default async function(req) {
           const q = { ...(query || {}), status: "published" };
           const rows = await svc.entities.Exam.filter(q, sort, limit);
           const studentClass = (profile?.class_name || "").trim();
-          const visible = (rows || []).filter((e: any) => {
-            const schoolMatch = !e.school_id || e.school_id === "general" || e.school_id === schoolId;
-            if (!schoolMatch) return false;
 
-            const targets = Array.isArray(e.target_classes)
+          const teachers = await svc.entities.Teacher.filter({ school_id: schoolId }).catch(() => []);
+          const teacherAssignedMap = new Map();
+          (teachers || []).forEach((t: any) => {
+            if (t.id && Array.isArray(t.assigned_classes)) {
+              teacherAssignedMap.set(t.id, t.assigned_classes.map((c: any) => String(c).trim()).filter(Boolean));
+            }
+          });
+
+          const visible = (rows || []).filter((e: any) => {
+            // 1. عزل المدرسة:
+            const isGeneralPlatform = e.school_id === "general" && !e.teacher_id;
+            const isMySchool = e.school_id === schoolId;
+            if (!isGeneralPlatform && !isMySchool) return false;
+
+            if (isGeneralPlatform && (!Array.isArray(e.target_classes) || e.target_classes.length === 0)) {
+              return true;
+            }
+
+            // 2. عزل الصفوف التام:
+            let targets = Array.isArray(e.target_classes)
               ? e.target_classes.map((c: any) => String(c).trim()).filter(Boolean)
               : [];
-            if (targets.length > 0) {
-              if (!studentClass || !targets.includes(studentClass)) {
-                return false;
-              }
+
+            if (targets.length === 0 && e.teacher_id && teacherAssignedMap.has(e.teacher_id)) {
+              targets = teacherAssignedMap.get(e.teacher_id);
             }
-            return true;
+
+            if (targets.length > 0) {
+              return Boolean(studentClass && targets.includes(studentClass));
+            }
+
+            return !studentClass;
           });
           return Response.json(visible.map(stripExamAnswers));
         }

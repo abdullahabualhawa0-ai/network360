@@ -58,6 +58,8 @@ export default async function(req) {
         const q = injectSchool(query);
         // الأستاذ يرى سجله فقط من كيان Teacher
         if (entity === "Teacher") q.id = teacherId;
+        // الأستاذ يرى امتحاناته الخاصة فقط لضمان العزل التام بين الأساتذة والصفوف
+        if (entity === "Exam") q.teacher_id = teacherId;
         // الأستاذ يرى طلاب الصفوف المخصصة له فقط إذا تم تحديد صفوف له
         if (entity === "StudentProfile") {
           const assigned = Array.isArray(ident.teacher?.assigned_classes)
@@ -74,6 +76,9 @@ export default async function(req) {
       case "get": {
         const row = await svc.entities[entity].get(id).catch(() => null);
         if (!row || row[config.schoolField] !== schoolId || (entity === "Teacher" && row.id !== teacherId)) {
+          return Response.json({ error: "Forbidden" }, { status: 403 });
+        }
+        if (entity === "Exam" && row.teacher_id && row.teacher_id !== teacherId) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
         if (entity === "StudentProfile") {
@@ -93,15 +98,19 @@ export default async function(req) {
         if (entity === "Exam") {
           d.teacher_id = teacherId;
           d.teacher_name = ident.teacher.full_name || ident.teacher.teacher_code || "Teacher";
+          d.school_id = schoolId;
           const assigned = Array.isArray(ident.teacher?.assigned_classes)
             ? ident.teacher.assigned_classes.map((c: any) => String(c).trim()).filter(Boolean)
             : [];
-          // إذا حدد الأستاذ صفوفاً مستهدفة، نأخذها؛ وإذا لم يحدد نضع صفوفه المخصصة تلقائياً
-          if (Array.isArray(data?.target_classes) && data.target_classes.length > 0) {
-            d.target_classes = data.target_classes.map((c: any) => String(c).trim()).filter(Boolean);
-          } else if (assigned.length > 0) {
-            d.target_classes = assigned;
+          let chosen = Array.isArray(data?.target_classes)
+            ? data.target_classes.map((c: any) => String(c).trim()).filter(Boolean)
+            : [];
+          // إذا كان للأستاذ صفوف مخصصة، يُقيد الامتحان فقط بصفوفه المخصصة
+          if (assigned.length > 0) {
+            chosen = chosen.filter((c: string) => assigned.includes(c));
+            if (chosen.length === 0) chosen = assigned;
           }
+          d.target_classes = chosen;
         }
         const row = await svc.entities[entity].create(d);
         return Response.json(row);
@@ -113,16 +122,26 @@ export default async function(req) {
         if (!existing || existing[config.schoolField] !== schoolId) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
+        if (entity === "Exam" && existing.teacher_id && existing.teacher_id !== teacherId) {
+          return Response.json({ error: "Forbidden" }, { status: 403 });
+        }
         const updateData = pick(data, config.fields);
         if (entity === "Exam") {
-          if (!existing.teacher_id) {
-            updateData.teacher_id = teacherId;
-            updateData.teacher_name = ident.teacher.full_name || ident.teacher.teacher_code;
-          }
+          updateData.teacher_id = existing.teacher_id || teacherId;
+          updateData.teacher_name = existing.teacher_name || ident.teacher.full_name || ident.teacher.teacher_code;
+          updateData.school_id = schoolId;
+          const assigned = Array.isArray(ident.teacher?.assigned_classes)
+            ? ident.teacher.assigned_classes.map((c: any) => String(c).trim()).filter(Boolean)
+            : [];
           if (data?.target_classes !== undefined) {
-            updateData.target_classes = Array.isArray(data.target_classes)
+            let chosen = Array.isArray(data.target_classes)
               ? data.target_classes.map((c: any) => String(c).trim()).filter(Boolean)
               : [];
+            if (assigned.length > 0) {
+              chosen = chosen.filter((c: string) => assigned.includes(c));
+              if (chosen.length === 0) chosen = assigned;
+            }
+            updateData.target_classes = chosen;
           }
         }
         const row = await svc.entities[entity].update(id, updateData);

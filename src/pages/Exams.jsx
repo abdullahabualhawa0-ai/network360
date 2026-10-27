@@ -39,10 +39,23 @@ export default function Exams() {
     loadData();
   }, [loadData]);
 
-  // عزل المدارس: الطالب يرى امتحانات مدرسته أو العامة فقط
-  const visibleExams = exams.filter(
-    (e) => !e.school_id || e.school_id === GENERAL_SCHOOL || e.school_id === schoolId
-  );
+  // عزل المدارس والصفوف بدقة: الطالب لا يرى إلا امتحانات مدرسته والمخصصة لصفه
+  const studentClass = (session?.class_name || "").trim();
+  const visibleExams = exams.filter((e) => {
+    // 1) عزل المدرسة:
+    const isGeneralPlatform = e.school_id === GENERAL_SCHOOL && !e.teacher_id;
+    const isMySchool = e.school_id === schoolId;
+    if (!isGeneralPlatform && !isMySchool) return false;
+
+    // 2) عزل الصف:
+    const targets = Array.isArray(e.target_classes)
+      ? e.target_classes.map((c) => String(c).trim()).filter(Boolean)
+      : [];
+    if (targets.length > 0) {
+      return Boolean(studentClass && targets.includes(studentClass));
+    }
+    return isGeneralPlatform || !studentClass;
+  });
 
   // ترجمة عناوين الامتحانات دفعة واحدة عند اختيار لغة غير العربية
   const { titles: trTitles } = useExamsListTranslation(visibleExams);

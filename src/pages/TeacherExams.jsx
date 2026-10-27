@@ -35,25 +35,23 @@ export default function TeacherExams() {
 
   useEffect(() => {
     load();
-    teacherApi("filter", "StudentProfile", { limit: 500 })
-      .then((students) => {
-        const clsSet = new Set();
-        (students || []).forEach((s) => {
-          if (s.class_name && s.class_name.trim()) clsSet.add(s.class_name.trim());
-        });
-        if (Array.isArray(session?.teacher?.assigned_classes)) {
-          session.teacher.assigned_classes.forEach((c) => {
-            if (c && c.trim()) clsSet.add(c.trim());
+    const assigned = Array.isArray(session?.teacher?.assigned_classes)
+      ? session.teacher.assigned_classes.map((c) => String(c).trim()).filter(Boolean)
+      : [];
+    if (assigned.length > 0) {
+      setAssignedClasses(assigned);
+    } else {
+      teacherApi("filter", "StudentProfile", { limit: 500 })
+        .then((students) => {
+          const clsSet = new Set();
+          (students || []).forEach((s) => {
+            if (s.class_name && s.class_name.trim()) clsSet.add(s.class_name.trim());
           });
-        }
-        setAssignedClasses(Array.from(clsSet));
-      })
-      .catch(() => {
-        if (Array.isArray(session?.teacher?.assigned_classes)) {
-          setAssignedClasses(session.teacher.assigned_classes.filter(Boolean));
-        }
-      });
-  }, []);
+          setAssignedClasses(Array.from(clsSet));
+        })
+        .catch(() => setAssignedClasses([]));
+    }
+  }, [session?.teacher?.assigned_classes]);
 
   const deleteExam = async (id) => {
     if (!(await confirmDialog(t("examConfirmDelete")))) return;
