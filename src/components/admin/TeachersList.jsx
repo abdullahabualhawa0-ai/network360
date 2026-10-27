@@ -24,16 +24,49 @@ export default function TeachersList({ school, onBack }) {
   const [form, setForm] = useState({ full_name: "", teacher_code: "", assigned_classes: [] });
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
-  const schoolClasses = Array.isArray(school?.classes) ? school.classes : [];
+  const [schoolClasses, setSchoolClasses] = useState(Array.isArray(school?.classes) ? school.classes : []);
+  const [newClassInput, setNewClassInput] = useState("");
+  const [showAddClassInput, setShowAddClassInput] = useState(false);
 
   const load = async () => {
     try {
-      const rows = await base44.entities.Teacher.filter({ school_id: school.id }, "-created_date", 200);
+      const [rows, freshSchool, students] = await Promise.all([
+        base44.entities.Teacher.filter({ school_id: school.id }, "-created_date", 200).catch(() => []),
+        base44.entities.School.get(school.id).catch(() => null),
+        base44.entities.StudentProfile.filter({ school_id: school.id }, "-created_date", 1000).catch(() => []),
+      ]);
       setTeachers(rows || []);
-      setTeacherLimit(school.teacher_limit || 0);
+      setTeacherLimit(freshSchool?.teacher_limit ?? school.teacher_limit ?? 0);
+
+      const scClasses = Array.isArray(freshSchool?.classes) ? freshSchool.classes : (Array.isArray(school?.classes) ? school.classes : []);
+      const studentClasses = (students || []).map((s) => s.class_name?.trim()).filter(Boolean);
+      const teacherClasses = (rows || []).flatMap((t) => Array.isArray(t.assigned_classes) ? t.assigned_classes : []).map((c) => String(c).trim()).filter(Boolean);
+
+      const mergedClasses = Array.from(new Set([...scClasses, ...studentClasses, ...teacherClasses])).sort();
+      setSchoolClasses(mergedClasses);
+
+      if (mergedClasses.length > scClasses.length) {
+        base44.entities.School.update(school.id, { classes: mergedClasses }).catch(() => {});
+      }
     } catch {
       setTeachers([]);
     }
+  };
+
+  const handleAddNewClass = async () => {
+    const trimmed = newClassInput.trim();
+    if (!trimmed) return;
+    const updated = Array.from(new Set([...schoolClasses, trimmed])).sort();
+    setSchoolClasses(updated);
+    setForm(prev => ({
+      ...prev,
+      assigned_classes: Array.from(new Set([...(prev.assigned_classes || []), trimmed]))
+    }));
+    setNewClassInput("");
+    setShowAddClassInput(false);
+    try {
+      await base44.entities.School.update(school.id, { classes: updated });
+    } catch {}
   };
 
   useEffect(() => {
@@ -231,45 +264,82 @@ export default function TeachersList({ school, onBack }) {
               </span>
             </div>
 
-            {schoolClasses.length === 0 ? (
-              <div className="text-[11px] text-muted-foreground py-1 italic">
-                لم يتم تعريف صفوف بعد في المدرسة.
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 flex-wrap pt-1">
-                {schoolClasses.map((cls) => {
-                  const isSelected = form.assigned_classes?.includes(cls);
-                  return (
-                    <button
-                      key={cls}
-                      type="button"
-                      onClick={() => {
-                        const cur = form.assigned_classes || [];
-                        const updated = isSelected ? cur.filter((c) => c !== cls) : [...cur, cls];
-                        setForm({ ...form, assigned_classes: updated });
-                      }}
-                      className={`text-xs px-2.5 py-1 rounded-[8px] border transition-colors flex items-center gap-1.5 font-bold ${
-                        isSelected
-                          ? "bg-secondary text-secondary-foreground border-secondary shadow-sm"
-                          : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-accent"
-                      }`}
-                    >
-                      {isSelected ? <Check size={12} /> : null}
-                      <span>{cls}</span>
-                    </button>
-                  );
-                })}
-                {form.assigned_classes?.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap pt-1">
+              {schoolClasses.map((cls) => {
+                const isSelected = form.assigned_classes?.includes(cls);
+                return (
+                  <button
+                    key={cls}
+                    type="button"
+                    onClick={() => {
+                      const cur = form.assigned_classes || [];
+                      const updated = isSelected ? cur.filter((c) => c !== cls) : [...cur, cls];
+                      setForm({ ...form, assigned_classes: updated });
+                    }}
+                    className={`text-xs px-2.5 py-1 rounded-[8px] border transition-colors flex items-center gap-1.5 font-bold ${
+                      isSelected
+                        ? "bg-secondary text-secondary-foreground border-secondary shadow-sm"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {isSelected ? <Check size={12} /> : null}
+                    <span>{cls}</span>
+                  </button>
+                );
+              })}
+
+              {/* زر وحقل إضافة صف جديد مباشرة داخل نموذج الأستاذ */}
+              {showAddClassInput ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    value={newClassInput}
+                    onChange={(e) => setNewClassInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddNewClass();
+                      }
+                    }}
+                    placeholder="اسم الصف الجديد..."
+                    className="px-2.5 py-1 rounded-[8px] text-xs bg-background border border-input focus:outline-none w-32"
+                    autoFocus
+                  />
                   <button
                     type="button"
-                    onClick={() => setForm({ ...form, assigned_classes: [] })}
-                    className="text-[10px] text-muted-foreground hover:text-destructive underline px-1"
+                    onClick={handleAddNewClass}
+                    className="px-2.5 py-1 rounded-[8px] text-xs font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90"
                   >
-                    إلغاء التحديد (الكل)
+                    إضافة
                   </button>
-                )}
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => { setShowAddClassInput(false); setNewClassInput(""); }}
+                    className="p-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowAddClassInput(true)}
+                  className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-[8px] border border-dashed border-secondary/60 text-secondary hover:bg-secondary/10 font-bold transition-colors"
+                >
+                  <Plus size={12} />
+                  <span>صف جديد...</span>
+                </button>
+              )}
+
+              {form.assigned_classes?.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, assigned_classes: [] })}
+                  className="text-[10px] text-muted-foreground hover:text-destructive underline px-1"
+                >
+                  إلغاء التحديد (الكل)
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-1">

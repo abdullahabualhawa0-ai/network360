@@ -293,7 +293,7 @@ export default function SchoolsManager() {
     return (
       <div className="min-h-screen bg-background text-foreground font-main" dir={direction}>
         <div className="max-w-5xl mx-auto px-4 py-8">
-          <StudentsManager school={selectedSchool} onBack={() => { setView("list"); setSelectedSchool(null); }} />
+          <StudentsManager school={selectedSchool} onBack={() => { setView("list"); setSelectedSchool(null); load(); }} />
         </div>
       </div>
     );
@@ -304,7 +304,7 @@ export default function SchoolsManager() {
     return (
       <div className="min-h-screen bg-background text-foreground font-main" dir={direction}>
         <div className="max-w-5xl mx-auto px-4 py-8">
-          <TeachersList school={selectedSchool} onBack={() => { setView("list"); setSelectedSchool(null); }} />
+          <TeachersList school={selectedSchool} onBack={() => { setView("list"); setSelectedSchool(null); load(); }} />
         </div>
       </div>
     );

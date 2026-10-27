@@ -144,6 +144,11 @@ export default function StudentsManager({ school, onBack }) {
     setFormError(null);
     try {
       const targetClass = form.class_name.trim() || (activeClass && activeClass !== "__none__" ? activeClass : null);
+      if (targetClass && !schoolClasses.includes(targetClass)) {
+        const nextClasses = Array.from(new Set([...(schoolClasses || []), targetClass])).sort();
+        setSchoolClasses(nextClasses);
+        adminUpdate("School", school.id, { classes: nextClasses }).catch(() => {});
+      }
       const created = await adminCreate("StudentProfile", {
         school_id: school.id,
         student_code: code,
