@@ -39,13 +39,14 @@ export default function SchoolsManager() {
 
   const isSuperAdmin = user?.role === "admin";
 
-  const load = () => {
-    base44.entities.School.list("-created_date", 200).then(async (rows) => {
+  const load = async () => {
+    try {
+      const rows = await base44.entities.School.list("-created_date", 200);
       setSchools(rows || []);
       const schoolIds = (rows || []).map((s) => s.id);
       const [allStudents, allTeachers] = await Promise.all([
-        base44.entities.StudentProfile.list("-created_date", 10000).catch(() => []),
-        base44.entities.Teacher.list("-created_date", 10000).catch(() => []),
+        base44.entities.StudentProfile.list("-created_date", 1000).catch(() => []),
+        base44.entities.Teacher.list("-created_date", 1000).catch(() => []),
       ]);
       const newCounts = {};
       const newPersonalCodes = {};
@@ -65,7 +66,9 @@ export default function SchoolsManager() {
       }
       setCounts(newCounts);
       setPersonalCodes(newPersonalCodes);
-    });
+    } catch {
+      setSchools([]);
+    }
   };
 
   useEffect(() => {
