@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft, Plus, Trash2, Sparkles, Save, Loader2,
-  ChevronDown, Clock, Check, BookOpen, FileText,
+  ChevronDown, Clock, Check, BookOpen, FileText, GraduationCap,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import courseData from "../../lib/courseData";
@@ -22,7 +22,7 @@ function emptyQuestion() {
   return { text: "", type: "mcq", options: ["", "", "", ""], answer: "" };
 }
 
-export default function ExamEditor({ exam, onSave, onCancel }) {
+export default function ExamEditor({ exam, onSave, onCancel, availableClasses = [] }) {
   const { alertDialog } = useDialogs();
   useLang();
   const direction = useDir();
@@ -33,9 +33,26 @@ export default function ExamEditor({ exam, onSave, onCancel }) {
   const [questions, setQuestions] = useState(exam?.questions || [emptyQuestion()]);
   const [duration, setDuration] = useState(exam?.duration_minutes || 30);
   const [status] = useState(exam?.status || "draft");
+  const [targetClasses, setTargetClasses] = useState(() => {
+    if (Array.isArray(exam?.target_classes) && exam.target_classes.length > 0) {
+      return exam.target_classes;
+    }
+    if (Array.isArray(availableClasses) && availableClasses.length > 0) {
+      return availableClasses;
+    }
+    return [];
+  });
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [openQ, setOpenQ] = useState(0);
+
+  const toggleClass = (clsName) => {
+    setTargetClasses((prev) =>
+      prev.includes(clsName) ? prev.filter((c) => c !== clsName) : [...prev, clsName]
+    );
+  };
+  const selectAllClasses = () => setTargetClasses([...availableClasses]);
+  const clearAllClasses = () => setTargetClasses([]);
 
   // إعدادات توليد الأسئلة
   const [questionCount, setQuestionCount] = useState(10);
@@ -166,6 +183,7 @@ ${t("aiGenPromptJsonFormat", lang)}
         section_title: sectionTitle,
         questions,
         duration_minutes: duration,
+        target_classes: targetClasses,
         status: newStatus,
       });
     } finally {

@@ -9,7 +9,10 @@ import { loadSession, schoolUsable, deleteSessions, pick } from "../../shared/se
  * حماية: قائمة بيضاء للحقول عند الكتابة (لا يمكن تغيير school_id أو أي حقل نظام).
  */
 
-const EXAM_FIELDS = ["title", "topic_id", "topic_title", "section_title", "questions", "duration_minutes", "status"];
+const EXAM_FIELDS = [
+  "title", "topic_id", "topic_title", "section_title", "questions",
+  "duration_minutes", "status", "target_classes", "teacher_id", "teacher_name",
+];
 const EXAM_RESULT_FIELDS = ["allow_retake", "retake_allowed_at", "retake_allowed_by"];
 
 const ENTITY_CONFIG: Record<string, any> = {
@@ -87,6 +90,19 @@ export default async function(req) {
       case "create": {
         if (!config.writable) return Response.json({ error: "Read-only entity" }, { status: 403 });
         const d = { ...pick(data, config.fields), [config.schoolField]: schoolId };
+        if (entity === "Exam") {
+          d.teacher_id = teacherId;
+          d.teacher_name = ident.teacher.full_name || ident.teacher.teacher_code || "Teacher";
+          const assigned = Array.isArray(ident.teacher?.assigned_classes)
+            ? ident.teacher.assigned_classes.map((c: any) => String(c).trim()).filter(Boolean)
+            : [];
+          // إذا حدد الأستاذ صفوفاً مستهدفة، نأخذها؛ وإذا لم يحدد نضع صفوفه المخصصة تلقائياً
+          if (Array.isArray(data?.target_classes) && data.target_classes.length > 0) {
+            d.target_classes = data.target_classes.map((c: any) => String(c).trim()).filter(Boolean);
+          } else if (assigned.length > 0) {
+            d.target_classes = assigned;
+          }
+        }
         const row = await svc.entities[entity].create(d);
         return Response.json(row);
       }
@@ -97,7 +113,19 @@ export default async function(req) {
         if (!existing || existing[config.schoolField] !== schoolId) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
-        const row = await svc.entities[entity].update(id, pick(data, config.fields));
+        const updateData = pick(data, config.fields);
+        if (entity === "Exam") {
+          if (!existing.teacher_id) {
+            updateData.teacher_id = teacherId;
+            updateData.teacher_name = ident.teacher.full_name || ident.teacher.teacher_code;
+          }
+          if (data?.target_classes !== undefined) {
+            updateData.target_classes = Array.isArray(data.target_classes)
+              ? data.target_classes.map((c: any) => String(c).trim()).filter(Boolean)
+              : [];
+          }
+        }
+        const row = await svc.entities[entity].update(id, updateData);
         return Response.json(row);
       }
 

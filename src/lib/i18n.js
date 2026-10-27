@@ -1065,6 +1065,16 @@ const T = {
   aiGenPromptTFNote: { ar: "أسئلة صح/خطأ: خياران فقط.", en: "True/False: two options only.", he: "נכון/לא נכון: שתי אפשרויות בלבד." },
   aiGenPromptShortNote: { ar: "أسئلة إجابة قصيرة: options فارغة.", en: "Short answer: empty options.", he: "תשובה קצרה: אפשרויות ריקות." },
   aiGenPromptJsonFormat: { ar: "أجب بـ JSON فقط بهذا الشكل:", en: "Answer with JSON only in this format:", he: "ענה ב-JSON בלבד בפורמט זה:" },
+
+  /* ─── تخصيص الامتحانات للصفوف ─── */
+  examEditorTargetClasses: { ar: "الصفوف المستهدفة بالامتحان", en: "Target Classes for Exam", he: "כיתות יעד לבחינה" },
+  examEditorTargetClassesDesc: { ar: "حدد الصفوف التي سيظهر لها هذا الامتحان حصراً (لا يظهر لبقية الصفوف)", en: "Select the classes that can view this exam exclusively (won't appear to other classes)", he: "בחרו את הכיתות שעבורן תוצג בחינה זו בלבד (לא תוצג לכיתות אחרות)" },
+  examEditorAllAssignedClasses: { ar: "كل صفوفي المخصصة", en: "All My Classes", he: "כל הכיתות שלי" },
+  examEditorAllSchoolClasses: { ar: "جميع طلاب المدرسة (بدون تقييد)", en: "All School Classes", he: "כל כיתות בית הספר" },
+  examEditorNoClassSelectedWarning: { ar: "تنبيه: لم تحدد أي صف، سيظهر الامتحان لكل الطلاب.", en: "Warning: No class selected, exam will appear to all students.", he: "אזהרה: לא נבחרה כיתה, הבחינה תוצג לכל התלמידים." },
+  examTargetClassBadge: { ar: "مخصص للصف", en: "Class", he: "כיתה" },
+  examTargetClassesBadge: { ar: "مخصص لصفوف", en: "Classes", he: "כיתות" },
+  examAllClassesBadge: { ar: "عام لكل الصفوف", en: "All Classes", he: "לכל הכיתות" },
 };
 
 export function getLang() {

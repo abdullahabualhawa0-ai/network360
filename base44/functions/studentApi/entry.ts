@@ -216,12 +216,22 @@ async function deleteStudentAccount(svc: any, sid: string) {
   await deleteSessions(svc, sid);
 }
 
-/** الامتحان المنشور المتاح لهذا الطالب (مدرسته أو عام) */
-async function loadExamForStudent(svc: any, examId: string, schoolId: string) {
+/** الامتحان المنشور المتاح لهذا الطالب (مدرسته أو عام) مع مطابقة الصف */
+async function loadExamForStudent(svc: any, examId: string, schoolId: string, studentClass?: string) {
   const exam = await svc.entities.Exam.get(examId).catch(() => null);
   if (!exam || exam.status !== "published") return { error: Response.json({ error: "Exam not available" }, { status: 404 }) };
   const scoped = !exam.school_id || exam.school_id === "general" || exam.school_id === schoolId;
   if (!scoped) return { error: Response.json({ error: "Forbidden" }, { status: 403 }) };
+
+  const targets = Array.isArray(exam.target_classes)
+    ? exam.target_classes.map((c: any) => String(c).trim()).filter(Boolean)
+    : [];
+  if (targets.length > 0) {
+    const sClass = (studentClass || "").trim();
+    if (!sClass || !targets.includes(sClass)) {
+      return { error: Response.json({ error: "Exam not available for your class" }, { status: 403 }) };
+    }
+  }
   return { exam };
 }
 
@@ -248,7 +258,7 @@ async function startExam(svc: any, ctx: any) {
   const { profile, sid, schoolId, data } = ctx;
   const examId = data?.exam_id;
   if (!examId) return Response.json({ error: "exam_id required" }, { status: 400 });
-  const { exam, error } = await loadExamForStudent(svc, examId, schoolId);
+  const { exam, error } = await loadExamForStudent(svc, examId, schoolId, profile?.class_name);
   if (error) return error;
 
   // فحص هل سلّم الطالب هذا الامتحان سابقاً وهل سَمح الأستاذ بإعادته:
@@ -303,7 +313,7 @@ async function submitExam(svc: any, ctx: any) {
   const examId = data?.exam_id;
   if (!examId) return Response.json({ error: "exam_id required" }, { status: 400 });
 
-  const { exam, error } = await loadExamForStudent(svc, examId, schoolId);
+  const { exam, error } = await loadExamForStudent(svc, examId, schoolId, profile?.class_name);
   if (error) return error;
 
   const { attempt, consumed } = await currentAttempt(svc, sid, examId);
@@ -459,9 +469,21 @@ export default async function(req) {
         if (entity === "Exam") {
           const q = { ...(query || {}), status: "published" };
           const rows = await svc.entities.Exam.filter(q, sort, limit);
-          const visible = (rows || []).filter(
-            (e: any) => !e.school_id || e.school_id === "general" || e.school_id === schoolId
-          );
+          const studentClass = (profile?.class_name || "").trim();
+          const visible = (rows || []).filter((e: any) => {
+            const schoolMatch = !e.school_id || e.school_id === "general" || e.school_id === schoolId;
+            if (!schoolMatch) return false;
+
+            const targets = Array.isArray(e.target_classes)
+              ? e.target_classes.map((c: any) => String(c).trim()).filter(Boolean)
+              : [];
+            if (targets.length > 0) {
+              if (!studentClass || !targets.includes(studentClass)) {
+                return false;
+              }
+            }
+            return true;
+          });
           return Response.json(visible.map(stripExamAnswers));
         }
         if (entity === "SystemSetting") {
@@ -474,8 +496,8 @@ export default async function(req) {
 
       case "get": {
         if (entity === "Exam") {
-          // لا يُسمح بقراءة الامتحانات غير المنشورة أو امتحانات مدرسة أخرى
-          const { exam, error } = await loadExamForStudent(svc, id, schoolId);
+          // لا يُسمح بقراءة الامتحانات غير المنشورة أو امتحانات مدرسة أخرى أو صف آخر
+          const { exam, error } = await loadExamForStudent(svc, id, schoolId, profile?.class_name);
           if (error) return Response.json({ error: "Not found" }, { status: 404 });
           return Response.json(stripExamAnswers(exam));
         }
@@ -499,7 +521,7 @@ export default async function(req) {
         if (entity === "ExamAccessRequest") {
           // الطالب يطلب فقط — الموافقة من الأستاذ/المشرف. الحالة تُفرض هنا مهما أرسل العميل.
           if (!d.exam_id) return Response.json({ error: "exam_id required" }, { status: 400 });
-          const { exam, error } = await loadExamForStudent(svc, d.exam_id, schoolId);
+          const { exam, error } = await loadExamForStudent(svc, d.exam_id, schoolId, profile?.class_name);
           if (error) return error;
           const mine = (await svc.entities.ExamAccessRequest.filter({ student_id: sid, exam_id: d.exam_id })) || [];
           const open = mine.find((r: any) => r.status === "pending");

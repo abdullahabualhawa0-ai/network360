@@ -69,6 +69,7 @@ export default async function(req) {
       teacher_code: teacher.teacher_code,
       teacher_name: teacher.full_name || tCode,
       subject: teacher.subject || "",
+      assigned_classes: teacher.assigned_classes || [],
       preferred_language: teacher.preferred_language || "ar",
       login_at: new Date().toISOString(),
       token,

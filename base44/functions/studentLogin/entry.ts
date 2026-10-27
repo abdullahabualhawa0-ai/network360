@@ -112,6 +112,7 @@ async function buildSession(svc, student, school, isPersonal) {
     school_id: school.id,
     student_code: student.student_code,
     student_name: student.full_name || student.student_code,
+    class_name: student.class_name || null,
     preferred_language: student.preferred_language || "ar",
     is_personal: isPersonal,
     login_at: new Date().toISOString(),

@@ -16,7 +16,7 @@ const ENTITY_CONFIG: Record<string, any> = {
   School: { mode: "own_school_only", updatable: true, fields: ["classes"] },
   Exam: {
     schoolField: "school_id", writable: true, includeGeneral: true,
-    fields: ["title", "topic_id", "topic_title", "section_title", "questions", "duration_minutes", "status"],
+    fields: ["title", "topic_id", "topic_title", "section_title", "questions", "duration_minutes", "status", "target_classes", "teacher_id", "teacher_name"],
   },
   ExamResult: { schoolField: "school_id", updatable: true, fields: ["allow_retake", "retake_allowed_at", "retake_allowed_by"] },
   ExamAccessRequest: { schoolField: "school_id", readOnly: true, updatable: true, fields: ["status", "reviewed_by", "reviewed_at"] },
