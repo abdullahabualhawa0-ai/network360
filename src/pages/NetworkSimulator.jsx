@@ -110,11 +110,10 @@ export default function NetworkSimulator() {
   const [connInfo, setConnInfo] = useState(null);
   const [pendingConnection, setPendingConnection] = useState(null);
 
-  // Scenario
+  // Scenario — معزول حسب المستخدم
   const [activeScenario, setActiveScenario] = useState(() => {
     try {
-      localStorage.removeItem("active-scenario");
-      const id = localStorage.getItem("active-scenario-id");
+      const id = getActiveScenarioId();
       return id ? getScenarioById(id) : null;
     } catch { return null; }
   });
@@ -122,10 +121,10 @@ export default function NetworkSimulator() {
   // History
   const { pushHistory, undo: undoHistory, redo: redoHistory, reset: resetHistory } = useHistory(setNodes, setConnections);
 
-  // Auto-save
+  // Auto-save — حفظ في النطاق المعزول للمستخدم الحالي
   useEffect(() => {
-    localStorage.setItem(session.key, JSON.stringify({ nodes, connections, nextId }));
-  }, [nodes, connections, nextId]);
+    saveSimNetwork(activeScenario?.id || null, { nodes, connections, nextId });
+  }, [nodes, connections, nextId, activeScenario?.id]);
 
   // Packet animation loop — hop-by-hop chaining
   useEffect(() => {
@@ -365,8 +364,9 @@ export default function NetworkSimulator() {
     setActivePackets([]); setSnifferLog([]);
     pendingChains.current = [];
     setPendingConnection(null);
+    clearSimNetwork(activeScenario?.id || null);
     resetHistory();
-  }, [resetHistory]);
+  }, [resetHistory, activeScenario?.id]);
 
   const zoomIn = () => setZoom((z) => Math.min(z + 0.15, 3));
   const zoomOut = () => setZoom((z) => Math.max(z - 0.15, 0.2));
@@ -482,7 +482,7 @@ export default function NetworkSimulator() {
                 connections={connections}
                 onClose={() => {
                   setActiveScenario(null);
-                  localStorage.removeItem("active-scenario-id");
+                  clearActiveScenarioId();
                 }}
               />
             )}

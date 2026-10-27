@@ -364,31 +364,52 @@ async function submitExam(svc: any, ctx: any) {
   const pct = total ? Math.round((correct / total) * 100) : 0;
   const now = new Date().toISOString();
 
-  // استهلاك أي إذن إعادة سابق لضمان قفل الامتحان بعد التسليم
-  const pastAllowed = await svc.entities.ExamResult.filter({ student_id: sid, exam_id: exam.id, allow_retake: true }, "-submission_time", 20);
-  for (const prev of (pastAllowed || [])) {
-    await svc.entities.ExamResult.update(prev.id, { allow_retake: false }).catch(() => {});
+  // فحص ما إذا كان هناك نتيجة سابقة لهذا الطالب في هذا الامتحان (حالة إعادة الامتحان):
+  const existingResults = await svc.entities.ExamResult.filter({ student_id: sid, exam_id: exam.id }, "-submission_time", 20);
+  let row;
+  if (existingResults && existingResults.length > 0) {
+    // تحديث النتيجة الحالية لتعديل العلامة مباشرة بدون تكرار الطالب
+    const targetResult = existingResults[0];
+    row = await svc.entities.ExamResult.update(targetResult.id, {
+      score: pct,
+      percentage: pct,
+      total_questions: total,
+      correct_answers: correct,
+      wrong_answers: total - correct,
+      answers: review,
+      start_time: attempt.started_at,
+      end_time: now,
+      submission_time: now,
+      status: "submitted",
+      allow_retake: false,
+      retake_allowed_at: null,
+      retake_allowed_by: null,
+    });
+    // تنظيف أي سجلات مكررة إن وُجدت سابقاً
+    for (let j = 1; j < existingResults.length; j++) {
+      await svc.entities.ExamResult.delete(existingResults[j].id).catch(() => {});
+    }
+  } else {
+    row = await svc.entities.ExamResult.create({
+      student_id: sid,
+      school_id: schoolId,
+      student_name: profile.full_name || profile.student_code,
+      student_email: profile.student_code,
+      exam_id: exam.id,
+      exam_title: exam.title,
+      score: pct,
+      percentage: pct,
+      total_questions: total,
+      correct_answers: correct,
+      wrong_answers: total - correct,
+      answers: review,
+      start_time: attempt.started_at,
+      end_time: now,
+      submission_time: now,
+      status: "submitted",
+      allow_retake: false,
+    });
   }
-
-  const row = await svc.entities.ExamResult.create({
-    student_id: sid,
-    school_id: schoolId,
-    student_name: profile.full_name || profile.student_code,
-    student_email: profile.student_code,
-    exam_id: exam.id,
-    exam_title: exam.title,
-    score: pct,
-    percentage: pct,
-    total_questions: total,
-    correct_answers: correct,
-    wrong_answers: total - correct,
-    answers: review,
-    start_time: attempt.started_at,
-    end_time: now,
-    submission_time: now,
-    status: "submitted",
-    allow_retake: false,
-  });
 
   return Response.json({ result: { pct, correct, total, review, late }, record: row });
 }

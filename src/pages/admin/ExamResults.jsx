@@ -25,8 +25,18 @@ export default function ExamResults() {
     if (!isAdmin) { setLoading(false); return; }
     const query = school_id ? { school_id } : {};
     setSchoolId(school_id || "");
-    const rs = await adminFilter("ExamResult", query, "-submission_time", 200);
-    setResults(rs || []);
+    const rs = await adminFilter("ExamResult", query, "-submission_time", 500);
+    // ضمان عدم تكرار اسم الطالب لنفس الامتحان وعرض أحدث علامة له دائماً
+    const seen = new Set();
+    const deduped = [];
+    for (const r of rs || []) {
+      const key = `${r.student_id || r.student_email}_${r.exam_id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(r);
+      }
+    }
+    setResults(deduped);
     setLoading(false);
   };
 

@@ -15,15 +15,11 @@ import { ensureLabRecord, markTaskCompleted } from "../lib/labTracking";
 import { t, useLang, getLang } from "@/lib/i18n";
 import { topicTitleById } from "@/lib/courseI18n";
 import { localizeScenario, scenarioFeedback } from "@/lib/scenarioI18n";
-
-/** حالة المحاكاة محفوظة لكل سيناريو في جلسة مستقلة (Simulation Session) */
-export const simStateKey = (scenarioId) => (scenarioId ? `network-simulator-state-s${scenarioId}` : "network-simulator-state");
+import { loadSimNetwork, setActiveScenarioId } from "@/lib/simulatorStorage";
 
 function getSimNetwork(scenarioId) {
-  try {
-    const s = JSON.parse(localStorage.getItem(simStateKey(scenarioId)) || "{}");
-    return { nodes: s.nodes || [], connections: s.connections || [] };
-  } catch { return { nodes: [], connections: [] }; }
+  const data = loadSimNetwork(scenarioId);
+  return { nodes: data?.nodes || [], connections: data?.connections || [] };
 }
 
 export default function ScenarioLab() {
@@ -134,10 +130,10 @@ export default function ScenarioLab() {
     if (res.passed) persistEvaluation(selected, res);
   };
 
-  // فتح السيناريو في المحاكي — لكل سيناريو جلسة محاكاة مستقلة ونظيفة
+  // فتح السيناريو في المحاكي — لكل سيناريو جلسة محاكاة مستقلة ونظيفة معزولة للمستخدم
   const openInSimulator = () => {
     if (!selected) return;
-    localStorage.setItem("active-scenario-id", selected.id);
+    setActiveScenarioId(selected.id);
     navigate("/network-simulator");
   };
 

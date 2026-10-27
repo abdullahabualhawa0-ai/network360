@@ -30,8 +30,8 @@ export default function TeacherStudentProfileView({
 
   if (!student) return null;
 
-  // نتائج هذا الطالب فقط
-  const studentResults = results.filter(
+  // نتائج هذا الطالب فقط — مع ضمان عرض أحدث علامة لكل امتحان دون تكرار
+  const rawStudentResults = results.filter(
     (r) =>
       r.student_id === student.id ||
       r.student_id === student.user_id ||
@@ -39,6 +39,16 @@ export default function TeacherStudentProfileView({
         student.student_code &&
         r.student_email.toLowerCase() === student.student_code.toLowerCase())
   );
+
+  const seenExamIds = new Set();
+  const studentResults = [];
+  for (const r of rawStudentResults) {
+    const key = r.exam_id || r.id;
+    if (!seenExamIds.has(key)) {
+      seenExamIds.add(key);
+      studentResults.push(r);
+    }
+  }
 
   const totalExams = studentResults.length;
   const avgScore = totalExams
