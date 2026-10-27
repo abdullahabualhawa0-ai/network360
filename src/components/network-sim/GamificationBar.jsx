@@ -3,7 +3,7 @@ import { Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { t, useLang } from "@/lib/i18n";
 
-const STORAGE_KEY = "net-gamification";
+import { loadUserGamification, saveUserGamification } from "@/lib/simulatorStorage";
 
 const LEVEL_KEYS = [
   { min: 0, nameKey: "simLevelBeginner", color: "text-muted-foreground" },
@@ -22,17 +22,11 @@ const BADGE_KEYS = [
 ];
 
 export function loadGamification() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"xp":0,"badges":[]}');
-  } catch {
-    return { xp: 0, badges: [] };
-  }
+  return loadUserGamification();
 }
 
 export function saveGamification(data) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {}
+  saveUserGamification(data);
 }
 
 export function awardXP(amount, badgeId) {

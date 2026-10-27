@@ -7,16 +7,17 @@ import {
   Activity, FlaskConical, Wifi, Play, Square, Trash2, Grid3x3
 } from "lucide-react";
 import { t, useLang } from "@/lib/i18n";
+import DeviceIcon from "./DeviceIcons";
 
 const DEVICE_TYPES = [
-  { type: "Router",      labelKey: "simDevRouter",    icon: "🔀" },
-  { type: "Switch",      labelKey: "simDevSwitch",    icon: "🔌" },
-  { type: "PC",          labelKey: "simDevPC",        icon: "🖥️" },
-  { type: "Server",      labelKey: "simDevServer",    icon: "🗄️" },
-  { type: "Firewall",    labelKey: "simDevFirewall",  icon: "🛡️" },
-  { type: "AccessPoint", labelKey: "simDevWifi",      icon: "📡" },
-  { type: "Cloud",       labelKey: "simDevInternet",  icon: "☁️" },
-  { type: "Laptop",      labelKey: "simDevLaptop",    icon: "💻" },
+  { type: "Router",      labelKey: "simDevRouter" },
+  { type: "Switch",      labelKey: "simDevSwitch" },
+  { type: "PC",          labelKey: "simDevPC" },
+  { type: "Server",      labelKey: "simDevServer" },
+  { type: "Firewall",    labelKey: "simDevFirewall" },
+  { type: "AccessPoint", labelKey: "simDevWifi" },
+  { type: "Cloud",       labelKey: "simDevInternet" },
+  { type: "Laptop",      labelKey: "simDevLaptop" },
 ];
 
 const PROTOCOLS = ["ICMP", "TCP", "UDP", "DNS", "HTTP", "ARP"];
@@ -113,7 +114,7 @@ export default function SimSidebar({
               }`}
               title={d.label}
             >
-              {d.icon}
+              <DeviceIcon type={d.type} size={20} />
             </div>
           ))}
         </div>
@@ -147,14 +148,14 @@ export default function SimSidebar({
                   draggable
                   onDragStart={(e) => { e.dataTransfer.setData("deviceType", device.type); e.dataTransfer.effectAllowed = "copy"; }}
                   onClick={(e) => { e.stopPropagation(); onSelectDevice?.(device.type); }}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-[10px] cursor-grab active:cursor-grabbing transition-all border ${
+                  className={`flex flex-col items-center gap-1.5 p-2 rounded-[10px] cursor-grab active:cursor-grabbing transition-all border ${
                     selectedDeviceType === device.type
-                      ? "bg-accent border-primary"
+                      ? "bg-accent border-primary shadow-sm"
                       : "bg-muted/50 border-border hover:bg-accent/70"
                   }`}
                   title={`${t("simTapToSelect")} ${device.label}`}
                 >
-                  <span className="text-base leading-none">{device.icon}</span>
+                  <DeviceIcon type={device.type} size={26} />
                   <span className="text-[9px] font-bold text-center leading-tight truncate w-full text-foreground">
                     {device.label}
                   </span>

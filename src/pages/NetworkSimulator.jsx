@@ -17,44 +17,39 @@ import ConnectionDialog from "../components/network-sim/ConnectionDialog";
 import { Activity, ChevronLeft, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { AnimatePresence as AP, motion } from "framer-motion";
 import { t, useLang } from "@/lib/i18n";
-
-const STORAGE_KEY = "network-simulator-state";
+import {
+  loadSimNetwork,
+  saveSimNetwork,
+  clearSimNetwork,
+  getActiveScenarioId,
+  setActiveScenarioId,
+  clearActiveScenarioId,
+} from "@/lib/simulatorStorage";
 
 /**
- * جلسة محاكاة مستقلة لكل سيناريو (Simulation Session):
- * - سيناريو جديد → جلسة جديدة نظيفة (يُزال كل ما أضافه الطالب في سيناريو سابق)
- * - إعادة فتح نفس السيناريو → استكمال من الحالة المحفوظة
- * - Template السيناريو (الأجهزة المطلوبة أصلاً) يُحمّل عند أول فتح للجلسة
+ * جلسة محاكاة معزولة تماماً لكل مستخدم (طالب / أستاذ / مشرف) ولكل سيناريو
+ * تمنع تداخل وتعديل بيانات الطلاب مع الأساتذة أو المشرفين.
  */
-function activeScenarioId() {
-  try { return localStorage.getItem("active-scenario-id"); } catch { return null; }
-}
-
 function loadState() {
-  const sid = activeScenarioId();
-  const key = sid ? `network-simulator-state-s${sid}` : STORAGE_KEY;
-  const empty = { nodes: [], connections: [], nextId: 1 };
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved) return { key, state: JSON.parse(saved) };
-    // جلسة جديدة — حمّل قالب السيناريو إن وجد
-    if (sid) {
-      const sc = getScenarioById(sid);
-      if (sc?.template?.nodes?.length) {
-        return {
-          key,
-          state: {
-            nodes: sc.template.nodes.map((n) => ({ ...n })),
-            connections: (sc.template.connections || []).map((c) => ({ ...c })),
-            nextId: sc.template.nodes.length + 1,
-          },
-        };
-      }
-    }
-    return { key, state: empty };
-  } catch {
-    return { key, state: empty };
+  const sid = getActiveScenarioId();
+  const existing = loadSimNetwork(sid);
+  if (existing && existing.nodes && existing.nodes.length > 0) {
+    return { sid, state: existing };
   }
+  // جلسة جديدة — حمّل قالب السيناريو إن وجد
+  if (sid) {
+    const sc = getScenarioById(sid);
+    if (sc?.template?.nodes?.length) {
+      const templated = {
+        nodes: sc.template.nodes.map((n) => ({ ...n })),
+        connections: (sc.template.connections || []).map((c) => ({ ...c })),
+        nextId: sc.template.nodes.length + 1,
+      };
+      saveSimNetwork(sid, templated);
+      return { sid, state: templated };
+    }
+  }
+  return { sid, state: existing };
 }
 
 function generatePacketSegments(path, connections, nodes, protocol) {
