@@ -23,7 +23,6 @@ export default function TeacherDashboard() {
   const cards = [
     { icon: ClipboardList, key: "teacherExams", desc: "teacherExamsDesc", to: "/teacher/exams" },
     { icon: Users, key: "teacherStudents", desc: "teacherStudentsDesc", to: "/teacher/students" },
-    { icon: FileCheck, key: "teacherResults", desc: "teacherResultsDesc", to: "/teacher/results" },
     { icon: Settings, key: "navSettings", desc: "settingsSubtitle", to: "/teacher/settings" },
   ];
 

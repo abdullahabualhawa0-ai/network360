@@ -669,8 +669,8 @@ const T = {
   examResultsBackHome: { ar: "العودة للرئيسية", en: "Back to Home", he: "חזרה לבית" },
 
   /* ─── صفحة طلاب الأستاذ ─── */
-  teacherStudentsTitle: { ar: "طلابي", en: "My Students", he: "התלמידים שלי" },
-  teacherStudentsPageDesc: { ar: "الطلاب المرتبطون بمدرستك", en: "Students linked to your school", he: "התלמידים המקושרים לבית-הספר שלך" },
+  teacherStudentsTitle: { ar: "طلابي والصفوف", en: "My Students & Classes", he: "התלמידים והכיתות שלי" },
+  teacherStudentsPageDesc: { ar: "إدارة الصفوف والشُعب ومتابعة تقدم وعلامات الطلاب", en: "Manage classes and track student progress and grades", he: "ניהול כיתות ומעקב אחר התקדמות וציוני התלמידים" },
   teacherStudentsNoStudents: { ar: "لا يوجد طلاب بعد", en: "No students yet", he: "אין תלמידים עדיין" },
   teacherStudentsNoStudentsDesc: { ar: "سيظهر طلاب مدرستك هنا تلقائياً عند إضافتهم", en: "Your school's students will appear here automatically", he: "תלמידי בית-הספר יופיעו כאן אוטומטית" },
   teacherStudentsCode: { ar: "رمز الطالب", en: "Student Code", he: "קוד תלמיד" },
@@ -680,6 +680,19 @@ const T = {
   teacherStudentsPending: { ar: "بانتظار الموافقة", en: "Pending", he: "ממתין" },
   teacherStudentsRejected: { ar: "مرفوض", en: "Rejected", he: "נדחה" },
   teacherStudentsDisabled: { ar: "معطّل", en: "Disabled", he: "מושבת" },
+  teacherClassesTitle: { ar: "صفوفي والشُعب الدراسية", en: "My Classes", he: "הכיתות שלי" },
+  teacherClassesDesc: { ar: "اختر صفاً لاستعراض مؤشرات الأداء ولوحة التقدم ونتائج الطلاب", en: "Select a class to view performance stats, progress board, and student results", he: "בחרו כיתה לצפייה בביצועים, לוח התקדמות ותוצאות תלמידים" },
+  teacherClassProgressTitle: { ar: "لوحة تقدم ونتائج الصف", en: "Class Progress & Results", he: "לוח התקדמות ותוצאות הכיתה" },
+  teacherStudentProfile: { ar: "ملف الطالب وعلاماته", en: "Student Profile & Grades", he: "פרופיל תלמיד וציונים" },
+  teacherNoExamsSubmitted: { ar: "لم يقم هذا الطالب بتقديم أي امتحانات بعد", en: "This student has not taken any exams yet", he: "תלמיד זה טרם ביצע בחינות" },
+  teacherBackToClass: { ar: "العودة إلى الصف", en: "Back to Class", he: "חזרה לכיתה" },
+  teacherBackToClassesList: { ar: "العودة لقائمة الصفوف", en: "Back to Classes", he: "חזרה לרשימת הכיתות" },
+  teacherViewStudentDetails: { ar: "عرض الملف والنتائج", en: "View Profile & Results", he: "צפייה בפרופיל ותוצאות" },
+  teacherStudentExamsCount: { ar: "الامتحانات المقدمة", en: "Exams Submitted", he: "בחינות שהוגשו" },
+  teacherStudentAvgScore: { ar: "معدل العلامات", en: "Average Grade", he: "ציון ממוצע" },
+  teacherStudentHighestScore: { ar: "أعلى علامة", en: "Highest Score", he: "ציון שיא" },
+  teacherExamAnswersReview: { ar: "مراجعة إجابات الطالب", en: "Review Student Answers", he: "סקירת תשובות התלמיד" },
+  teacherHideAnswersReview: { ar: "إخفاء مراجعة الإجابات", en: "Hide Answers Review", he: "הסתרת סקירת תשובות" },
 
   /* ─── الاختبارات (QuizSection) ─── */
   quizQuestionsCount: { ar: "أسئلة اختيار من متعدد", en: "multiple choice questions", he: "שאלות אמריקאיות" },

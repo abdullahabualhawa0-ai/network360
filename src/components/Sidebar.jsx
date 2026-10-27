@@ -80,7 +80,6 @@ export default function Sidebar({ onClose }) {
         {isTeacher && navItem("/teacher/dashboard", <BarChart2 size={16} />, t("teacherDashboardTitle"))}
         {isTeacher && navItem("/teacher/exams", <FileText size={16} />, t("teacherExams"))}
         {isTeacher && navItem("/teacher/students", <Users size={16} />, t("teacherStudents"))}
-        {isTeacher && navItem("/teacher/results", <FileCheck size={16} />, t("teacherResults"))}
 
         {!isTeacher && navItem("/dashboard", <BarChart2 size={16} />, t("navDashboard"))}
         {!isTeacher && navItem("/lab-history", <History size={16} />, t("navLabHistory"))}
