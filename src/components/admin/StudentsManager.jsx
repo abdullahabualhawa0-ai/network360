@@ -12,6 +12,7 @@ import { UNCLAIMED } from "@/lib/registrationUtils";
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
 import { studentsFromCsv } from "@/lib/csvStudents";
+import { randomCode } from "@/lib/plans";
 import {
   adminFilter, adminCreate, adminUpdate, adminDelete, adminBulkCreate,
   isSchoolAdminSession,
@@ -224,15 +225,16 @@ export default function StudentsManager({ school, onBack }) {
             properties: {
               students: {
                 type: "array",
+                description: "قائمة الطلاب من الملف. استخرج أسماء الطلاب فقط. تجاهل تماماً أعمدة العلامات والدرجات والنتائج — لا تعاملها كرموز أو صفوف. إذا لم يوجد عمود رمز طالب اترك student_code فارغاً ولا تخترع قيمة، وإذا لم يوجد عمود صف اترك class_name فارغاً.",
                 items: {
                   type: "object",
                   properties: {
-                    full_name: { type: "string" },
-                    student_code: { type: "string" },
+                    full_name: { type: "string", description: "اسم الطالب كما ورد في الملف" },
+                    student_code: { type: "string", description: "رمز الطالب إن وُجد عمود له، وإلا اتركه فارغاً" },
                     email: { type: "string" },
                     class_name: { type: "string" },
                   },
-                  required: ["full_name", "student_code"],
+                  required: ["full_name"],
                 },
               },
             },
@@ -268,9 +270,13 @@ export default function StudentsManager({ school, onBack }) {
       const limitN = school.student_limit || 0;
       const toCreate = [];
       for (const s of imported) {
-        const code = String(s.student_code || "").trim();
+        let code = String(s.student_code || "").trim();
         const name = String(s.full_name || "").trim();
-        if (!code || !name) continue;
+        if (!name) continue;
+        // ملف بأسماء فقط (بدون عمود رمز) → توليد رمز فريد تلقائياً
+        if (!code) {
+          do { code = randomCode("STU-", 6); } while (existingCodes.has(code.toLowerCase()));
+        }
         if (existingCodes.has(code.toLowerCase())) continue;
         if (limitN > 0 && (existing || []).length + toCreate.length >= limitN) break;
         existingCodes.add(code.toLowerCase());

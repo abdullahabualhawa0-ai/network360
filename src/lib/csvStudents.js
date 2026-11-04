@@ -54,10 +54,11 @@ export function studentsFromCsv(text) {
   let iName = find(NAME_HDR), iCode = find(CODE_HDR), iMail = find(MAIL_HDR), iClass = find(CLASS_HDR);
   let start = 1;
   if (iName < 0 || iCode < 0) { iName = 0; iCode = 1; iMail = 2; iClass = 3; start = 0; } // بلا عناوين
+  // الاسم فقط إلزامي — الرمز قد يُولَّد تلقائياً عند الاستيراد (ملفات بأسماء فقط)
   return rows.slice(start).map((r) => ({
     full_name: String(r[iName] ?? "").trim(),
     student_code: String(r[iCode] ?? "").trim(),
     email: iMail >= 0 ? String(r[iMail] ?? "").trim() : "",
     class_name: iClass >= 0 ? String(r[iClass] ?? "").trim() : "",
-  })).filter((s) => s.full_name && s.student_code);
+  })).filter((s) => s.full_name);
 }
