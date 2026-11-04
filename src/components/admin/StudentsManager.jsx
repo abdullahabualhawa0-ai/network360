@@ -218,30 +218,25 @@ export default function StudentsManager({ school, onBack }) {
       } else {
         const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
         const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri, expires_in: 300 });
+        // المخطط يصف صفاً واحداً (اسم الطالب فقط إلزامي) — الاستخراج يعيد مصفوفة من هذه الصفوف
         const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
           file_url: signed_url,
           json_schema: {
             type: "object",
             properties: {
-              students: {
-                type: "array",
-                description: "قائمة الطلاب من الملف. استخرج أسماء الطلاب فقط. تجاهل تماماً أعمدة العلامات والدرجات والنتائج — لا تعاملها كرموز أو صفوف. إذا لم يوجد عمود رمز طالب اترك student_code فارغاً ولا تخترع قيمة، وإذا لم يوجد عمود صف اترك class_name فارغاً.",
-                items: {
-                  type: "object",
-                  properties: {
-                    full_name: { type: "string", description: "اسم الطالب كما ورد في الملف" },
-                    student_code: { type: "string", description: "رمز الطالب إن وُجد عمود له، وإلا اتركه فارغاً" },
-                    email: { type: "string" },
-                    class_name: { type: "string" },
-                  },
-                  required: ["full_name"],
-                },
-              },
+              full_name: { type: "string", description: "اسم الطالب كما ورد في الملف" },
+              student_code: { type: "string", description: "رمز الطالب إن وُجد عمود له، وإلا اتركه فارغاً ولا تخترع قيمة" },
+              email: { type: "string" },
+              class_name: { type: "string" },
             },
-            required: ["students"],
+            required: ["full_name"],
           },
         });
-        imported = result?.output?.students || [];
+        if (result?.status === "error") {
+          throw new Error(result?.details || "extract_failed");
+        }
+        const out = result?.output;
+        imported = Array.isArray(out) ? out : (out?.students || []);
       }
       if (!imported.length) {
         setImportMsg({ type: "error", text: t("smImportNoData") });
