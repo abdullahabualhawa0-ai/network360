@@ -12,16 +12,16 @@ import { getLang as getSavedLang, setLang as applyI18nLang, t, useLang, useDir, 
 import { friendlyError } from "@/lib/errorMessage";
 
 const LANGUAGES = [
-  { id: "ar", label: "العربية", native: "العربية", flag: "🇸🇦", dir: "rtl" },
-  { id: "en", label: "الإنجليزية", native: "English", flag: "🇬🇧", dir: "ltr" },
-  { id: "he", label: "العبرية", native: "עברית", flag: "🇮🇱", dir: "rtl" },
-];
+{ id: "ar", label: "العربية", native: "العربية", flag: "🇸🇦", dir: "rtl" },
+{ id: "en", label: "الإنجليزية", native: "English", flag: "🇬🇧", dir: "ltr" },
+{ id: "he", label: "العبرية", native: "עברית", flag: "🇮🇱", dir: "rtl" }];
+
 
 const PROFILE_STATUS = {
   pending: { key: "settingsStatusPending", cls: "text-warning" },
   approved: { key: "settingsStatusApproved", cls: "text-success" },
   rejected: { key: "settingsStatusRejected", cls: "text-destructive" },
-  disabled: { key: "settingsStatusDisabled", cls: "text-muted-foreground" },
+  disabled: { key: "settingsStatusDisabled", cls: "text-muted-foreground" }
 };
 
 /**
@@ -63,12 +63,12 @@ export default function Settings() {
   // رمز المشرف للعرض فقط — يُجلب من الخادم بجلسة موثّقة ولا يُحفظ في المتصفح
   const [adminCode, setAdminCode] = useState("");
   useEffect(() => {
-    if (!schoolAdminSession?.token) { setAdminCode(""); return; }
+    if (!schoolAdminSession?.token) {setAdminCode("");return;}
     let alive = true;
-    fetchAdminCode()
-      .then((code) => { if (alive) setAdminCode(code); })
-      .catch(() => {});
-    return () => { alive = false; };
+    fetchAdminCode().
+    then((code) => {if (alive) setAdminCode(code);}).
+    catch(() => {});
+    return () => {alive = false;};
   }, [schoolAdminSession?.school_id, schoolAdminSession?.token]);
   const teacherSession = useTeacherSession();
 
@@ -95,26 +95,26 @@ export default function Settings() {
         setProfile(p);
         const school = await studentApi("get", "School", { id: active.schoolId });
         if (school?.name) setSchoolName(school.name);
-      } catch { /* عرض الحد الأدنى */ }
+      } catch {/* عرض الحد الأدنى */}
     })();
   }, [isStudent, active.studentId, active.schoolId]);
 
   // جلب اسم مدرسة الأستاذ/المشرف
   useEffect(() => {
     if (isStudent || isOwner) return;
-    if (active.schoolName) { setSchoolName(active.schoolName); return; }
+    if (active.schoolName) {setSchoolName(active.schoolName);return;}
     if (!active.schoolId) return;
     (async () => {
       try {
-        const school = isStudent
-          ? await studentApi("get", "School", { id: active.schoolId })
-          : await base44.entities.School.get(active.schoolId);
+        const school = isStudent ?
+        await studentApi("get", "School", { id: active.schoolId }) :
+        await base44.entities.School.get(active.schoolId);
         if (school?.name) setSchoolName(school.name);
-      } catch { /* */ }
+      } catch {/* */}
     })();
   }, [isStudent, isOwner, active.schoolId, active.schoolName]);
 
-  useEffect(() => { applyI18nLang(lang); }, [lang]);
+  useEffect(() => {applyI18nLang(lang);}, [lang]);
 
   const saveLanguage = async (newLang) => {
     setLang(newLang);
@@ -138,11 +138,11 @@ export default function Settings() {
   useEffect(() => {
     (async () => {
       try {
-        const rows = isStudent
-          ? await studentApi("filter", "SystemSetting", { query: { key: "contact_email" } })
-          : await base44.entities.SystemSetting.filter({ key: "contact_email" });
+        const rows = isStudent ?
+        await studentApi("filter", "SystemSetting", { query: { key: "contact_email" } }) :
+        await base44.entities.SystemSetting.filter({ key: "contact_email" });
         setContactEmail(rows?.[0]?.value || "");
-      } catch { /* */ }
+      } catch {/* */}
     })();
   }, [isStudent]);
 
@@ -153,19 +153,19 @@ export default function Settings() {
     setContactSaved(false);
     try {
       const rows = await base44.entities.SystemSetting.filter({ key: "contact_email" });
-      if (rows?.length > 0) await base44.entities.SystemSetting.update(rows[0].id, { value: v });
-      else await base44.entities.SystemSetting.create({ key: "contact_email", value: v });
+      if (rows?.length > 0) await base44.entities.SystemSetting.update(rows[0].id, { value: v });else
+      await base44.entities.SystemSetting.create({ key: "contact_email", value: v });
       setContactSaved(true);
       setTimeout(() => setContactSaved(false), 2500);
-    } catch { /* */ }
+    } catch {/* */}
     setSavingContact(false);
   };
 
   const handleLogout = () => {
-    if (isStudent) { clearStudentSession(); navigate("/student-login", { replace: true }); }
-    else if (isTeacher) { clearTeacherSession(); navigate("/student-login", { replace: true }); }
-    else if (isSchoolAdmin && !active.email) { clearSchoolAdminSession(); window.location.href = "/login"; }
-    else { base44.auth.logout("/login"); }
+    if (isStudent) {clearStudentSession();navigate("/student-login", { replace: true });} else
+    if (isTeacher) {clearTeacherSession();navigate("/student-login", { replace: true });} else
+    if (isSchoolAdmin && !active.email) {clearSchoolAdminSession();window.location.href = "/login";} else
+    {base44.auth.logout("/login");}
   };
 
   // ── حذف الحساب ──
@@ -176,7 +176,7 @@ export default function Settings() {
 
   // حسابات الإدارة المسجَّلة بالبريد (Base44 Auth): المالك، ومشرف المدرسة الذي لديه بريد.
   // مشرف المدرسة بالرمز (بدون بريد) يبقى كما هو ويتواصل مع الدعم.
-  const isEmailAdmin = isOwner || (isSchoolAdmin && !!active.email);
+  const isEmailAdmin = isOwner || isSchoolAdmin && !!active.email;
   const canDelete = isStudent || isTeacher || isEmailAdmin;
   const confirmWord = getLang() === "ar" ? "حذف" : getLang() === "he" ? "מחק" : "DELETE";
 
@@ -199,7 +199,7 @@ export default function Settings() {
       if (isEmailAdmin) {
         // إنهاء الجلسة بعد الحذف ثم التحويل لصفحة الدخول
         setTimeout(() => {
-          try { base44.auth.logout("/login"); } catch { window.location.href = "/login"; }
+          try {base44.auth.logout("/login");} catch {window.location.href = "/login";}
         }, 1500);
       } else {
         setTimeout(() => navigate("/student-login", { replace: true }), 1500);
@@ -211,32 +211,32 @@ export default function Settings() {
     }
   };
 
-  const statusInfo = profile ? (PROFILE_STATUS[profile.status] || PROFILE_STATUS.pending) : null;
+  const statusInfo = profile ? PROFILE_STATUS[profile.status] || PROFILE_STATUS.pending : null;
 
   // تحديد الدور والرمز حسب الجلسة النشطة
-  const roleLabel = isStudent ? t("roleStudent")
-    : isTeacher ? t("teacherRole")
-    : isSchoolAdmin ? t("roleSchoolAdmin")
-    : isOwner ? t("roleAdmin")
-    : "—";
+  const roleLabel = isStudent ? t("roleStudent") :
+  isTeacher ? t("teacherRole") :
+  isSchoolAdmin ? t("roleSchoolAdmin") :
+  isOwner ? t("roleAdmin") :
+  "—";
 
-  const codeLabel = isStudent ? t("studentCodeLabel")
-    : isTeacher ? t("teacherCode")
-    : isSchoolAdmin ? t("adminCode")
-    : isOwner ? t("emailLabel")
-    : "";
+  const codeLabel = isStudent ? t("studentCodeLabel") :
+  isTeacher ? t("teacherCode") :
+  isSchoolAdmin ? t("adminCode") :
+  isOwner ? t("emailLabel") :
+  "";
 
-  const codeValue = isStudent ? (profile?.student_code || active.code)
-    : isTeacher ? active.code
-    : isSchoolAdmin ? (adminCode || "—")
-    : isOwner ? (active.email || "—")
-    : "—";
+  const codeValue = isStudent ? profile?.student_code || active.code :
+  isTeacher ? active.code :
+  isSchoolAdmin ? adminCode || "—" :
+  isOwner ? active.email || "—" :
+  "—";
 
-  const displayName = isStudent ? (profile?.full_name || active.name)
-    : active.name || "—";
+  const displayName = isStudent ? profile?.full_name || active.name :
+  active.name || "—";
 
-  const displayEmail = isStudent ? (profile?.email || "—")
-    : active.email || (isTeacher || isSchoolAdmin ? "—" : "—");
+  const displayEmail = isStudent ? profile?.email || "—" :
+  active.email || (isTeacher || isSchoolAdmin ? "—" : "—");
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir={direction}>
@@ -272,12 +272,12 @@ export default function Settings() {
               <div className="text-[10px] text-muted-foreground mb-1">{codeLabel}</div>
               <div className="font-bold truncate" dir="ltr">{codeValue}</div>
             </div>
-            {(isSchoolAdmin || isTeacher) && active.schoolCode && (
-              <div className="rounded-[10px] p-3 bg-muted">
+            {(isSchoolAdmin || isTeacher) && active.schoolCode &&
+            <div className="rounded-[10px] p-3 bg-muted">
                 <div className="text-[10px] text-muted-foreground mb-1">{t("schoolCode")}</div>
                 <div className="font-bold truncate" dir="ltr">{active.schoolCode}</div>
               </div>
-            )}
+            }
             <div className="rounded-[10px] p-3 bg-muted">
               <div className="text-[10px] text-muted-foreground mb-1">{t("roleLabel")}</div>
               <div className="font-bold flex items-center gap-1.5">
@@ -288,15 +288,15 @@ export default function Settings() {
             <div className="rounded-[10px] p-3 bg-muted">
               <div className="text-[10px] text-muted-foreground mb-1">{t("statusLabel")}</div>
               <div className={`font-bold ${statusInfo?.cls || "text-success"}`}>
-                {isStudent ? (statusInfo ? t(statusInfo.key) : t("settingsStatusApproved")) : t("settingsRegistered")}
+                {isStudent ? statusInfo ? t(statusInfo.key) : t("settingsStatusApproved") : t("settingsRegistered")}
               </div>
             </div>
-            {displayEmail !== "—" && (
-              <div className="rounded-[10px] p-3 sm:col-span-2 bg-accent">
+            {displayEmail !== "—" &&
+            <div className="rounded-[10px] p-3 sm:col-span-2 bg-accent">
                 <div className="text-[10px] text-muted-foreground mb-1">{t("emailLabel")}</div>
                 <div className="font-bold truncate" dir="ltr">{displayEmail}</div>
               </div>
-            )}
+            }
           </div>
         </div>
 
@@ -315,31 +315,31 @@ export default function Settings() {
                   onClick={() => saveLanguage(l.id)}
                   disabled={saving}
                   className={`rounded-[10px] p-4 text-center transition-all disabled:opacity-60 border ${
-                    activeLang
-                      ? "bg-accent border-primary"
-                      : "bg-muted border-border hover:bg-muted/80"
-                  }`}
-                >
+                  activeLang ?
+                  "bg-accent border-primary" :
+                  "bg-muted border-border hover:bg-muted/80"}`
+                  }>
+                  
                   <div className="text-2xl mb-1.5">{l.flag}</div>
                   <div className={`text-xs font-bold ${activeLang ? "text-brand" : "text-foreground"}`}>
                     {l.native}
                   </div>
-                </button>
-              );
+                </button>);
+
             })}
           </div>
           <div className="flex items-center justify-between mt-3 text-[10px]">
             <span className="text-muted-foreground">{t("langNote")}</span>
-            {saving ? (
-              <span className="flex items-center gap-1 text-muted-foreground"><Loader2 size={10} className="animate-spin" /> {t("saving")}</span>
-            ) : saved ? (
-              <span className="flex items-center gap-1 text-success"><Check size={10} /> {t("saved")}</span>
-            ) : null}
+            {saving ?
+            <span className="flex items-center gap-1 text-muted-foreground"><Loader2 size={10} className="animate-spin" /> {t("saving")}</span> :
+            saved ?
+            <span className="flex items-center gap-1 text-success"><Check size={10} /> {t("saved")}</span> :
+            null}
           </div>
         </div>
 
         {/* School — يُخفى للخطة الشخصية */}
-        {!isPersonalStudent && (
+        {!isPersonalStudent &&
         <div className="rounded-[16px] p-5 bg-card border border-border">
           <div className="flex items-center gap-2 mb-4 text-brand">
             <School size={15} />
@@ -352,14 +352,14 @@ export default function Settings() {
                 {isStudent ? t("settingsSchoolLinkedNote") : t("settingsSchoolGeneralNote")}
               </div>
             </div>
-            {statusInfo && (
-              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full bg-muted text-current ${statusInfo.cls}`}>
+            {statusInfo &&
+            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full bg-muted text-current ${statusInfo.cls}`}>
                 {t(statusInfo.key)}
               </span>
-            )}
+            }
           </motion.div>
         </div>
-        )}
+        }
 
         {/* فريق التطوير */}
         <div className="rounded-[16px] p-5 mt-4 bg-card border border-border">
@@ -368,32 +368,32 @@ export default function Settings() {
             <h2 className="text-sm font-black text-foreground">فريق التطوير</h2>
           </div>
           {[
-            { label: "الطلاب", names: ["عبد الله ابو الهوى", "امير دراويش"] },
-            { label: "المشرفون (الأساتذة)", names: ["محمد حمود", "اسماعيل شحادة"] },
-          ].map((group) => (
-            <div key={group.label} className="mb-3">
+          { label: "الطلاب", names: ["عبد الله ابو الهوى", "امير دراويش"] },
+          { label: "المشرفون (الأساتذة)", names: ["محمد حمود", "اسماعيل شحادة"] }].
+          map((group) =>
+          <div key={group.label} className="mb-3">
               <div className="text-[11px] font-bold text-muted-foreground mb-1.5">{group.label}</div>
               <div className="grid sm:grid-cols-2 gap-2.5">
-                {group.names.map((name) => (
-                  <div key={name} className="rounded-[10px] p-3 bg-muted flex items-center gap-2.5">
+                {group.names.map((name) =>
+              <div key={name} className="rounded-[10px] p-3 bg-muted flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center bg-secondary/15 text-secondary flex-shrink-0">
                       <User size={14} />
                     </div>
                     <div className="text-xs font-bold text-foreground">{name}</div>
                   </div>
-                ))}
+              )}
               </div>
             </div>
-          ))}
+          )}
           <div className="flex items-center justify-center gap-2 rounded-[10px] p-3 bg-accent">
             <School size={14} className="text-brand flex-shrink-0" />
-            <span className="text-xs font-bold text-foreground">مدرسة شعفاط الشاملة</span>
+            <span className="text-xs font-bold text-foreground">باشراف مدرسة شعفاط الشاملة</span>
           </div>
         </div>
 
         {/* معلومات التواصل — للمالك فقط تعديل */}
-        {isOwner && (
-          <div className="rounded-[16px] p-5 mt-4 bg-card border border-border">
+        {isOwner &&
+        <div className="rounded-[16px] p-5 mt-4 bg-card border border-border">
             <div className="flex items-center gap-2 mb-4 text-brand">
               <Mail size={15} />
               <h2 className="text-sm font-black text-foreground">{t("contactSection")}</h2>
@@ -401,38 +401,38 @@ export default function Settings() {
             <p className="text-[11px] text-muted-foreground mb-3">{t("contactSectionDesc")}</p>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                dir="ltr"
-                className="flex-1 px-4 py-2.5 rounded-[10px] text-sm bg-background border border-input focus:outline-none"
-              />
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              dir="ltr"
+              className="flex-1 px-4 py-2.5 rounded-[10px] text-sm bg-background border border-input focus:outline-none" />
+            
               <button
-                onClick={saveContactEmail}
-                disabled={savingContact || !contactEmail.trim()}
-                className="px-4 py-2.5 rounded-[10px] text-xs font-black bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-1.5"
-              >
+              onClick={saveContactEmail}
+              disabled={savingContact || !contactEmail.trim()}
+              className="px-4 py-2.5 rounded-[10px] text-xs font-black bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-1.5">
+              
                 {savingContact ? <Loader2 size={12} className="animate-spin" /> : contactSaved ? <Check size={12} /> : null}
                 {savingContact ? t("saving") : contactSaved ? t("saved") : t("saveEmail")}
               </button>
             </div>
           </div>
-        )}
+        }
 
         {/* حذف الحساب — للطلاب والأساتذة وحسابات الإدارة المسجَّلة بالبريد */}
-        {canDelete && (
-          <button
-            onClick={() => setShowDeleteDialog(true)}
-            className="w-full mt-3 py-2.5 rounded-[10px] text-xs font-bold flex items-center justify-center gap-2 transition-all border border-destructive/30 text-destructive hover:bg-destructive/10"
-          >
+        {canDelete &&
+        <button
+          onClick={() => setShowDeleteDialog(true)}
+          className="w-full mt-3 py-2.5 rounded-[10px] text-xs font-bold flex items-center justify-center gap-2 transition-all border border-destructive/30 text-destructive hover:bg-destructive/10">
+          
             <Trash2 size={12} /> {t("deleteAccount")}
           </button>
-        )}
-        {!canDelete && (isSchoolAdmin || isOwner) && (
-          <div className="w-full mt-3 py-2.5 px-3 rounded-[10px] text-[10px] text-center text-muted-foreground border border-border">
+        }
+        {!canDelete && (isSchoolAdmin || isOwner) &&
+        <div className="w-full mt-3 py-2.5 px-3 rounded-[10px] text-[10px] text-center text-muted-foreground border border-border">
             {t("deleteAccountNotAvailable")}{" "}
             <Link to="/account-deletion" className="font-bold text-brand hover:underline">{t("legalDeletion")}</Link>
           </div>
-        )}
+        }
 
         {/* روابط قانونية (مطلوبة للمتاجر) */}
         <div className="mt-4 flex items-center justify-center gap-x-4 gap-y-1 flex-wrap text-[11px] text-muted-foreground">
@@ -444,28 +444,28 @@ export default function Settings() {
         {/* تسجيل الخروج — لكل الأدوار */}
         <button
           onClick={handleLogout}
-          className="w-full mt-4 py-3 rounded-[10px] text-sm font-black flex items-center justify-center gap-2 transition-all bg-destructive/10 border border-destructive/35 text-destructive hover:bg-destructive/20"
-        >
+          className="w-full mt-4 py-3 rounded-[10px] text-sm font-black flex items-center justify-center gap-2 transition-all bg-destructive/10 border border-destructive/35 text-destructive hover:bg-destructive/20">
+          
           <LogOut size={14} /> {t("logout")}
         </button>
 
         {/* نافذة تأكيد حذف الحساب */}
         <AnimatePresence>
-          {showDeleteDialog && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-terminal/70"
-              onClick={() => !deleting && setShowDeleteDialog(false)}
-            >
+          {showDeleteDialog &&
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-terminal/70"
+            onClick={() => !deleting && setShowDeleteDialog(false)}>
+            
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md rounded-[16px] p-6 bg-card text-card-foreground border border-border shadow-card"
-              >
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-[16px] p-6 bg-card text-card-foreground border border-border shadow-card">
+              
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -474,11 +474,11 @@ export default function Settings() {
                     </div>
                     <h3 className="font-black text-base text-destructive">{t("deleteAccountConfirmTitle")}</h3>
                   </div>
-                  {!deleting && (
-                    <button onClick={() => setShowDeleteDialog(false)} className="p-1 rounded-[6px] text-muted-foreground hover:text-foreground">
+                  {!deleting &&
+                <button onClick={() => setShowDeleteDialog(false)} className="p-1 rounded-[6px] text-muted-foreground hover:text-foreground">
                       <X size={16} />
                     </button>
-                  )}
+                }
                 </div>
 
                 {/* Warning */}
@@ -488,46 +488,46 @@ export default function Settings() {
                 {/* Confirmation input */}
                 <label className="block text-[11px] font-bold text-muted-foreground mb-1.5">{t("deleteAccountTypeConfirm")}</label>
                 <input
-                  value={deleteConfirmText}
-                  onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  disabled={deleting}
-                  placeholder={confirmWord}
-                  dir="ltr"
-                  className="w-full px-4 py-2.5 rounded-[10px] text-sm font-mono focus:outline-none mb-3 bg-background border border-input"
-                />
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                disabled={deleting}
+                placeholder={confirmWord}
+                dir="ltr"
+                className="w-full px-4 py-2.5 rounded-[10px] text-sm font-mono focus:outline-none mb-3 bg-background border border-input" />
+              
 
                 {/* Error/Success message */}
-                {deleteMsg && (
-                  <div className={`mb-3 px-3 py-2 rounded-[10px] text-xs font-bold border ${
-                    deleteMsg.ok ? "bg-success/10 border-success/35 text-success" : "bg-destructive/10 border-destructive/35 text-destructive"
-                  }`}>
+                {deleteMsg &&
+              <div className={`mb-3 px-3 py-2 rounded-[10px] text-xs font-bold border ${
+              deleteMsg.ok ? "bg-success/10 border-success/35 text-success" : "bg-destructive/10 border-destructive/35 text-destructive"}`
+              }>
                     {deleteMsg.text}
                   </div>
-                )}
+              }
 
                 {/* Actions */}
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setShowDeleteDialog(false)}
-                    disabled={deleting}
-                    className="flex-1 py-2.5 rounded-[10px] text-xs font-bold transition-all border border-border text-muted-foreground hover:text-foreground disabled:opacity-50"
-                  >
+                  onClick={() => setShowDeleteDialog(false)}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-[10px] text-xs font-bold transition-all border border-border text-muted-foreground hover:text-foreground disabled:opacity-50">
+                  
                     {t("cancelBtn")}
                   </button>
                   <button
-                    onClick={handleDeleteAccount}
-                    disabled={deleting || deleteConfirmText.trim() !== confirmWord}
-                    className="flex-1 py-2.5 rounded-[10px] text-xs font-black bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all disabled:opacity-40 flex items-center justify-center gap-1.5"
-                  >
+                  onClick={handleDeleteAccount}
+                  disabled={deleting || deleteConfirmText.trim() !== confirmWord}
+                  className="flex-1 py-2.5 rounded-[10px] text-xs font-black bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all disabled:opacity-40 flex items-center justify-center gap-1.5">
+                  
                     {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                     {t("deleteAccountBtn")}
                   </button>
                 </div>
               </motion.div>
             </motion.div>
-          )}
+          }
         </AnimatePresence>
       </div>
-    </div>
-  );
+    </div>);
+
 }
