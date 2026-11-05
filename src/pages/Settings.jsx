@@ -367,16 +367,24 @@ export default function Settings() {
             <Users size={15} />
             <h2 className="text-sm font-black text-foreground">فريق التطوير</h2>
           </div>
-          <div className="grid sm:grid-cols-3 gap-2.5 mb-3">
-            {["عبد الله ابو الهوى", "امير دراويش", "اسماعيل شحادة"].map((name) => (
-              <div key={name} className="rounded-[10px] p-3 bg-muted flex flex-col items-center text-center">
-                <div className="w-8 h-8 rounded-full mb-2 flex items-center justify-center bg-secondary/15 text-secondary">
-                  <User size={14} />
-                </div>
-                <div className="text-xs font-bold text-foreground">{name}</div>
+          {[
+            { label: "الطلاب", names: ["عبد الله ابو الهوى", "امير دراويش"] },
+            { label: "المشرفون (الأساتذة)", names: ["محمد حمود", "اسماعيل شحادة"] },
+          ].map((group) => (
+            <div key={group.label} className="mb-3">
+              <div className="text-[11px] font-bold text-muted-foreground mb-1.5">{group.label}</div>
+              <div className="grid sm:grid-cols-2 gap-2.5">
+                {group.names.map((name) => (
+                  <div key={name} className="rounded-[10px] p-3 bg-muted flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-secondary/15 text-secondary flex-shrink-0">
+                      <User size={14} />
+                    </div>
+                    <div className="text-xs font-bold text-foreground">{name}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
           <div className="flex items-center justify-center gap-2 rounded-[10px] p-3 bg-accent">
             <School size={14} className="text-brand flex-shrink-0" />
             <span className="text-xs font-bold text-foreground">مدرسة شعفاط الشاملة</span>
