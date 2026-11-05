@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import {
-  GraduationCap, Plus, Users, UserPlus, Trash2, ArrowLeft, ArrowRight,
+  GraduationCap, Plus, Users, UserPlus, Trash2, Pencil, ArrowLeft, ArrowRight,
   Sparkles, Layers,
 } from "lucide-react";
 import { t, useLang, useDir } from "@/lib/i18n";
@@ -17,6 +17,7 @@ export default function ClassesOverview({
   onCreateClassClick,
   onAddStudentToClass,
   onDeleteClass,
+  onRenameClass,
 }) {
   useLang();
   const direction = useDir();
@@ -81,6 +82,16 @@ export default function ClassesOverview({
                       <GraduationCap size={20} />
                     </div>
                     <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRenameClass(cls);
+                        }}
+                        className="p-1.5 rounded-[8px] text-muted-foreground hover:text-brand hover:bg-accent transition-colors"
+                        title={t("smRenameClass")}
+                      >
+                        <Pencil size={13} />
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

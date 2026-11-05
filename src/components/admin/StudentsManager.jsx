@@ -5,6 +5,7 @@ import {
   FileSpreadsheet, AlertCircle, GraduationCap, Edit2, ArrowRight, ArrowLeft,
 } from "lucide-react";
 import CreateClassModal from "./CreateClassModal";
+import RenameClassModal from "./RenameClassModal";
 import ClassesOverview from "./ClassesOverview";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -44,6 +45,7 @@ export default function StudentsManager({ school, onBack }) {
   const [activeClass, setActiveClass] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
+  const [renamingClass, setRenamingClass] = useState(null);
   const [classNotice, setClassNotice] = useState(null);
   const [form, setForm] = useState({ name: "", code: "", email: "", class_name: "" });
   const [formError, setFormError] = useState(null);
@@ -106,15 +108,52 @@ export default function StudentsManager({ school, onBack }) {
 
   const handleDeleteClass = async (clsToDelete) => {
     const countInClass = (students || []).filter((s) => s.class_name?.trim() === clsToDelete).length;
-    const msg = `${t("smDeleteClassConfirm")} (${clsToDelete})` + (countInClass > 0 ? `\n• يحتوي على ${countInClass} طالب` : "");
+    const msg = `${t("smDeleteClassConfirm")} (${clsToDelete})`
+      + (countInClass > 0 ? `\n• ${countInClass} ${t("smStudentWord")}\n• ${t("smDeleteClassMoveNote")}` : "");
     if (!(await confirmDialog(msg))) return;
     const updated = (schoolClasses || []).filter((c) => c !== clsToDelete);
     setSchoolClasses(updated);
     try {
       await adminUpdate("School", school.id, { classes: updated });
     } catch {}
+    // نقل طلاب الصف المحذوف إلى «بدون صف» حتى لا يفقدوا ظهورهم في لوحة الصفوف
+    const inClass = (students || []).filter((s) => s.class_name?.trim() === clsToDelete);
+    if (inClass.length > 0) {
+      setStudents((prev) => (prev || []).map((s) =>
+        s.class_name?.trim() === clsToDelete ? { ...s, class_name: null } : s
+      ));
+      for (const s of inClass) {
+        await adminUpdate("StudentProfile", s.id, { class_name: null }).catch(() => {});
+      }
+    }
     if (activeClass === clsToDelete) {
       setActiveClass(null);
+    }
+  };
+
+  const handleRenameClass = async (oldName, newName) => {
+    const trimmed = String(newName || "").trim();
+    if (!trimmed) throw new Error(t("smErrClassName"));
+    if (trimmed === oldName) return;
+    const dup = (schoolClasses || []).some(
+      (c) => c !== oldName && c.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (dup) throw new Error(t("smErrClassExists"));
+    const updated = Array.from(
+      new Set([...(schoolClasses || []).map((c) => (c === oldName ? trimmed : c)), trimmed])
+    ).sort();
+    setSchoolClasses(updated);
+    await adminUpdate("School", school.id, { classes: updated });
+    // تحديث اسم الصف لجميع طلابه
+    const inClass = (students || []).filter((s) => s.class_name?.trim() === oldName);
+    setStudents((prev) => (prev || []).map((s) =>
+      s.class_name?.trim() === oldName ? { ...s, class_name: trimmed } : s
+    ));
+    for (const s of inClass) {
+      await adminUpdate("StudentProfile", s.id, { class_name: trimmed }).catch(() => {});
+    }
+    if (activeClass === oldName) {
+      setActiveClass(trimmed);
     }
   };
 
@@ -459,6 +498,7 @@ export default function StudentsManager({ school, onBack }) {
             openAddStudentForClass(cls);
           }}
           onDeleteClass={handleDeleteClass}
+          onRenameClass={(cls) => setRenamingClass(cls)}
         />
       ) : (
         /* المشهد الثاني: داخل الصف المحدد — هنا فقط يظهر الطلاب */
@@ -741,6 +781,15 @@ export default function StudentsManager({ school, onBack }) {
         onClose={() => setShowCreateClassModal(false)}
         existingClasses={availableClasses}
         onSubmit={handleCreateClass}
+      />
+
+      {/* Rename Class Modal */}
+      <RenameClassModal
+        isOpen={!!renamingClass}
+        initialName={renamingClass || ""}
+        existingClasses={availableClasses}
+        onClose={() => setRenamingClass(null)}
+        onSubmit={(newName) => handleRenameClass(renamingClass, newName)}
       />
     </div>
   );

@@ -1034,6 +1034,10 @@ const T = {
   smErrClassExists: { ar: "هذا الصف موجود بالفعل", en: "This class already exists", he: "כיתה זו כבר קיימת" },
   smDeleteClass: { ar: "حذف الصف", en: "Delete Class", he: "מחיקת כיתה" },
   smDeleteClassConfirm: { ar: "هل أنت متأكد من إزالة هذا الصف من قائمة الصفوف؟", en: "Are you sure you want to remove this class from the list?", he: "האם למחוק כיתה זו מהרשימה?" },
+  smDeleteClassMoveNote: { ar: "سيتم نقل طلاب هذا الصف إلى «بدون صف» ولن يُحذف أي طالب.", en: "Students in this class will be moved to 'No Class'. No student will be deleted.", he: "תלמידי הכיתה יועברו ל'ללא כיתה'. שום תלמיד לא יימחק." },
+  smRenameClass: { ar: "تعديل اسم الصف", en: "Rename Class", he: "שינוי שם כיתה" },
+  smRenameClassDesc: { ar: "سيتم تحديث الاسم الجديد لجميع الطلاب المسجلين في هذا الصف", en: "The new name will apply to all students in this class", he: "השם החדש יחול על כל תלמידי הכיתה" },
+  smRenameSave: { ar: "حفظ الاسم الجديد", en: "Save New Name", he: "שמור שם חדש" },
   smAddAnotherToClass: { ar: "إضافة طالب آخر لنفس الصف", en: "Add another student to this class", he: "הוסף תלמיד נוסף לאותה כיתה" },
 
   /* ─── تقارير الطلاب (AdminStudentsReport) ─── */
