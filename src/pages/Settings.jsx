@@ -369,7 +369,7 @@ export default function Settings() {
           </div>
           {[
           { label: "الطلاب", names: ["عبد الله ابو الهوى", "امير دراويش"] },
-          { label: "المشرفون (الأساتذة)", names: ["محمد حمود", "اسماعيل شحادة"] }].
+          { label: "تم شرح الدروس بواسطة (الأساتذة)", names: ["محمد حمود", "اسماعيل شحادة"] }].
           map((group) =>
           <div key={group.label} className="mb-3">
               <div className="text-[11px] font-bold text-muted-foreground mb-1.5">{group.label}</div>
