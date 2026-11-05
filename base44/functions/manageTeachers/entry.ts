@@ -144,20 +144,18 @@ export default async function(req) {
 }
 
 async function generateUniqueTeacherCode(svc, schoolId) {
-  // توليد آمن (CSPRNG) برمز أبجدي رقمي عالي العشوائية بدلاً من رقم من Math.random
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  for (let attempt = 0; attempt < 20; attempt++) {
-    const bytes = new Uint8Array(6);
-    crypto.getRandomValues(bytes);
-    let suffix = "";
-    for (let i = 0; i < bytes.length; i++) suffix += chars[bytes[i] % chars.length];
-    const code = `TCH-${suffix}`;
-    const dup = await svc.entities.Teacher.filter({ school_id: schoolId, teacher_code: code });
-    if (!dup || dup.length === 0) return code;
+  // رمز متسلسل داخل المدرسة: TCH001، TCH002 …
+  const rows = await svc.entities.Teacher.filter({ school_id: schoolId }, "-created_date", 10000);
+  let max = 0;
+  for (const t of rows || []) {
+    const m = String(t.teacher_code || "").trim().match(/^TCH(\d+)$/i);
+    if (m) max = Math.max(max, parseInt(m[1], 10) || 0);
   }
-  const bytes = new Uint8Array(8);
-  crypto.getRandomValues(bytes);
-  let fallback = "";
-  for (let i = 0; i < bytes.length; i++) fallback += chars[bytes[i] % chars.length];
-  return `TCH-${fallback}`;
+  let n = max + 1;
+  let code = `TCH${String(n).padStart(3, "0")}`;
+  while ((rows || []).some((t: any) => String(t.teacher_code || "").toUpperCase() === code)) {
+    n += 1;
+    code = `TCH${String(n).padStart(3, "0")}`;
+  }
+  return code;
 }

@@ -27,12 +27,9 @@ export async function registerStudent({ user, fullName, email, schoolCode, stude
   });
   let student = students?.[0] || null;
 
-  // 3) إن لم يوجد — هل هو طالب تابع لمدرسة أخرى؟ → بيانات غير متطابقة
+  // 3) إن لم يوجد في هذه المدرسة → رمز غير صحيح
+  // (الرموز متسلسلة داخل كل مدرسة، فقد يتكرر STU001 بين المدارس — لذلك لا فحص عالمي)
   if (!student) {
-    const elsewhere = await base44.entities.StudentProfile.filter({ student_code: sCode });
-    if (elsewhere && elsewhere.some((s) => s.school_id !== school.id)) {
-      return { ok: false, error: t("errMismatch") };
-    }
     return { ok: false, error: t("errStudentCode") };
   }
 

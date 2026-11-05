@@ -13,7 +13,7 @@ import { UNCLAIMED } from "@/lib/registrationUtils";
 import { t, useLang, useDir, getLang } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
 import { studentsFromCsv } from "@/lib/csvStudents";
-import { randomCode } from "@/lib/plans";
+import { nextSequentialCode } from "@/lib/codeSequence";
 import {
   adminFilter, adminCreate, adminUpdate, adminDelete, adminBulkCreate,
   isSchoolAdminSession,
@@ -47,7 +47,7 @@ export default function StudentsManager({ school, onBack }) {
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
   const [renamingClass, setRenamingClass] = useState(null);
   const [classNotice, setClassNotice] = useState(null);
-  const [form, setForm] = useState({ name: "", code: "", email: "", class_name: "" });
+  const [form, setForm] = useState({ name: "", email: "", class_name: "" });
   const [formError, setFormError] = useState(null);
   const [editingStudentId, setEditingStudentId] = useState(null);
   const [editingClassValue, setEditingClassValue] = useState("");
@@ -101,7 +101,7 @@ export default function StudentsManager({ school, onBack }) {
     if (andAddStudent) {
       setFormError(null);
       setClassNotice(t("smClassCreatedBanner").replace("{class}", trimmed));
-      setForm({ name: "", code: "", email: "", class_name: trimmed });
+      setForm({ name: "", email: "", class_name: trimmed });
       setShowForm(true);
     }
   };
@@ -164,22 +164,19 @@ export default function StudentsManager({ school, onBack }) {
       setFormError(null);
     }
     setClassNotice(null);
-    setForm({ name: "", code: "", email: "", class_name: clsName === "__none__" ? "" : (clsName || "") });
+    setForm({ name: "", email: "", class_name: clsName === "__none__" ? "" : (clsName || "") });
     setShowForm(true);
   };
 
   const addStudent = async (e) => {
     e.preventDefault();
-    const code = form.code.trim();
-    if (!form.name.trim() || !code) { setFormError(t("smErrNameCode")); return; }
+    if (!form.name.trim()) { setFormError(t("smErrNameCode")); return; }
     if (isLimitReached) {
       setFormError(t("smLimitReachedWarning").replace("{limit}", limit));
       return;
     }
-    if ((students || []).some((s) => String(s.student_code || "").trim().toLowerCase() === code.toLowerCase())) {
-      setFormError(t("smErrDupCode"));
-      return;
-    }
+    // رمز متسلسل تلقائي (STU001، STU002 …) — لا يُدخل يدوياً
+    const code = nextSequentialCode((students || []).map((s) => s.student_code), "STU");
     setBusy(true);
     setFormError(null);
     try {
@@ -202,7 +199,7 @@ export default function StudentsManager({ school, onBack }) {
       if (!isSchoolAdminSession()) {
         base44.entities.School.update(school.id, { current_student_count: (students || []).length + 1 }).catch(() => {});
       }
-      setForm({ name: "", code: "", email: "", class_name: activeClass && activeClass !== "__none__" ? activeClass : "" });
+      setForm({ name: "", email: "", class_name: activeClass && activeClass !== "__none__" ? activeClass : "" });
       setClassNotice(null);
       setShowForm(false);
     } catch (err) {
@@ -301,15 +298,17 @@ export default function StudentsManager({ school, onBack }) {
 
       const existing = await adminFilter("StudentProfile", { school_id: school.id }, "-created_date", 10000);
       const existingCodes = new Set((existing || []).map((s) => String(s.student_code || "").trim().toLowerCase()));
+      const usedCodes = [...existingCodes]; // يشمل الرموز المتسلسلة المولّدة في هذه الدفعة
       const limitN = school.student_limit || 0;
       const toCreate = [];
       for (const s of imported) {
         let code = String(s.student_code || "").trim();
         const name = String(s.full_name || "").trim();
         if (!name) continue;
-        // ملف بأسماء فقط (بدون عمود رمز) → توليد رمز فريد تلقائياً
+        // ملف بأسماء فقط (بدون عمود رمز) → رمز متسلسل تلقائياً (STU001، STU002 …)
         if (!code) {
-          do { code = randomCode("STU-", 6); } while (existingCodes.has(code.toLowerCase()));
+          code = nextSequentialCode(usedCodes, "STU");
+          usedCodes.push(code);
         }
         if (existingCodes.has(code.toLowerCase())) continue;
         if (limitN > 0 && (existing || []).length + toCreate.length >= limitN) break;
@@ -547,7 +546,7 @@ export default function StudentsManager({ school, onBack }) {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               onSubmit={addStudent}
-              className="rounded-[16px] p-4 grid sm:grid-cols-4 gap-3 items-end bg-card border border-border"
+              className="rounded-[16px] p-4 grid sm:grid-cols-3 gap-3 items-end bg-card border border-border"
             >
               {classNotice && (
                 <div className="sm:col-span-4 flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-[10px] bg-secondary/15 border border-secondary/35 text-secondary text-xs font-bold">
@@ -575,16 +574,9 @@ export default function StudentsManager({ school, onBack }) {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smStudentCode")} *</label>
-                <input
-                  value={form.code}
-                  onChange={(e) => setForm({ ...form, code: e.target.value })}
-                  placeholder="ST10025"
-                  dir="ltr"
-                  className="w-full px-3 py-2 rounded-[10px] text-xs font-mono bg-background border border-input focus:outline-none"
-                  required
-                />
+              <div className="flex items-center gap-1.5 px-1 sm:pb-2.5 text-[10px] font-bold text-muted-foreground">
+                <KeyRound size={12} className="text-brand flex-shrink-0" />
+                <span>{t("smCodeAuto")}</span>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-muted-foreground mb-1">{t("smEmailOptional")}</label>

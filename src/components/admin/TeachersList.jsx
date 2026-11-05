@@ -6,7 +6,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { t, useLang, useDir } from "@/lib/i18n";
 import { useDialogs } from "@/components/DialogProvider";
-import { randomCode } from "@/lib/plans";
+import { nextSequentialCode } from "@/lib/codeSequence";
 
 /**
  * قائمة أساتذة مدرسة — يُستخدم من قبل المالك (Owner) من SchoolsManager.
@@ -77,14 +77,10 @@ export default function TeachersList({ school, onBack }) {
   const codeTaken = (code) =>
     (teachers || []).some((tc) => String(tc.teacher_code || "").toLowerCase() === code.toLowerCase());
 
+  // رمز أستاذ متسلسل تلقائي (TCH001، TCH002 …)
   const uniqueTeacherCode = async () => {
-    for (let i = 0; i < 10; i++) {
-      const c = randomCode("TCH-", 6);
-      if (codeTaken(c)) continue;
-      const dup = await base44.entities.Teacher.filter({ school_id: school.id, teacher_code: c });
-      if (!dup?.length) return c;
-    }
-    return `${randomCode("TCH-", 6)}${Date.now().toString(36).slice(-2).toUpperCase()}`;
+    const rows = await base44.entities.Teacher.filter({ school_id: school.id }, "-created_date", 2000).catch(() => []);
+    return nextSequentialCode((rows || []).map((tc) => tc.teacher_code), "TCH");
   };
 
   const submit = async (e) => {
@@ -245,7 +241,7 @@ export default function TeachersList({ school, onBack }) {
                 onChange={(e) => setForm({ ...form, teacher_code: e.target.value })}
                 dir="ltr"
                 disabled={!!editId}
-                placeholder="TCH-00125"
+                placeholder="TCH001"
                 className={`${inputCls} font-mono disabled:opacity-50`}
               />
               {!editId && <p className="text-[9px] text-muted-foreground mt-0.5">{t("teacherCodeAuto")}</p>}
