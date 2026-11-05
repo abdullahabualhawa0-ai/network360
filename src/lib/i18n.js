@@ -239,7 +239,7 @@ const T = {
 
   /* ─── الصفحة الرئيسية — تذييل ─── */
   homeCredits: { ar: "عمل الطلاب: عبد الله أبو الهوى ، امير دراويش", en: "Student work: Abdullah Abu Alhawa, Amir Darawish", he: "עבודת תלמידים: עבדאללה אבו אלהווא, אמיר דראוויש" },
-  homeBrand: { ar: "EDUPRO+", en: "EDUPRO+", he: "EDUPRO+" },
+  homeBrand: { ar: "NETWORK360", en: "NETWORK360", he: "NETWORK360" },
   newBadge: { ar: "جديد", en: "New", he: "חדש" },
 
   /* ─── دخول الطالب — روابط الإدارة ─── */
@@ -1079,10 +1079,34 @@ const T = {
   examTargetClassBadge: { ar: "مخصص للصف", en: "Class", he: "כיתה" },
   examTargetClassesBadge: { ar: "مخصص لصفوف", en: "Classes", he: "כיתות" },
   examAllClassesBadge: { ar: "عام لكل الصفوف", en: "All Classes", he: "לכל הכיתות" },
+
+  /* ─── البرعاية وفريق التطوير ─── */
+  sponsoredBy: { ar: "برعاية", en: "Sponsored by", he: "בחסות" },
+  sponsorSchoolName: { ar: "مدرسة شعفاط الشاملة للبنين", en: "Shuafat Comprehensive School for Boys", he: "בית הספר המקיף שועפט לבנים" },
+  sponsorSchoolLine: { ar: "برعاية مدرسة شعفاط الشاملة للبنين", en: "Sponsored by Shuafat Comprehensive School for Boys", he: "בחסות בית הספר המקיף שועפט לבנים" },
+  sponsorSchoolNote: { ar: "الراعي الرسمي للتطبيق", en: "Official sponsor of the app", he: "נותן החסות הרשמי של האפליקציה" },
+  devTeamTitle: { ar: "فريق التطوير", en: "Development Team", he: "צוות הפיתוח" },
+  devTeamStudents: { ar: "المطورين (الطلاب)", en: "Developers (Students)", he: "מפתחים (תלמידים)" },
+  devTeamTeachers: { ar: "تم شرح الدروس بواسطة (الأساتذة)", en: "Lessons explained by (Teachers)", he: "השיעורים הוסברו על ידי (מורים)" },
+  devNameAbdullah: { ar: "عبد الله ابو الهوى", en: "Abdullah Abu Al-Hawa", he: "עבדאללה אבו אל-הווא" },
+  devNameAmir: { ar: "امير دراويش", en: "Amir Darawish", he: "אמיר דראוויש" },
+  devNameMohammad: { ar: "محمد حمود", en: "Mohammad Hamoud", he: "מוחמד חמוד" },
+  devNameIsmail: { ar: "اسماعيل شحادة", en: "Ismail Shahada", he: "ישמעאל שחאדה" },
+  devSupervisedBy: { ar: "بإشراف مدرسة شعفاط الشاملة", en: "Under the supervision of Shuafat Comprehensive School", he: "בפיקוח בית הספר המקיף שועפט" },
 };
 
+/** اللغة المختارة، وإلا لغة الجهاز الافتراضية، وإلا العربية */
 export function getLang() {
-  try { return localStorage.getItem(STORAGE_KEY) || "ar"; } catch { return "ar"; }
+  let saved = null;
+  try { saved = localStorage.getItem(STORAGE_KEY); } catch {}
+  if (saved && LANG_DIR[saved]) return saved;
+  try {
+    const nav = String(navigator.language || navigator.languages?.[0] || "").toLowerCase();
+    if (nav.startsWith("he") || nav.startsWith("iw")) return "he";
+    if (nav.startsWith("en")) return "en";
+    if (nav.startsWith("ar")) return "ar";
+  } catch {}
+  return "ar";
 }
 
 export function setLang(lang) {

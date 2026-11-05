@@ -365,11 +365,11 @@ export default function Settings() {
         <div className="rounded-[16px] p-5 mt-4 bg-card border border-border">
           <div className="flex items-center gap-2 mb-4 text-brand">
             <Users size={15} />
-            <h2 className="text-sm font-black text-foreground">فريق التطوير</h2>
+            <h2 className="text-sm font-black text-foreground">{t("devTeamTitle")}</h2>
           </div>
           {[
-          { label: "المطورين (الطلاب)", names: ["عبد الله ابو الهوى", "امير دراويش"] },
-          { label: "تم شرح الدروس بواسطة (الأساتذة)", names: ["محمد حمود", "اسماعيل شحادة"] }].
+          { label: t("devTeamStudents"), names: [t("devNameAbdullah"), t("devNameAmir")] },
+          { label: t("devTeamTeachers"), names: [t("devNameMohammad"), t("devNameIsmail")] }].
           map((group) =>
           <div key={group.label} className="mb-3">
               <div className="text-[11px] font-bold text-muted-foreground mb-1.5">{group.label}</div>
@@ -387,7 +387,7 @@ export default function Settings() {
           )}
           <div className="flex items-center justify-center gap-2 rounded-[10px] p-3 bg-accent">
             <School size={14} className="text-brand flex-shrink-0" />
-            <span className="text-xs font-bold text-foreground">باشراف مدرسة شعفاط الشاملة</span>
+            <span className="text-xs font-bold text-foreground">{t("devSupervisedBy")}</span>
           </div>
         </div>
 

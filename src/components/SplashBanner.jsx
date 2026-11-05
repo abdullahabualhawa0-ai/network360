@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MousePointerClick } from "lucide-react";
-import { useDir } from "@/lib/i18n";
+import { Loader2 } from "lucide-react";
+import { t, useDir, useLang } from "@/lib/i18n";
 
 const SCHOOL_LOGO =
-  "https://base44.app/api/apps/69d03b21d08930672e1b680e/files/mp/public/69d03b21d08930672e1b680e/1ee1deca8_shufat-school-logo.png";
+  "https://base44.app/api/apps/69d03b21d08930672e1b680e/files/mp/public/69d03b21d08930672e1b680e/56cd31a1e_shufat-school-mark.png";
 const APP_LOGO =
   "https://media.base44.com/images/public/69d03b21d08930672e1b680e/67d6360c9_logo.png";
 
@@ -13,10 +13,11 @@ const DURATION_MS = 5200;
 
 /**
  * SplashBanner — بانر افتتاحي يظهر عند أول فتح للتطبيق في الجلسة،
- * متحرك وتفاعلي (نقرة للتخطي)، ثم يختفي ويظهر التطبيق.
+ * متحرك، ويختفي تلقائياً بعد اكتمال التحميل ليظهر التطبيق.
  */
 export default function SplashBanner() {
   const direction = useDir();
+  useLang();
   const [visible, setVisible] = useState(() => {
     try {
       if (new URLSearchParams(window.location.search).has("splash")) return true;
@@ -27,20 +28,18 @@ export default function SplashBanner() {
   });
   const [appLogoOk, setAppLogoOk] = useState(true);
 
-  const dismiss = useCallback(() => {
-    try {
-      sessionStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-    setVisible(false);
-  }, []);
-
   useEffect(() => {
     if (!visible) return;
-    const timer = setTimeout(dismiss, DURATION_MS);
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.setItem(SEEN_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      setVisible(false);
+    }, DURATION_MS);
     return () => clearTimeout(timer);
-  }, [visible, dismiss]);
+  }, [visible]);
 
   return (
     <AnimatePresence>
@@ -48,17 +47,11 @@ export default function SplashBanner() {
         <motion.div
           key="app-splash"
           dir={direction}
-          role="button"
-          tabIndex={0}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.04 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          onClick={dismiss}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") dismiss();
-          }}
-          className="fixed inset-0 z-[200] flex flex-col items-center justify-center px-6 bg-background text-foreground cursor-pointer select-none overflow-hidden"
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center px-6 bg-background text-foreground select-none overflow-hidden"
         >
           {/* شعار التطبيق مع حلقات متحركة */}
           <div className="relative w-[176px] h-[176px] flex items-center justify-center mb-6">
@@ -83,7 +76,7 @@ export default function SplashBanner() {
               {appLogoOk ? (
                 <img
                   src={APP_LOGO}
-                  alt="شعار التطبيق"
+                  alt={t("appName")}
                   className="w-full h-full object-contain"
                   onError={() => setAppLogoOk(false)}
                 />
@@ -100,24 +93,23 @@ export default function SplashBanner() {
             transition={{ delay: 0.2, duration: 0.4 }}
             className="text-3xl sm:text-4xl font-black tracking-tight text-center"
           >
-            شبكتي
+            NETWORK360
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.32, duration: 0.4 }}
-            className="mt-2 text-xs sm:text-sm font-bold tracking-[0.35em] text-brand"
-            dir="ltr"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.38, duration: 0.4 }}
+            className="mt-2 text-sm font-bold text-brand text-center"
           >
-            NETWORK360
+            {t("appName")}
           </motion.p>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.45, duration: 0.4 }}
-            className="mt-1.5 text-[11px] text-muted-foreground text-center"
+            transition={{ delay: 0.48, duration: 0.4 }}
+            className="mt-1 text-[11px] text-muted-foreground text-center"
           >
-            مبادئ الشبكات — من الأساسيات إلى الإعدادات المتقدمة
+            {t("appTagline")}
           </motion.p>
 
           {/* برعاية المدرسة */}
@@ -127,37 +119,32 @@ export default function SplashBanner() {
             transition={{ delay: 0.6, duration: 0.45 }}
             className="mt-9 w-full max-w-sm"
           >
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.65, duration: 0.5 }}
-              className="flex items-center gap-3 mb-3"
-            >
+            <div className="flex items-center gap-3 mb-3">
               <span className="h-px flex-1 bg-border" />
-              <span className="text-[10px] font-bold text-muted-foreground">برعاية</span>
+              <span className="text-[10px] font-bold text-muted-foreground">{t("sponsoredBy")}</span>
               <span className="h-px flex-1 bg-border" />
-            </motion.div>
+            </div>
             <div className="flex items-center gap-3 rounded-[14px] p-3 bg-card border border-border">
               <motion.img
                 src={SCHOOL_LOGO}
-                alt="شعار مدرسة شعفاط الشاملة للبنين"
+                alt={t("sponsorSchoolName")}
                 initial={{ scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.75, type: "spring", stiffness: 150, damping: 15 }}
-                className="w-14 h-14 rounded-[10px] object-contain bg-black flex-shrink-0"
+                className="w-16 h-16 object-contain flex-shrink-0"
               />
               <div className="min-w-0">
                 <div className="text-sm font-black text-foreground leading-tight">
-                  مدرسة شعفاط الشاملة للبنين
+                  {t("sponsorSchoolName")}
                 </div>
                 <div className="text-[10px] text-muted-foreground mt-0.5">
-                  الراعي الرسمي لتطبيق شبكتي
+                  {t("sponsorSchoolNote")}
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* شريط التقدم + تلميح */}
+          {/* شريط التقدم */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -173,7 +160,7 @@ export default function SplashBanner() {
               />
             </div>
             <span className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground">
-              <MousePointerClick size={11} /> اضغط في أي مكان للمتابعة
+              <Loader2 size={11} className="animate-spin" /> {t("loading")}
             </span>
           </motion.div>
         </motion.div>

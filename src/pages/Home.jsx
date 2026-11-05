@@ -40,8 +40,8 @@ export default function Home() {
             <p className="text-xs mb-10 text-muted-foreground text-center" dir="rtl">
             
             </p>
-               <p className="mb-10 text-xl text-muted-foreground" dir="rtl">
-              EDUPRO+
+            <p className="mb-10 text-lg font-bold text-brand">
+              {t("sponsorSchoolLine")}
             </p>
           </motion.div>
         </div>
