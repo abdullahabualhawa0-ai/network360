@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, User, GraduationCap, Check, Loader2, School, Mail, LogOut, Shield, Trash2, AlertTriangle, X } from "lucide-react";
+import { Settings as SettingsIcon, User, Users, GraduationCap, Check, Loader2, School, Mail, LogOut, Shield, Trash2, AlertTriangle, X } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -360,6 +360,28 @@ export default function Settings() {
           </motion.div>
         </div>
         )}
+
+        {/* فريق التطوير */}
+        <div className="rounded-[16px] p-5 mt-4 bg-card border border-border">
+          <div className="flex items-center gap-2 mb-4 text-brand">
+            <Users size={15} />
+            <h2 className="text-sm font-black text-foreground">فريق التطوير</h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-2.5 mb-3">
+            {["عبد الله ابو الهوى", "امير دراويش", "اسماعيل شحادة"].map((name) => (
+              <div key={name} className="rounded-[10px] p-3 bg-muted flex flex-col items-center text-center">
+                <div className="w-8 h-8 rounded-full mb-2 flex items-center justify-center bg-secondary/15 text-secondary">
+                  <User size={14} />
+                </div>
+                <div className="text-xs font-bold text-foreground">{name}</div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-2 rounded-[10px] p-3 bg-accent">
+            <School size={14} className="text-brand flex-shrink-0" />
+            <span className="text-xs font-bold text-foreground">مدرسة شعفاط الشاملة</span>
+          </div>
+        </div>
 
         {/* معلومات التواصل — للمالك فقط تعديل */}
         {isOwner && (
