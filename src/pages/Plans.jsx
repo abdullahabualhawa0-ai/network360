@@ -24,15 +24,15 @@ export default function Plans() {
   const [error, setError] = useState(null);
   const [hp, setHp] = useState("");
 
-  const [indForm, setIndForm] = useState({ fullName: "", email: "", phone: "", country: "" });
+  const [indForm, setIndForm] = useState({ fullName: "", email: "", phone: "" });
   const [schForm, setSchForm] = useState({
-    schoolName: "", adminName: "", fullName: "", email: "", phone: "", country: "",
+    schoolName: "", adminName: "", fullName: "", email: "", phone: "",
     expectedStudents: "", expectedTeachers: "",
   });
 
   const submitIndividual = async (e) => {
     e.preventDefault();
-    if (!indForm.fullName.trim() || !indForm.email.trim() || !indForm.phone.trim() || !indForm.country.trim()) {
+    if (!indForm.fullName.trim() || !indForm.email.trim() || !indForm.phone.trim()) {
       setError(t("regErrRequired"));
       return;
     }
@@ -48,14 +48,12 @@ export default function Plans() {
         fullName: indForm.fullName.trim(),
         email: indForm.email.trim(),
         phone: indForm.phone.trim(),
-        country: indForm.country.trim(),
         website: hp,
       }, {
         request_type: "individual",
         full_name: indForm.fullName.trim(),
         email: indForm.email.trim(),
         phone: indForm.phone.trim(),
-        country: indForm.country.trim(),
         status: "new",
       });
       setStep("done");
@@ -68,7 +66,7 @@ export default function Plans() {
 
   const submitSchool = async (e) => {
     e.preventDefault();
-    const req = ["schoolName", "adminName", "fullName", "email", "phone", "country", "expectedStudents", "expectedTeachers"];
+    const req = ["schoolName", "adminName", "fullName", "email", "phone", "expectedStudents", "expectedTeachers"];
     for (const k of req) {
       if (!String(schForm[k] || "").trim()) {
         setError(t("regErrRequired"));
@@ -87,7 +85,6 @@ export default function Plans() {
         fullName: schForm.fullName.trim(),
         email: schForm.email.trim(),
         phone: schForm.phone.trim(),
-        country: schForm.country.trim(),
         schoolName: schForm.schoolName.trim(),
         expectedStudents: schForm.expectedStudents,
         expectedTeachers: schForm.expectedTeachers,
@@ -97,7 +94,6 @@ export default function Plans() {
         full_name: schForm.fullName.trim(),
         email: schForm.email.trim(),
         phone: schForm.phone.trim(),
-        country: schForm.country.trim(),
         school_name: schForm.schoolName.trim(),
         admin_name: schForm.adminName.trim(),
         expected_students: Number(schForm.expectedStudents) || 0,
@@ -170,7 +166,6 @@ export default function Plans() {
                 <Field label={`${t("regFullName")} *`} value={indForm.fullName} onChange={(v) => setIndForm({ ...indForm, fullName: v })} required />
                 <Field label={`${t("regEmail")} *`} type="email" dir="ltr" value={indForm.email} onChange={(v) => setIndForm({ ...indForm, email: v })} required />
                 <Field label={`${t("regPhone")} *`} dir="ltr" value={indForm.phone} onChange={(v) => setIndForm({ ...indForm, phone: v })} required />
-                <Field label={`${t("regCountry")} *`} value={indForm.country} onChange={(v) => setIndForm({ ...indForm, country: v })} required />
                 <ErrorRow error={error} />
                 <div className="sm:col-span-2">
                   <button
@@ -223,7 +218,6 @@ export default function Plans() {
                 <Field label={`${t("regFullName")} *`} value={schForm.fullName} onChange={(v) => setSchForm({ ...schForm, fullName: v })} required />
                 <Field label={`${t("regEmail")} *`} type="email" dir="ltr" value={schForm.email} onChange={(v) => setSchForm({ ...schForm, email: v })} required />
                 <Field label={`${t("regPhone")} *`} dir="ltr" value={schForm.phone} onChange={(v) => setSchForm({ ...schForm, phone: v })} required />
-                <Field label={`${t("regCountry")} *`} value={schForm.country} onChange={(v) => setSchForm({ ...schForm, country: v })} required />
                 <Field label={`${t("regExpectedStudents")} *`} type="number" min="1" value={schForm.expectedStudents} onChange={(v) => setSchForm({ ...schForm, expectedStudents: v })} required />
                 <div>
                   <Field label={`${t("regExpectedTeachers")} *`} type="number" min="1" value={schForm.expectedTeachers} onChange={(v) => setSchForm({ ...schForm, expectedTeachers: v })} required />
