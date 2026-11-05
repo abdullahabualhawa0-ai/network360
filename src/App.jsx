@@ -12,6 +12,7 @@ import PageLoader from './components/PageLoader';
 import { DialogProvider } from './components/DialogProvider';
 import StudentGuard from '@/components/StudentGuard';
 import TeacherGuard from '@/components/TeacherGuard';
+import SplashBanner from '@/components/SplashBanner';
 
 // ── تحميل الصفحات عند الحاجة فقط (Code Splitting) لتقليل حجم التحميل الأولي ──
 const Login = lazy(() => import('./pages/Login'));
@@ -163,6 +164,7 @@ function App() {
           </Router>
         </DialogProvider>
         <Toaster />
+        <SplashBanner />
       </QueryClientProvider>
     </AuthProvider>
   )
